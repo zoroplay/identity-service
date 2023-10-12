@@ -1,10 +1,11 @@
+import { Exclude } from 'class-transformer';
 import { Entity, Column, PrimaryGeneratedColumn, JoinColumn, ManyToOne, OneToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Role } from './role.entity';
 
 @Entity({ name: 'users' })
 export class User {
 
-    @PrimaryGeneratedColumn()
+    @PrimaryGeneratedColumn({ type: 'bigint' })
     id: number;
 
     @ManyToOne(() => Role, { eager: true })
@@ -20,6 +21,7 @@ export class User {
     @Column({ unique: true })
     username: string;
 
+    @Exclude()
     @Column({ length: 100, nullable: true })
     password: string;
 
@@ -38,16 +40,17 @@ export class User {
     @Column({ default: false })
     verified: boolean;
 
-    @Column({ default: 0 })
+    @Column({ type: 'tinyint', default: 0 })
     status: number;
 
     @Column()
     isActive: boolean;
 
-    @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)" })
     created_at: Date;
 
-    @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)", onUpdate: "CURRENT_TIMESTAMP(6)" })
     updated_at: Date;
+
 
 }

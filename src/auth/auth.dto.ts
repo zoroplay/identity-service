@@ -1,21 +1,23 @@
 import { IsEmail, IsString, MinLength } from 'class-validator';
-import { LoginRequest, RegisterRequest, ValidateRequest } from './auth.pb';
+import { LoginRequest, SportBookRegisterRequest, ValidateRequest } from '../proto/auth.pb';
 
 export class LoginRequestDto implements LoginRequest {
     @IsEmail()
-    public readonly email: string;
+    public readonly username: string;
 
     @IsString()
     public readonly password: string;
 }
 
-export class RegisterRequestDto implements RegisterRequest {
+export class RegisterRequestDto implements SportBookRegisterRequest {
     @IsEmail()
-    public readonly email: string;
+    public readonly username: string;
 
     @IsString()
     @MinLength(8)
     public readonly password: string;
+
+    public phone: string;
 }
 
 export class ValidateRequestDto implements ValidateRequest {

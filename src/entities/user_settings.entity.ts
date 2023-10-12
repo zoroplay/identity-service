@@ -26,19 +26,20 @@ export class UserSetting {
     @Column()
     exclude_from: string;
 
-    @Column({ width: 4, default: 1 })
-    email_communication: boolean;
+    @Column({ type: 'tinyint', width: 1, default: 1 })
+    email_communication: number;
 
-    @Column({ width: 4, default: 1 })
-    sms_communications: boolean;
+    @Column({ type: 'tinyint', width: 1, default: 1 })
+    sms_communications: number;
 
-    @Column({ width: 4, default: 1 })
-    promotional_pop_up: boolean;
+    @Column({ type: 'tinyint', width: 1, default: 1 })
+    promotional_pop_up: number;
 
-    @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-    created_at: Date;
+    @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)" })
+    public created_at: Date;
 
-    @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)", onUpdate: "CURRENT_TIMESTAMP(6)" })
     updated_at: Date;
+
 
 }
