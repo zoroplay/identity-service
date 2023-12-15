@@ -11,19 +11,28 @@ datasource db {
 }
 
 model User {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  username    String        @unique
+  password    String
+  roleId      String?       @db.ObjectId
+  role        Role?         @relation(fields: [roleId], references: [id])
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  userDetails User_Details?
+}
+
+model User_Details {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  username  String   @unique
   firstName String
   lastName  String
-  password  String
   email     String   @unique
   city      String
   country   String
   gender    String
   currency  String
   phone     String
-  roleId    String   @db.ObjectId
-  role      Role     @relation(fields: [roleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  userId    String?  @unique @db.ObjectId
+  user      User?    @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -42,7 +51,7 @@ model Client {
 
 model Role {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  name        String
+  name        String   @unique
   description String
   roleID      Int      @unique
   createdAt   DateTime @default(now())
@@ -50,9 +59,18 @@ model Role {
 }
 
 model Permission {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  name         String
-  description  String
-  permissionID Int      @unique
-  createdAt    DateTime @default(now())
+  id               String           @id @default(auto()) @map("_id") @db.ObjectId
+  name             String
+  description      String
+  permissionID     Int              @unique
+  createdAt        DateTime         @default(now())
+  role_permissonId String?          @unique @db.ObjectId
+  role_permission  Role_Permission? @relation(fields: [role_permissonId], references: [id])
+}
+
+model Role_Permission {
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  roleID      Int          @unique
+  permissions Permission[]
+  createdAt   DateTime     @default(now())
 }

@@ -8,13 +8,13 @@ import { UpdateRoleDto } from './dto/update-role.dto';
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
-  @GrpcMethod(ROLES_SERVICE, 'createRole')
-  createRole(payload: CreateRoleDto) {
+  @GrpcMethod(ROLES_SERVICE, 'SaveRole')
+  SaveRole(payload: CreateRoleDto) {
     return this.rolesService.create(payload);
   }
 
-  @GrpcMethod(ROLES_SERVICE, 'findAllRoles')
-  findAllRoles() {
+  @GrpcMethod(ROLES_SERVICE, 'GetRoles')
+  GetRoles() {
     return this.rolesService.findAll();
   }
 
@@ -23,8 +23,8 @@ export class RolesController {
     // return this.rolesService.update(updateRoleDto.id, updateRoleDto);
   }
 
-  @GrpcMethod(ROLES_SERVICE, 'removeRole')
-  removeRole(payload: CreateRoleDto) {
+  @GrpcMethod(ROLES_SERVICE, 'DeleteRole')
+  DeleteRole(payload: CreateRoleDto) {
     return this.rolesService.remove(payload.roleID);
   }
 }

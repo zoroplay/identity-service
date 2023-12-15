@@ -1,8 +1,6 @@
-export class CreateUserDto {
-  username: string;
+export class UserDetailsDto {
   firstName: string;
   lastName: string;
-  password: string;
   email: string;
   city: string;
   country: string;
@@ -10,7 +8,9 @@ export class CreateUserDto {
   currency: string;
   phone: string;
   roleId: string;
+  userID: string;
 }
+
 export class LoginDto {
   username: string;
   password: string;

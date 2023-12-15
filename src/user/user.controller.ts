@@ -1,16 +1,30 @@
 import { Controller } from '@nestjs/common';
 import { GrpcMethod, MessagePattern, Payload } from '@nestjs/microservices';
 import { UserService } from './user.service';
-import { CreateUserDto, USER_SERVICE } from './dto/create-user.dto';
+import { UserDetailsDto, USER_SERVICE, LoginDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller()
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @GrpcMethod(USER_SERVICE, 'createUser')
-  create(createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
+  @GrpcMethod(USER_SERVICE, 'registerUser')
+  registerUser(createUserDto: LoginDto) {
+    return this.userService.register(createUserDto);
+  }
+
+  @GrpcMethod(USER_SERVICE, 'loginUser')
+  loginUser(createUserDto: LoginDto) {
+    return this.userService.login(createUserDto);
+  }
+
+  @GrpcMethod(USER_SERVICE, 'updateDetails')
+  updateDetails(createUserDto: UserDetailsDto) {
+    return this.userService.updateDetails(createUserDto);
+  }
+  @GrpcMethod(USER_SERVICE, 'createShopUser')
+  createShopUser(createUserDto: UserDetailsDto & LoginDto) {
+    return this.userService.createShopUser(createUserDto);
   }
 
   @GrpcMethod(USER_SERVICE, 'findAllUser')
@@ -21,11 +35,6 @@ export class UserController {
   @GrpcMethod(USER_SERVICE, 'findOneUser')
   findOne(id: number) {
     return this.userService.findOne(id);
-  }
-
-  @GrpcMethod(USER_SERVICE, 'updateUser')
-  update(updateUserDto: UpdateUserDto) {
-    return this.userService.update(updateUserDto);
   }
 
   @GrpcMethod(USER_SERVICE, 'removeUser')
