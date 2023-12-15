@@ -11,14 +11,19 @@ import { UpdatePermissionDto } from './dto/update-permission.dto';
 export class PermissionController {
   constructor(private readonly permissionService: PermissionService) {}
 
-  @GrpcMethod(PERMISSION_SERVICE, 'createPermission')
-  createPermission(payload: CreatePermissionDto) {
+  @GrpcMethod(PERMISSION_SERVICE, 'SavePermission')
+  SavePermission(payload: CreatePermissionDto) {
     return this.permissionService.create(payload);
   }
 
-  @GrpcMethod(PERMISSION_SERVICE, 'findAllPermissions')
-  findAllPermissions() {
+  @GrpcMethod(PERMISSION_SERVICE, 'GetPermissions')
+  GetPermissions() {
     return this.permissionService.findAll();
+  }
+
+  @GrpcMethod(PERMISSION_SERVICE, 'AssignPermissions')
+  AssignPermissions(payload: CreatePermissionDto) {
+    return this.permissionService.assignPermissions(payload);
   }
 
   @GrpcMethod('findOnePermission')
@@ -34,8 +39,8 @@ export class PermissionController {
     // );
   }
 
-  @GrpcMethod(PERMISSION_SERVICE, 'removePermission')
-  remove(payload: CreatePermissionDto) {
+  @GrpcMethod(PERMISSION_SERVICE, 'DeletePermission')
+  DeletePermission(payload: CreatePermissionDto) {
     return this.permissionService.remove(payload.permissionID);
   }
 }
