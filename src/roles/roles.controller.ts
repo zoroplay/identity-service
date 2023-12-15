@@ -9,12 +9,12 @@ export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
   @GrpcMethod(ROLES_SERVICE, 'createRole')
-  create(payload: CreateRoleDto) {
+  createRole(payload: CreateRoleDto) {
     return this.rolesService.create(payload);
   }
 
   @GrpcMethod(ROLES_SERVICE, 'findAllRoles')
-  findAll() {
+  findAllRoles() {
     return this.rolesService.findAll();
   }
 
@@ -24,7 +24,7 @@ export class RolesController {
   }
 
   @GrpcMethod(ROLES_SERVICE, 'removeRole')
-  remove(payload: CreateRoleDto) {
+  removeRole(payload: CreateRoleDto) {
     return this.rolesService.remove(payload.roleID);
   }
 }
