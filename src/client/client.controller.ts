@@ -8,13 +8,13 @@ import { UpdateClientDto } from './dto/update-client.dto';
 export class ClientController {
   constructor(private readonly clientService: ClientService) {}
 
-  @GrpcMethod(CLIENT_SERVICE, 'createClient')
-  createClient(payload: CreateClientDto) {
+  @GrpcMethod(CLIENT_SERVICE, 'SaveClient')
+  SaveClient(payload: CreateClientDto) {
     return this.clientService.create(payload);
   }
 
-  @GrpcMethod(CLIENT_SERVICE, 'findAllClients')
-  findAllClients() {
+  @GrpcMethod(CLIENT_SERVICE, 'GetClients')
+  GetClients() {
     return this.clientService.findAll();
   }
 
@@ -28,8 +28,8 @@ export class ClientController {
     // return this.clientService.update(updateClientDto.id, updateClientDto);
   }
 
-  @GrpcMethod(CLIENT_SERVICE, 'removeClient')
-  removeClient(payload: CreateClientDto) {
+  @GrpcMethod(CLIENT_SERVICE, 'DeleteClient')
+  DeleteClient(payload: CreateClientDto) {
     return this.clientService.remove(payload.clientID);
   }
 }
