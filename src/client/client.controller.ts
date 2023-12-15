@@ -9,12 +9,12 @@ export class ClientController {
   constructor(private readonly clientService: ClientService) {}
 
   @GrpcMethod(CLIENT_SERVICE, 'createClient')
-  create(payload: CreateClientDto) {
+  createClient(payload: CreateClientDto) {
     return this.clientService.create(payload);
   }
 
-  @GrpcMethod(CLIENT_SERVICE, 'findAllClient')
-  findAll() {
+  @GrpcMethod(CLIENT_SERVICE, 'findAllClients')
+  findAllClients() {
     return this.clientService.findAll();
   }
 
@@ -29,7 +29,7 @@ export class ClientController {
   }
 
   @GrpcMethod(CLIENT_SERVICE, 'removeClient')
-  remove(payload: CreateClientDto) {
+  removeClient(payload: CreateClientDto) {
     return this.clientService.remove(payload.clientID);
   }
 }

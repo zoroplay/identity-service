@@ -12,12 +12,12 @@ export class PermissionController {
   constructor(private readonly permissionService: PermissionService) {}
 
   @GrpcMethod(PERMISSION_SERVICE, 'createPermission')
-  create(payload: CreatePermissionDto) {
+  createPermission(payload: CreatePermissionDto) {
     return this.permissionService.create(payload);
   }
 
-  @GrpcMethod(PERMISSION_SERVICE, 'findAllPermission')
-  findAll() {
+  @GrpcMethod(PERMISSION_SERVICE, 'findAllPermissions')
+  findAllPermissions() {
     return this.permissionService.findAll();
   }
 

@@ -10,6 +10,24 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  username  String   @unique
+  firstName String
+  lastName  String
+  password  String
+  email     String   @unique
+  city      String
+  country   String
+  gender    String
+  currency  String
+  phone     String
+  roleId    String   @db.ObjectId
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Client {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
   name          String
@@ -28,6 +46,7 @@ model Role {
   description String
   roleID      Int      @unique
   createdAt   DateTime @default(now())
+  user        User[]
 }
 
 model Permission {

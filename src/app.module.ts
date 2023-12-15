@@ -8,6 +8,7 @@ import { RolesModule } from './roles/roles.module';
 import { PermissionModule } from './permission/permission.module';
 import { PrismaService } from './prisma/prisma.service';
 import { ClientModule } from './client/client.module';
+import { UserModule } from './user/user.module';
 import 'dotenv/config';
 
 @Global()
@@ -42,6 +43,7 @@ import 'dotenv/config';
     RolesModule,
     PermissionModule,
     ClientModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
