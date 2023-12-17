@@ -6,15 +6,15 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  id          String        @id @default(uuid())
   username    String        @unique
   password    String
-  roleId      String?       @db.ObjectId
+  roleId      Int?
   role        Role?         @relation(fields: [roleId], references: [id])
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
@@ -22,7 +22,7 @@ model User {
 }
 
 model User_Details {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  id        String   @id @default(uuid())
   firstName String
   lastName  String
   email     String   @unique
@@ -31,14 +31,14 @@ model User_Details {
   gender    String
   currency  String
   phone     String
-  userId    String?  @unique @db.ObjectId
+  userId    String?  @unique
   user      User?    @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Client {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  id            String   @id @default(uuid())
   name          String
   country       String
   currency      String
@@ -50,27 +50,27 @@ model Client {
 }
 
 model Role {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  name        String   @unique
-  description String
-  roleID      Int      @unique
-  createdAt   DateTime @default(now())
-  user        User[]
+  id               Int               @id @default(autoincrement())
+  name             String            @unique
+  description      String
+  createdAt        DateTime          @default(now())
+  user             User[]
+  role_permissions Role_Permission[]
 }
 
 model Permission {
-  id               String           @id @default(auto()) @map("_id") @db.ObjectId
+  id               Int               @id @default(autoincrement())
   name             String
   description      String
-  permissionID     Int              @unique
-  createdAt        DateTime         @default(now())
-  role_permissonId String?          @unique @db.ObjectId
-  role_permission  Role_Permission? @relation(fields: [role_permissonId], references: [id])
+  createdAt        DateTime          @default(now())
+  role_permissions Role_Permission[]
 }
 
 model Role_Permission {
-  id          String       @id @default(auto()) @map("_id") @db.ObjectId
-  roleID      Int          @unique
-  permissions Permission[]
-  createdAt   DateTime     @default(now())
+  id           String      @id @default(uuid())
+  roleID       Int
+  role         Role?       @relation(fields: [roleID], references: [id])
+  permissionID Int
+  permission   Permission? @relation(fields: [permissionID], references: [id])
+  createdAt    DateTime    @default(now())
 }

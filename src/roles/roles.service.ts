@@ -21,7 +21,7 @@ export class RolesService {
 
       return handleResponse(
         {
-          roleID: role.roleID,
+          roleID: role.id,
           roleName: role.name,
           roleDescription: role.description,
         },
@@ -53,7 +53,7 @@ export class RolesService {
     try {
       await this.prisma.role.delete({
         where: {
-          roleID,
+          id: roleID,
         },
       });
       return handleResponse(null, 'Role deleted successfully');
