@@ -2,6 +2,7 @@ import { Controller } from '@nestjs/common';
 import { GrpcMethod, Payload } from '@nestjs/microservices';
 import { PermissionService } from './permission.service';
 import {
+  AssignPermissionDto,
   CreatePermissionDto,
   PERMISSION_SERVICE,
 } from './dto/create-permission.dto';
@@ -22,7 +23,7 @@ export class PermissionController {
   }
 
   @GrpcMethod(PERMISSION_SERVICE, 'AssignPermissions')
-  AssignPermissions(payload: CreatePermissionDto) {
+  AssignPermissions(payload: AssignPermissionDto) {
     return this.permissionService.assignPermissions(payload);
   }
 
