@@ -4,7 +4,12 @@ import { AUTH_SERVICE_NAME, AUTH_PACKAGE_NAME } from './proto/auth.pb';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import 'dotenv/config'
+import { RolesModule } from './roles/roles.module';
+import { PermissionModule } from './permission/permission.module';
+import { PrismaService } from './prisma/prisma.service';
+import { ClientModule } from './client/client.module';
+import { UserModule } from './user/user.module';
+import 'dotenv/config';
 
 @Global()
 @Module({
@@ -35,8 +40,12 @@ import 'dotenv/config'
       synchronize: true,
       autoLoadEntities: true,
     }),
+    RolesModule,
+    PermissionModule,
+    ClientModule,
+    UserModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, PrismaService],
 })
-export class AppModule { }
+export class AppModule {}

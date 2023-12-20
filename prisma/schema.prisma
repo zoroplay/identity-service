@@ -1,0 +1,76 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String        @id @default(uuid())
+  username    String        @unique
+  password    String
+  roleId      Int?
+  role        Role?         @relation(fields: [roleId], references: [id])
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  userDetails User_Details?
+}
+
+model User_Details {
+  id        String   @id @default(uuid())
+  firstName String
+  lastName  String
+  email     String   @unique
+  city      String
+  country   String
+  gender    String
+  currency  String
+  phone     String
+  userId    String?  @unique
+  user      User?    @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Client {
+  id            String   @id @default(uuid())
+  name          String
+  country       String
+  currency      String
+  website       String?
+  contactNumber String?
+  contactEmail  String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Role {
+  id               Int               @id @default(autoincrement())
+  name             String            @unique
+  description      String
+  createdAt        DateTime          @default(now())
+  user             User[]
+  role_permissions Role_Permission[]
+}
+
+model Permission {
+  id               Int               @id @default(autoincrement())
+  name             String
+  description      String
+  createdAt        DateTime          @default(now())
+  role_permissions Role_Permission[]
+}
+
+model Role_Permission {
+  id           String      @id @default(uuid())
+  roleID       Int
+  role         Role?       @relation(fields: [roleID], references: [id])
+  permissionID Int
+  permission   Permission? @relation(fields: [permissionID], references: [id])
+  createdAt    DateTime    @default(now())
+}
