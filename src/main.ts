@@ -6,17 +6,22 @@ import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './auth/filter/http-exception.filter';
 import { protobufPackage } from './proto/auth.pb';
 const logger = new Logger('AUTH_SVC');
+import * as dotenv from 'dotenv';
 
 async function bootstrap() {
-  const app: INestMicroservice = await NestFactory.createMicroservice(AppModule, {
-    transport: Transport.GRPC,
-    options: {
-      port: process.env.PORT,
-      url: '0.0.0.0:50051',
-      package: protobufPackage,
-      protoPath: join('node_modules/sbe-service-proto/proto/auth.proto'),
+  dotenv.config();
+  const app: INestMicroservice = await NestFactory.createMicroservice(
+    AppModule,
+    {
+      transport: Transport.GRPC,
+      options: {
+        port: process.env.PORT,
+        url: '0.0.0.0:50051',
+        package: protobufPackage,
+        protoPath: join('node_modules/sbe-service-proto/proto/auth.proto'),
+      },
     },
-  });
+  );
 
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
