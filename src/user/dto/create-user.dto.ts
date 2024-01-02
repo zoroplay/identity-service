@@ -7,7 +7,7 @@ export class UserDetailsDto {
   gender: string;
   currency: string;
   phone: string;
-  roleId: string;
+  roleId: number;
   userID: string;
 }
 
