@@ -7,8 +7,8 @@ export class UserDetailsDto {
   gender: string;
   currency: string;
   phone: string;
-  roleId: string;
-  userID: string;
+  roleId: number;
+  userID: number;
 }
 
 export class LoginDto {

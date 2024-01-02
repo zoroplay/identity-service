@@ -42,7 +42,7 @@ export class UserService {
         },
       });
       delete user.password;
-      const token = this.jwtService.sign(user.id);
+      const token = this.jwtService.sign({id: user.id, username: user.username});
 
       return handleResponse({ ...user, token }, 'User created successfully');
     } catch (error) {
@@ -203,10 +203,10 @@ export class UserService {
           },
         });
 
-      delete user.password;
-      const token = this.jwtService.sign(user.id);
+      // delete user.password;
+      // const token = this.jwtService.sign(user.id);
       return handleResponse(
-        { ...user, ...user_details, user_detailsID, token },
+        { ...user, ...user_details, user_detailsID },
         'Shop User Created successfully',
       );
     } catch (error) {
