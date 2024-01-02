@@ -1,32 +1,25 @@
-import { INestMicroservice, Logger, ValidationPipe } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
-import { Transport } from '@nestjs/microservices';
-import { join } from 'path';
-import { AppModule } from './app.module';
-import { HttpExceptionFilter } from './auth/filter/http-exception.filter';
+import {NestFactory} from '@nestjs/core';
+import {AppModule} from './app.module';
+import {MicroserviceOptions, Transport} from "@nestjs/microservices";
+import {join} from "path";
 import { protobufPackage } from './proto/auth.pb';
-const logger = new Logger('AUTH_SVC');
-import * as dotenv from 'dotenv';
 
 async function bootstrap() {
-  dotenv.config();
-  const app: INestMicroservice = await NestFactory.createMicroservice(
-    AppModule,
-    {
-      transport: Transport.GRPC,
-      options: {
-        port: process.env.PORT,
-        url: '0.0.0.0:50051',
-        package: protobufPackage,
-        protoPath: join('node_modules/sbe-service-proto/proto/auth.proto'),
-      },
-    },
-  );
 
-  app.useGlobalFilters(new HttpExceptionFilter());
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+  const app = await NestFactory.create(AppModule);
 
-  await app.listen();
+  // microservice #2
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.GRPC,
+    options: {
+      url: `${process.env.GRPC_HOST}:${process.env.GRPC_PORT}`,
+      package: protobufPackage,
+      protoPath: join('node_modules/sbe-service-proto/proto/auth.proto'),
+    }
+  });
+
+  await app.startAllMicroservices();
+
+  await app.listen(process.env.GRPC_PORT);
 }
-
 bootstrap();

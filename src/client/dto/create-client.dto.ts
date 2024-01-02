@@ -5,7 +5,7 @@ export class CreateClientDto {
   website?: string;
   contactNumber?: string;
   contactEmail: string;
-  clientID?: string;
+  clientID?: number;
 }
 
 export const CLIENT_SERVICE = 'ClientService';

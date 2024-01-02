@@ -18,7 +18,7 @@ export class AuthService {
         let user: User = await this.repository.findOne({ where: { username } });
 
         if (user) {
-            return { status: HttpStatus.CONFLICT, error: ['E-Mail already exists'], data: null };
+            return { status: HttpStatus.CONFLICT, error: 'E-Mail already exists', data: null };
         }
 
         user = new User();
@@ -36,20 +36,20 @@ export class AuthService {
             const auth: User = await this.repository.findOne({ where: { username } });
 
             if (!auth) {
-                return { status: HttpStatus.NOT_FOUND, error: ['E-Mail not found'], token: null, data: null };
+                return { status: HttpStatus.NOT_FOUND, error: 'E-Mail not found', token: null, data: null };
             }
 
             const isPasswordValid: boolean = this.jwtService.isPasswordValid(password, auth.password);
 
             if (!isPasswordValid) {
-                return { status: HttpStatus.NOT_FOUND, error: ['Password wrong'], token: null, data: null };
+                return { status: HttpStatus.NOT_FOUND, error: 'Password wrong', token: null, data: null };
             }
 
             const token: string = this.jwtService.generateToken(auth);
 
             return { token, status: HttpStatus.OK, error: null, data: auth };
         } catch (err) {
-            return { status: HttpStatus.NOT_FOUND, error: ['Something went wrong', err.message], token: null, data: null };
+            return { status: HttpStatus.NOT_FOUND, error: 'Something went wrong: ' + err.message, token: null, data: null };
         };
     }
 
@@ -57,13 +57,13 @@ export class AuthService {
         const decoded: User = await this.jwtService.verify(token);
 
         if (!decoded) {
-            return { status: HttpStatus.FORBIDDEN, error: ['Token is invalid'], userId: null };
+            return { status: HttpStatus.FORBIDDEN, error: 'Token is invalid', userId: null };
         }
 
         const auth: User = await this.jwtService.validateUser(decoded);
 
         if (!auth) {
-            return { status: HttpStatus.CONFLICT, error: ['User not found'], userId: null };
+            return { status: HttpStatus.CONFLICT, error: 'User not found', userId: null };
         }
 
         return { status: HttpStatus.OK, error: null, userId: decoded.id };

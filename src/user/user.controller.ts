@@ -13,8 +13,9 @@ export class UserController {
     return this.userService.register(createUserDto);
   }
 
-  @GrpcMethod(USER_SERVICE, 'loginUser')
+  @GrpcMethod(USER_SERVICE, 'login')
   loginUser(createUserDto: LoginDto) {
+    console.log('login attempt')
     return this.userService.login(createUserDto);
   }
 
