@@ -30,10 +30,13 @@ export class UserService {
       ]);
 
       if (!role) return handleError('The role specified does not exist', null);
+      
       if (user)
         return handleError(`The User specified already exists, login`, null);
+     
       const salt = 10;
       const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
+      
       user = await this.prisma.user.create({
         data: {
           password: hashedPassword,
@@ -41,6 +44,16 @@ export class UserService {
           username: createUserDto.username,
         },
       });
+      const userId = user.id;
+      // create user settings
+      await this.prisma.userSetting.create({
+        data: {userId}
+      })
+      // create user betting parameters
+      await this.prisma.userBettingParameter.create({
+        data: {userId: user.id}
+      })
+
       delete user.password;
       const token = this.jwtService.sign({id: user.id, username: user.username});
 
@@ -135,10 +148,12 @@ export class UserService {
 
       if (!user)
         return handleError(`The User specified doesn't exist, register`, null);
+      
       const isMatch = await bcrypt.compare(
         loginUserDto.password,
         user.password,
       );
+
       if (!isMatch) return handleError('Password Incorrect, verify', null);
 
       delete user.password;
