@@ -7,12 +7,15 @@ import { protobufPackage } from './proto/auth.pb';
 async function bootstrap() {
 
   const app = await NestFactory.create(AppModule);
+  
+  const uri = `${process.env.GRPC_HOST}:${process.env.GRPC_PORT}`
+  console.log(`uri ${uri}`)
 
-  // microservice #2
-  app.connectMicroservice<MicroserviceOptions>({
+// microservice #2
+  const microserviceGrpc = app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.GRPC,
     options: {
-      url: `${process.env.GRPC_HOST}:${process.env.GRPC_PORT}`,
+      url: `${uri}`,
       package: protobufPackage,
       protoPath: join('node_modules/sbe-service-proto/proto/auth.proto'),
     }
