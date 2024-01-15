@@ -5,6 +5,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { handleError, handleResponse } from 'src/common/helpers';
+import axios from 'axios';
 
 @Injectable()
 export class UserService {
@@ -41,6 +42,23 @@ export class UserService {
           username: createUserDto.username,
         },
       });
+      if (createUserDto.promoCode) {
+        const response = await axios.post(
+          'https://api.trackierigaming.com/customer',
+          {
+            customerId: user.id,
+            customerName: user.username,
+            currency: 'Naira',
+            promocode: createUserDto.promoCode,
+          },
+          {
+            headers: {
+              'x-api-key': process.env.X_API_KEY,
+              authorization: `BEARER ${process.env.TRACKIER_AUTH_KEY}`,
+            },
+          },
+        );
+      }
       delete user.password;
       const token = this.jwtService.sign(user.id);
 
@@ -202,6 +220,27 @@ export class UserService {
             userId: user.id,
           },
         });
+      if (role.name === 'Web Affiliate') {
+        const response = await axios.post(
+          'https://api.trackierigaming.com/affiliate/register',
+
+          {
+            affiliate: {
+              name: `${user_details.firstName} ${user_details.lastName}`,
+              email: user_details.email,
+              password: hashedPassword,
+              company: user.username,
+              phone: user_details.phone,
+            },
+          },
+          {
+            headers: {
+              'x-api-key': process.env.X_API_KEY,
+              authorization: `BEARER ${process.env.TRACKIER_AUTH_KEY}`,
+            },
+          },
+        );
+      }
 
       delete user.password;
       const token = this.jwtService.sign(user.id);
