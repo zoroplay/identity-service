@@ -10,7 +10,6 @@ import { PrismaService } from './prisma/prisma.service';
 import { ClientModule } from './client/client.module';
 import { UserModule } from './user/user.module';
 import { CustomersModule } from './customers/customers.module';
-import { CustomersModule } from './customers/customers.module';
 import 'dotenv/config';
 
 @Global()
