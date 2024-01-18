@@ -5,12 +5,15 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { handleError, handleResponse } from 'src/common/helpers';
+import axios from 'axios';
+import { TrackierService } from './trackier/trackier.service';
 
 @Injectable()
 export class UserService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private trackierService: TrackierService,
   ) {}
 
   async register(createUserDto: LoginDto) {
@@ -44,6 +47,7 @@ export class UserService {
           username: createUserDto.username,
         },
       });
+
       const userId = user.id;
       // create user settings
       await this.prisma.userSetting.create({
@@ -53,7 +57,11 @@ export class UserService {
       await this.prisma.userBettingParameter.create({
         data: {userId: user.id}
       })
-
+      // send request to trackier
+      if (createUserDto.promoCode) {
+        this.trackierService.createCustòmer(createUserDto, user);
+      }
+      
       delete user.password;
       const token = this.jwtService.sign({id: user.id, username: user.username});
 
@@ -217,6 +225,13 @@ export class UserService {
             userId: user.id,
           },
         });
+      if (role.name === 'Web Affiliate') {
+        await this.trackierService.registerAffiliate(
+          user_details,
+          user,
+          hashedPassword,
+        );
+      }
 
       // delete user.password;
       // const token = this.jwtService.sign(user.id);
