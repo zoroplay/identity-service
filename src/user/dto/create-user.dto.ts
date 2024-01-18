@@ -14,6 +14,7 @@ export class UserDetailsDto {
 export class LoginDto {
   username: string;
   password: string;
+  promoCode!: string;
 }
 
 export const USER_SERVICE = 'UserService';
