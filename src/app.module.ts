@@ -16,31 +16,17 @@ import 'dotenv/config';
 @Module({
   imports: [
     AppModule,
-    ClientsModule.register([
-      {
-        name: AUTH_SERVICE_NAME,
-        transport: Transport.GRPC,
-        options: {
-          url: process.env.AUTH_SERVICE_URL,
-          package: AUTH_PACKAGE_NAME,
-          protoPath: 'node_modules/sbe-service-proto/proto/auth.proto',
-          loader: {
-            includeDirs: ['node_modules/sbe-service-proto/proto'],
-          },
-        },
-      },
-    ]),
-    TypeOrmModule.forRoot({
-      type: process.env.DB_TYPE as any,
-      host: process.env.DB_HOST,
-      port: parseInt(process.env.DB_PORT),
-      username: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
-      entities: ['dist/**/*.entity.{ts,js}'],
-      synchronize: true,
-      autoLoadEntities: true,
-    }),
+    // TypeOrmModule.forRoot({
+    //   type: process.env.DB_TYPE as any,
+    //   host: process.env.DB_HOST,
+    //   port: parseInt(process.env.DB_PORT),
+    //   username: process.env.DB_USERNAME,
+    //   password: process.env.DB_PASSWORD,
+    //   database: process.env.DB_NAME,
+    //   entities: ['dist/**/*.entity.{ts,js}'],
+    //   synchronize: true,
+    //   autoLoadEntities: true,
+    // }),
     RolesModule,
     PermissionModule,
     ClientModule,

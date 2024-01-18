@@ -8,7 +8,7 @@ export class UserDetailsDto {
   currency: string;
   phone: string;
   roleId: number;
-  userID: string;
+  userID: number;
 }
 
 export class LoginDto {

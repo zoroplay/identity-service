@@ -36,7 +36,7 @@ export class ClientService {
     return `This action updates a #${id} client`;
   }
 
-  async remove(id: string) {
+  async remove(id: number) {
     try {
       await this.prisma.client.delete({
         where: {

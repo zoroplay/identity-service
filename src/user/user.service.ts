@@ -33,10 +33,13 @@ export class UserService {
       ]);
 
       if (!role) return handleError('The role specified does not exist', null);
+      
       if (user)
         return handleError(`The User specified already exists, login`, null);
+     
       const salt = 10;
       const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
+      
       user = await this.prisma.user.create({
         data: {
           password: hashedPassword,
@@ -44,11 +47,23 @@ export class UserService {
           username: createUserDto.username,
         },
       });
+
+      const userId = user.id;
+      // create user settings
+      await this.prisma.userSetting.create({
+        data: {userId}
+      })
+      // create user betting parameters
+      await this.prisma.userBettingParameter.create({
+        data: {userId: user.id}
+      })
+      // send request to trackier
       if (createUserDto.promoCode) {
-        await this.trackierService.createCustòmer(createUserDto, user);
+        this.trackierService.createCustòmer(createUserDto, user);
       }
+      
       delete user.password;
-      const token = this.jwtService.sign(user.id);
+      const token = this.jwtService.sign({id: user.id, username: user.username});
 
       return handleResponse({ ...user, token }, 'User created successfully');
     } catch (error) {
@@ -141,10 +156,12 @@ export class UserService {
 
       if (!user)
         return handleError(`The User specified doesn't exist, register`, null);
+      
       const isMatch = await bcrypt.compare(
         loginUserDto.password,
         user.password,
       );
+
       if (!isMatch) return handleError('Password Incorrect, verify', null);
 
       delete user.password;
@@ -216,10 +233,10 @@ export class UserService {
         );
       }
 
-      delete user.password;
-      const token = this.jwtService.sign(user.id);
+      // delete user.password;
+      // const token = this.jwtService.sign(user.id);
       return handleResponse(
-        { ...user, ...user_details, user_detailsID, token },
+        { ...user, ...user_details, user_detailsID },
         'Shop User Created successfully',
       );
     } catch (error) {
