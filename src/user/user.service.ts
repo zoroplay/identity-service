@@ -5,7 +5,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { handleError, handleResponse } from 'src/common/helpers';
-import axios from 'axios';
 import { TrackierService } from './trackier/trackier.service';
 
 @Injectable()
@@ -48,10 +47,15 @@ export class UserService {
         },
       });
 
-      const userId = user.id;
       // create user settings
       await this.prisma.userSetting.create({
-        data: {userId}
+        data: {
+          user: {
+            connect: {
+              id: user.id
+            }
+          }
+        }
       })
       // create user betting parameters
       await this.prisma.userBettingParameter.create({
@@ -102,17 +106,25 @@ export class UserService {
           userId: user.id,
         },
       });
+
       if (!user_details) {
         user_details = await this.prisma.user_Details.create({
           data: {
             ...updateUserDto,
+            user: {
+              connect: {
+                id: user.id
+              }
+            }
           },
         });
+
         return handleResponse(
           user_details,
           'User details updated successfully',
         );
       }
+      
       user_details = await this.prisma.user_Details.update({
         where: {
           id: user_details.id,
