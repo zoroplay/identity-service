@@ -48,4 +48,8 @@ export class ClientService {
       return handleError(error.message, error);
     }
   }
+
+  async saveSettings(data) {
+    
+  }
 }

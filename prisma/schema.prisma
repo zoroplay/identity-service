@@ -27,16 +27,16 @@ model User {
 
 model User_Details {
   id        Int       @id @default(autoincrement())
-  firstName String
-  lastName  String
-  email     String    @unique
-  city      String
-  country   String
-  gender    String
-  currency  String
-  phone     String
-  userId    Int?      @unique @map("user_id")
-  user      User?     @relation(fields: [userId], references: [id])
+  firstName String?
+  lastName  String?
+  email     String?   @unique
+  city      String?
+  country   String?
+  gender    String?
+  currency  String?
+  phone     String?
+  userId    Int      @unique @map("user_id")
+  user      User     @relation(fields: [userId], references: [id])
   
   createdAt      DateTime   @default(now()) @map("created_at")
   updatedAt      DateTime   @updatedAt @map("updated_at")
@@ -58,14 +58,25 @@ model Client {
   @@map("clients")
 }
 
+model Setting {
+  id        Int       @id @default(autoincrement())
+  option    String
+  value     String
+  category  String
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  @@map("settings")
+}
+
 model Role {
   id               Int               @id @default(autoincrement())
   name             String            @unique
   description      String
   user             User[]
   role_permissions Role_Permission[]
-  createdAt      DateTime   @default(now()) @map("created_at")
-  updatedAt      DateTime   @updatedAt @map("updated_at")
+  createdAt        DateTime   @default(now()) @map("created_at")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
 
   @@map("roles")
 }
@@ -117,14 +128,14 @@ model UserSetting {
   id                  Int           @id @default(autoincrement())
   userId              Int           @map("user_id") @unique
   user                User          @relation(fields: [userId], references: [id])
-  dailyDepositLimit   Float   @map("daily_deposit_limit")
-  weeklyDepositLimit  Float   @map("weekly_deposit_limit")
-  monthlyDepositLimit Float   @map("monthly_deposit_limit")
-  selfExclusionPeriod String  @map("self_exclusion_period")
-  excludeFrom         String  @map("exclude_from")
-  emailCommunication  Int     @map("email_communication") @default(1)
-  smsCommunication    Int     @map("sms_communication") @default(1)
-  promotionalPopUp    Int     @map("promotional_pop_up") @default(1)
+  dailyDepositLimit   Float?        @map("daily_deposit_limit")
+  weeklyDepositLimit  Float?        @map("weekly_deposit_limit")
+  monthlyDepositLimit Float?        @map("monthly_deposit_limit")
+  selfExclusionPeriod String?       @map("self_exclusion_period")
+  excludeFrom         String?       @map("exclude_from")
+  emailCommunication  Int?          @map("email_communication") @default(1)
+  smsCommunication    Int?          @map("sms_communication") @default(1)
+  promotionalPopUp    Int?          @map("promotional_pop_up") @default(1)
 
   createdAt      DateTime     @default(now()) @map("created_at")
   updatedAt      DateTime     @updatedAt @map("updated_at")
