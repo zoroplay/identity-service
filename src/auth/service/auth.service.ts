@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from './jwt.service';
 import { RegisterRequestDto, LoginRequestDto, ValidateRequestDto } from '../auth.dto';
-import { LoginResponse, SportBookRegisterResponse, ValidateResponse } from 'src/proto/auth.pb';
+import { LoginResponse, RegisterResponse, ValidateResponse } from 'src/proto/identity.pb';
 import { User } from 'src/entities/user.entity';
 
 @Injectable()
@@ -14,7 +14,7 @@ export class AuthService {
     @Inject(JwtService)
     private readonly jwtService: JwtService;
 
-    public async register({ username, password }: RegisterRequestDto): Promise<SportBookRegisterResponse> {
+    public async register({ username, password }: RegisterRequestDto): Promise<RegisterResponse> {
         let user: User = await this.repository.findOne({ where: { username } });
 
         if (user) {

@@ -1,45 +1,43 @@
 import { Controller } from '@nestjs/common';
-import { GrpcMethod, MessagePattern, Payload } from '@nestjs/microservices';
+import { GrpcMethod } from '@nestjs/microservices';
 import { UserService } from './user.service';
-import { UserDetailsDto, USER_SERVICE, LoginDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { AUTH_SERVICE_NAME } from 'src/proto/auth.pb';
+import { UserDetailsDto, LoginDto } from './dto/create-user.dto';
+import { CreateUserRequest, IDENTITY_SERVICE_NAME } from 'src/proto/identity.pb';
 
 @Controller()
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @GrpcMethod(AUTH_SERVICE_NAME, 'registerUser')
-  registerUser(createUserDto: LoginDto) {
-    return this.userService.register(createUserDto);
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'CreateAdmin')
+  CreateAdmin(createUserDto: CreateUserRequest) {
+    return this.userService.saveAdminUser(createUserDto);
   }
 
-  @GrpcMethod(AUTH_SERVICE_NAME, 'Login')
-  Login(createUserDto: LoginDto) {
-    console.log('login attempt')
-    return this.userService.login(createUserDto);
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'GetAdmins')
+  GetAdminUser(data) {
+    return this.userService.getAdminUsers(data);
   }
 
-  @GrpcMethod(AUTH_SERVICE_NAME, 'updateDetails')
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'updateDetails')
   updateDetails(createUserDto: UserDetailsDto) {
     return this.userService.updateDetails(createUserDto);
   }
-  @GrpcMethod(AUTH_SERVICE_NAME, 'createShopUser')
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'createShopUser')
   createShopUser(createUserDto: UserDetailsDto & LoginDto) {
     return this.userService.createShopUser(createUserDto);
   }
 
-  @GrpcMethod(AUTH_SERVICE_NAME, 'findAllUser')
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'findAllUser')
   findAll() {
-    return this.userService.findAll();
+    // return this.userService.findAll();
   }
 
-  @GrpcMethod(AUTH_SERVICE_NAME, 'findOneUser')
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'findOneUser')
   findOne(id: number) {
     return this.userService.findOne(id);
   }
 
-  @GrpcMethod(AUTH_SERVICE_NAME, 'removeUser')
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'removeUser')
   remove(id: number) {
     return this.userService.remove(id);
   }

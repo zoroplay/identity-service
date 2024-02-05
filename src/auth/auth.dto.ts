@@ -1,23 +1,26 @@
-import { IsEmail, IsString, MinLength } from 'class-validator';
-import { LoginRequest, SportBookRegisterRequest, ValidateRequest } from '../proto/auth.pb';
+import { IsNotEmpty, IsString } from 'class-validator';
+import { CreateUserRequest, ValidateRequest } from '../proto/identity.pb';
 
-export class LoginRequestDto implements LoginRequest {
-    @IsEmail()
+export class LoginRequestDto {
+    @IsNotEmpty()
     public readonly username: string;
 
     @IsString()
     public readonly password: string;
 }
 
-export class RegisterRequestDto implements SportBookRegisterRequest {
-    @IsEmail()
+export class RegisterRequestDto implements CreateUserRequest {
+    @IsNotEmpty()
+    clientId: number;
+
+    @IsNotEmpty()
     public readonly username: string;
 
+    @IsNotEmpty()
     @IsString()
-    @MinLength(8)
     public readonly password: string;
 
-    public phone: string;
+    public phoneNumber: string;
 }
 
 export class ValidateRequestDto implements ValidateRequest {
