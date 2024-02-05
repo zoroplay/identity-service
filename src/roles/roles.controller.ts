@@ -1,29 +1,30 @@
 import { Controller } from '@nestjs/common';
 import { GrpcMethod, Payload } from '@nestjs/microservices';
 import { RolesService } from './roles.service';
-import { CreateRoleDto, ROLES_SERVICE } from './dto/create-role.dto';
+import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
+import { IDENTITY_SERVICE_NAME } from 'src/proto/identity.pb';
 
 @Controller()
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
-  @GrpcMethod(ROLES_SERVICE, 'SaveRole')
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'SaveRole')
   SaveRole(payload: CreateRoleDto) {
     return this.rolesService.create(payload);
   }
 
-  @GrpcMethod(ROLES_SERVICE, 'GetRoles')
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'GetRoles')
   GetRoles() {
     return this.rolesService.findAll();
   }
 
-  @GrpcMethod(ROLES_SERVICE, 'updateRole')
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'updateRole')
   update(payload: UpdateRoleDto) {
     // return this.rolesService.update(updateRoleDto.id, updateRoleDto);
   }
 
-  @GrpcMethod(ROLES_SERVICE, 'DeleteRole')
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'DeleteRole')
   DeleteRole(payload: CreateRoleDto) {
     return this.rolesService.remove(payload.roleID);
   }
