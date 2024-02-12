@@ -1,21 +1,23 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthController } from './auth.controller';
 import { AuthService } from './service/auth.service';
 import { JwtService } from './service/jwt.service';
 import { JwtStrategy } from './strategy/jwt.strategy';
-import { User } from 'src/entities/user.entity';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { WalletModule } from 'src/wallet/wallet.module';
+import { BonusModule } from 'src/bonus/bonus.module';
 
 @Module({
   imports: [
     JwtModule.register({
       secret: 'dev',
-      signOptions: { expiresIn: '365d' },
+      signOptions: { expiresIn: '1d' },
     }),
-    TypeOrmModule.forFeature([User]),
+    WalletModule,
+    BonusModule
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtService, JwtStrategy],
+  providers: [AuthService, JwtService, JwtStrategy, PrismaService],
 })
 export class AuthModule { }

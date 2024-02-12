@@ -3,6 +3,9 @@ import { CreateUserRequest, ValidateRequest } from '../proto/identity.pb';
 
 export class LoginRequestDto {
     @IsNotEmpty()
+    clientId: number;
+    
+    @IsNotEmpty()
     public readonly username: string;
 
     @IsString()
@@ -21,6 +24,8 @@ export class RegisterRequestDto implements CreateUserRequest {
     public readonly password: string;
 
     public phoneNumber: string;
+
+    promoCode: string;
 }
 
 export class ValidateRequestDto implements ValidateRequest {
