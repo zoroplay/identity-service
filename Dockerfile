@@ -8,7 +8,7 @@ COPY . .
 
 RUN npm install
 
-RUN npm run proto:install
+# RUN npm run proto:install
 
 RUN chmod +x /app/entrypoint.sh
 
