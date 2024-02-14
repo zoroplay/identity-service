@@ -28,7 +28,7 @@ export class PermissionService {
       ]);
 
       if (role.length)
-        await this.prisma.role_Permission.deleteMany({
+        await this.prisma.rolePermission.deleteMany({
           where: {
             roleID: data.roleID,
           },
@@ -42,7 +42,7 @@ export class PermissionService {
 
       const perm = await Promise.all(
         data.permissions.map(async (permission) => {
-          return await this.prisma.role_Permission.create({
+          return await this.prisma.rolePermission.create({
             data: {
               roleID: Number(data.roleID),
               permissionID: Number(permission),

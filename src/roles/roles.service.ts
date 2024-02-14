@@ -15,16 +15,25 @@ export class RolesService {
 
   async create(data: CreateRoleDto): Promise<SuccessResponse | ErrorResponse> {
     try {
-      const role = await this.prisma.role.create({
-        data,
-      });
+      let role;
+      if (data.roleID) {
+        // role = await this.prisma.role.update({
+        //   where: {id: data.roleID},{
 
-      return handleResponse(
-        {
-          roleID: role.id,
-          roleName: role.name,
-          roleDescription: role.description,
-        },
+        //   }
+        // })
+      } else {
+        role = await this.prisma.role.create({
+          data: {
+            name: data.name,
+            description: data.description,
+            type: data.roleType
+          },
+        });
+      }
+      
+
+      return handleResponse(role,
         'Role created successfully',
       );
     } catch (error) {

@@ -6,6 +6,7 @@ import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { handleError, handleResponse } from 'src/common/helpers';
 import { TrackierService } from './trackier/trackier.service';
+import { CreateUserRequest } from 'src/proto/identity.pb';
 
 @Injectable()
 export class UserService {
@@ -15,64 +16,141 @@ export class UserService {
     private trackierService: TrackierService,
   ) {}
 
-  async register(createUserDto: LoginDto) {
+  async saveAdminUser(data: CreateUserRequest) {
     try {
       let [role, user] = await Promise.all([
         this.prisma.role.findUnique({
           where: {
-            name: 'Player',
+            id: data.roleId,
           },
         }),
 
         this.prisma.user.findUnique({
           where: {
-            username: createUserDto.username,
+            username: data.username,
+            clientId: data.clientId
           },
         }),
       ]);
-
       if (!role) return handleError('The role specified does not exist', null);
-      
+
       if (user)
-        return handleError(`The User specified already exists, login`, null);
-     
-      const salt = 10;
-      const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
+        return handleError(`The Username specified already exists`, null);
       
+      const salt = 10;
+      const hashedPassword = await bcrypt.hash(data.password, salt);
+
       user = await this.prisma.user.create({
         data: {
+          username: data.username,
           password: hashedPassword,
-          roleId: role.id,
-          username: createUserDto.username,
+          // code: Math.floor(100000 + Math.random() * 900000).toString().substring(0, 6), // 6 digit random identifier for 
+          roleId: data.roleId,
+          clientId: data.clientId
         },
       });
 
-      // create user settings
-      await this.prisma.userSetting.create({
-        data: {
-          user: {
-            connect: {
-              id: user.id
+      const { id: user_detailsID, ...user_details } =
+        await this.prisma.userDetails.create({
+          data: {
+            firstName: data.firstName,
+            lastName: data.lastName,
+            email: data.email,
+            city: data.city,
+            country: data.country,
+            gender: data.gender,
+            currency: data.currency,
+            phone: data.phoneNumber,
+            date_of_birth: data.dateOfBirth,
+            language: data.language,
+            state: data.state,
+            address: data.address,
+            user: {
+              connect: {
+                id: user.id
+              }
             }
-          }
-        }
-      })
-      // create user betting parameters
-      await this.prisma.userBettingParameter.create({
-        data: {userId: user.id}
-      })
-      // send request to trackier
-      if (createUserDto.promoCode) {
-        this.trackierService.createCustòmer(createUserDto, user);
-      }
-      
-      delete user.password;
-      const token = this.jwtService.sign({id: user.id, username: user.username});
+          },
+        });
 
-      return handleResponse({ ...user, token }, 'User created successfully');
+      // delete user.password;
+      // const token = this.jwtService.sign(user.id);
+      return handleResponse(
+        { ...user, ...user_details, user_detailsID },
+        'User Created successfully',
+      );
     } catch (error) {
       return handleError(error.message, error);
     }
+  }
+
+  async register(createUserDto: LoginDto) {
+    // try {
+    //   let [role, user] = await Promise.all([
+    //     this.prisma.role.findUnique({
+    //       where: {
+    //         name: 'Player',
+    //       },
+    //     }),
+
+    //     this.prisma.user.findUnique({
+    //       where: {
+    //         username: createUserDto.username,
+    //       },
+    //     }),
+    //   ]);
+
+    //   if (!role) return handleError('The role specified does not exist', null);
+      
+    //   if (user)
+    //     return handleError(`The User specified already exists, login`, null);
+     
+    //   const salt = 10;
+    //   const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
+      
+    //   user = await this.prisma.user.create({
+    //     data: {
+    //       password: hashedPassword,
+    //       username: createUserDto.username,
+    //       role: {
+    //         connect: {
+    //           id: role.id
+    //         }
+    //       },
+    //       client: {
+    //         connect: {
+    //           id: cli
+    //         }
+    //       }
+    //     },
+    //   });
+
+    //   // create user settings
+    //   await this.prisma.userSetting.create({
+    //     data: {
+    //       user: {
+    //         connect: {
+    //           id: user.id
+    //         }
+    //       }
+    //     }
+    //   })
+    //   // create user betting parameters
+    //   await this.prisma.userBettingParameter.create({
+    //     data: {userId: user.id}
+    //   })
+    //   // send request to trackier
+    //   if (createUserDto.promoCode) {
+    //     this.trackierService.createCustòmer(createUserDto, user);
+    //   }
+      
+    //   delete user.password;
+    //   const token = this.jwtService.sign({id: user.id, username: user.username});
+
+    //   return handleResponse({ ...user, token }, 'User created successfully');
+    // } catch (error) {
+    //   return handleError(error.message, error);
+    // }
   }
 
   async updateDetails(updateUserDto: UserDetailsDto) {
@@ -101,14 +179,14 @@ export class UserService {
       // const salt = 10;
       // const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
 
-      let user_details = await this.prisma.user_Details.findUnique({
+      let user_details = await this.prisma.userDetails.findUnique({
         where: {
           userId: user.id,
         },
       });
 
       if (!user_details) {
-        user_details = await this.prisma.user_Details.create({
+        user_details = await this.prisma.userDetails.create({
           data: {
             ...updateUserDto,
             user: {
@@ -124,8 +202,8 @@ export class UserService {
           'User details updated successfully',
         );
       }
-      
-      user_details = await this.prisma.user_Details.update({
+
+      user_details = await this.prisma.userDetails.update({
         where: {
           id: user_details.id,
         },
@@ -185,8 +263,19 @@ export class UserService {
     }
   }
 
-  findAll() {
-    return `This action returns all user`;
+  async getAdminUsers({clientId}) {
+    try {
+      // find admin roles
+
+      const users = await this.prisma.user.findMany({
+        where: {
+          clientId,
+          // roleId: {in: [roles]}
+        }
+      })
+    } catch (e) {
+      return handleError('Something went wrong. ' + e.message, null);
+    }
   }
 
   findOne(id: number) {
@@ -194,66 +283,66 @@ export class UserService {
   }
 
   async createShopUser(updateUserDto: UpdateUserDto & LoginDto) {
-    try {
-      let [role, user] = await Promise.all([
-        this.prisma.role.findUnique({
-          where: {
-            id: updateUserDto.roleId,
-          },
-        }),
+    // try {
+    //   let [role, user] = await Promise.all([
+    //     this.prisma.role.findUnique({
+    //       where: {
+    //         id: updateUserDto.roleId,
+    //       },
+    //     }),
 
-        this.prisma.user.findUnique({
-          where: {
-            username: updateUserDto.username,
-          },
-        }),
-      ]);
-      if (!role) return handleError('The role specified does not exist', null);
+    //     this.prisma.user.findUnique({
+    //       where: {
+    //         username: updateUserDto.username,
+    //       },
+    //     }),
+    //   ]);
+    //   if (!role) return handleError('The role specified does not exist', null);
 
-      if (user)
-        return handleError(`The Username specified already exists`, null);
-      const salt = 10;
-      const hashedPassword = await bcrypt.hash(updateUserDto.password, salt);
+    //   if (user)
+    //     return handleError(`The Username specified already exists`, null);
+    //   const salt = 10;
+    //   const hashedPassword = await bcrypt.hash(updateUserDto.password, salt);
 
-      user = await this.prisma.user.create({
-        data: {
-          username: updateUserDto.username,
-          password: hashedPassword,
-          roleId: role.id,
-        },
-      });
+    //   user = await this.prisma.user.create({
+    //     data: {
+    //       username: updateUserDto.username,
+    //       password: hashedPassword,
+    //       roleId: role.id,
+    //     },
+    //   });
 
-      const { id: user_detailsID, ...user_details } =
-        await this.prisma.user_Details.create({
-          data: {
-            firstName: updateUserDto.firstName,
-            lastName: updateUserDto.lastName,
-            email: updateUserDto.email,
-            city: updateUserDto.city,
-            country: updateUserDto.country,
-            gender: updateUserDto.gender,
-            currency: updateUserDto.currency,
-            phone: updateUserDto.phone,
-            userId: user.id,
-          },
-        });
-      if (role.name === 'Web Affiliate') {
-        await this.trackierService.registerAffiliate(
-          user_details,
-          user,
-          hashedPassword,
-        );
-      }
+    //   const { id: user_detailsID, ...user_details } =
+    //     await this.prisma.user_Details.create({
+    //       data: {
+    //         firstName: updateUserDto.firstName,
+    //         lastName: updateUserDto.lastName,
+    //         email: updateUserDto.email,
+    //         city: updateUserDto.city,
+    //         country: updateUserDto.country,
+    //         gender: updateUserDto.gender,
+    //         currency: updateUserDto.currency,
+    //         phone: updateUserDto.phone,
+    //         userId: user.id,
+    //       },
+    //     });
+    //   if (role.name === 'Web Affiliate') {
+    //     await this.trackierService.registerAffiliate(
+    //       user_details,
+    //       user,
+    //       hashedPassword,
+    //     );
+    //   }
 
-      // delete user.password;
-      // const token = this.jwtService.sign(user.id);
-      return handleResponse(
-        { ...user, ...user_details, user_detailsID },
-        'Shop User Created successfully',
-      );
-    } catch (error) {
-      return handleError(error.message, error);
-    }
+    //   // delete user.password;
+    //   // const token = this.jwtService.sign(user.id);
+    //   return handleResponse(
+    //     { ...user, ...user_details, user_detailsID },
+    //     'Shop User Created successfully',
+    //   );
+    // } catch (error) {
+    //   return handleError(error.message, error);
+    // }
   }
 
   remove(id: number) {

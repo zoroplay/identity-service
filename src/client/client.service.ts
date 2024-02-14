@@ -10,6 +10,7 @@ export class ClientService {
 
   async create(data: CreateClientDto) {
     try {
+      delete data.clientID;
       const client = await this.prisma.client.create({
         data,
       });
@@ -28,8 +29,17 @@ export class ClientService {
     }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} client`;
+  async findOne(id: number) {
+    try {
+      const client = await this.prisma.client.findUnique({where: {id}});
+      if (client){
+        return handleResponse(client, 'Client created successfully');
+      } else {
+        return handleError('Client not found', 'error');
+      }
+    } catch (error) {
+      return handleError(error.message, error);
+    }
   }
 
   update(id: number, updateClientDto: UpdateClientDto) {
