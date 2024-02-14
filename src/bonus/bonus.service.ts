@@ -18,6 +18,7 @@ export class BonusService {
     }
 
     public awardBonus(data: AwardBonusRequest) {
+        console.log('Award Bonus');
         return this.svc.awardBonus(data);
     }
 
