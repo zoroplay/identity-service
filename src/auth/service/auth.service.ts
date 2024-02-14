@@ -18,89 +18,103 @@ export class AuthService {
     ) {}
 
     public async register({ clientId, username, password, phoneNumber, promoCode }: RegisterRequestDto): Promise<RegisterResponse> {
-        let user = await this.prisma.user.findUnique({ where: { username, clientId } });
+      
+        try {
+            let user: any = await this.prisma.user.findUnique({ where: { username, clientId } });
 
-        if (user) {
-            return {  
-                status: HttpStatus.CONFLICT,
-                error: 'Username/Phone number already exists', 
-                data: null,
-                success: true
-            };
-        }
+            if (user) {
+                return {  
+                    status: HttpStatus.CONFLICT,
+                    error: 'Username/Phone number already exists', 
+                    data: null,
+                    success: true
+                };
+            }
 
-        // find player role
-        const role = await this.prisma.role.findFirst({where: {name:'Player'}});
+            // find player role
+            const role = await this.prisma.role.findFirst({where: {name:'Player'}});
 
-        user = await this.prisma.user.create({
-            data: {
-                username,
-                clientId,
-                code: Math.floor(100000 + Math.random() * 900000).toString().substring(0, 6), // 6 digit random identifier for 
-                password: this.jwtService.encodePassword(password),
-                roleId: role.id,
-                userDetails: {
-                    create: {
-                        phone: phoneNumber,
+            user = await this.prisma.$transaction(async (prisma) => {
+                const newUser = await prisma.user.create({
+                    data: {
+                        username,
+                        clientId,
+                        code: Math.floor(100000 + Math.random() * 900000).toString().substring(0, 6), // 6 digit random identifier for 
+                        password: this.jwtService.encodePassword(password),
+                        roleId: role.id,
+                        userDetails: {
+                            create: {
+                                phone: phoneNumber,
+                            }
+                        }
+                    },
+                })
+
+                // make a copy of user object
+                const auth: any = {...newUser};
+                let bonus = 0;
+
+                // check if promo code is provided and activate bonus
+                if (promoCode && promoCode !== '') {
+                    const campaignRes = await this.bonusService.getBonusCampaign({promoCode, clientId}).toPromise();
+                    console.log('campaign res', campaignRes)
+                    if (campaignRes.success) {
+                        
+                        const awardRes = await this.bonusService.awardBonus({
+                            clientId, 
+                            userId: newUser.id.toString(),
+                            username: newUser.username,
+                            bonusId: campaignRes.data.bonus.id,
+                            amount: campaignRes.data.bonus.bonusAmount,
+                            baseValue: 0,
+                            promoCode,
+                        }).toPromise();
+                        console.log('award bonus response', awardRes)
+
+                        // if bonus was awarded successfully, set bonus amount
+                        if (awardRes.status === 201)
+                            bonus = awardRes.bonus.amount;
                     }
                 }
-            },
-        })
-        // make a copy of user object
-        const auth: any = {...user};
-        let bonus = 0;
 
-        // check if promo code is provided and activate bonus
-        if (promoCode && promoCode !== '') {
-            const campaignRes = await this.bonusService.getBonusCampaign({promoCode, clientId}).toPromise();
-            if (campaignRes.success) {
-                
-                const awardRes = await this.bonusService.awardBonus({
-                    clientId, 
-                    userId: auth.id,
-                    bonusId: campaignRes.data.bonus.id,
-                    amount: campaignRes.data.bonus.bonusAmount,
-                    baseValue: 0,
+                //create user wallet
+                const balanceRes = await this.walletService.createWallet({
+                    userId: newUser.id,
+                    username: newUser.username,
+                    clientId,
+                    amount: 0,
+                    bonus,
                 }).toPromise();
-                console.log('award bonus response', awardRes)
 
-                // if bonus was awarded successfully, set bonus amount
-                if (awardRes.status === 201)
-                    bonus = awardRes.bonus.amount;
-            }
+                // console.log('balance response', balanceRes)
+
+                if(balanceRes.success){
+                    const {balance, availableBalance, sportBonusBalance, casinoBonusBalance, virtualBonusBalance, trustBalance } = balanceRes.data
+                    auth.balance = balance;
+                    auth.availableBalance = availableBalance;
+                    auth.sportBonusBalance = sportBonusBalance;
+                    auth.casinoBonusBalance = casinoBonusBalance;
+                    auth.virtualBonusBalance = virtualBonusBalance;
+                    auth.trustBalance = trustBalance;
+                }
+            
+
+                auth.token = this.jwtService.generateToken(auth);
+                auth.firstName = '';
+                auth.lastName = '';
+                auth.email = '';
+                auth.phone = phoneNumber;
+                auth.role = role.name;
+                auth.roleId = role.id;
+                delete auth.password;
+
+                return auth;
+            })
+            
+            return { success: true, status: HttpStatus.CREATED, error: null, data: user };
+        } catch(e) {
+            return { success: false, status: HttpStatus.BAD_REQUEST, error: e.message, data: null };
         }
-
-        //create user wallet
-        const balanceRes = await this.walletService.createWallet({
-            userId: user.id,
-            username: user.username,
-            clientId,
-            amount: 0,
-            bonus,
-        }).toPromise();
-
-        console.log('balance response', balanceRes)
-
-        if(balanceRes.success){
-            const {balance, availableBalance, sportBonusBalance, casinoBonusBalance, virtualBonusBalance, trustBalance } = balanceRes.data
-            auth.balance = balance;
-            auth.availableBalance = availableBalance;
-            auth.sportBonusBalance = sportBonusBalance;
-            auth.casinoBonusBalance = casinoBonusBalance;
-            auth.virtualBonusBalance = virtualBonusBalance;
-            auth.trustBalance = trustBalance;
-        }
-
-        auth.token = this.jwtService.generateToken(auth);
-        auth.firstName = '';
-        auth.lastName = '';
-        auth.email = '';
-        auth.phone = phoneNumber;
-        auth.role = role.name;
-        auth.roleId = role.id;
-        delete auth.password;
-
-        return { success: true, status: HttpStatus.CREATED, error: null, data: auth };
     }
 
     public async login({ clientId, username, password }: LoginRequestDto): Promise<LoginResponse> {
@@ -154,6 +168,10 @@ export class AuthService {
         } catch (err) {
             return { status: HttpStatus.NOT_FOUND, error: 'Something went wrong: ' + err.message, success: false, data: null };
         };
+    }
+
+    async getDetails({clientId, userId}) {
+        
     }
 
     public async validate({ token }: ValidateRequestDto): Promise<ValidateResponse> {
