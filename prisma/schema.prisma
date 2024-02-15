@@ -17,6 +17,12 @@ model User {
   code          String?
   roleId        Int?          @map("role_id")
   role          Role?         @relation(fields: [roleId], references: [id])
+  auth_code     String?
+  virtualToken  String?       @map("virutal_token")
+  registrationSource  String?       @map("registration_source")
+  lastLogin     String?       @map("last_login")
+  status        Int           @default(1)
+
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @updatedAt @map("updated_at")
   userDetails   UserDetails?
@@ -33,7 +39,7 @@ model UserDetails {
   id        Int       @id @default(autoincrement())
   firstName String?
   lastName  String?
-  email     String?   @unique
+  email     String?   
   city      String?
   country   String?
   state     String?
