@@ -9,6 +9,9 @@ import { UserModule } from './user/user.module';
 import { CustomersModule } from './customers/customers.module';
 import { AuthModule } from './auth/auth.module';
 import 'dotenv/config';
+import { ScheduleModule } from '@nestjs/schedule';
+import { WalletModule } from './wallet/wallet.module';
+import { JwtService } from './auth/service/jwt.service';
 
 @Global()
 @Module({
@@ -20,8 +23,10 @@ import 'dotenv/config';
     ClientModule,
     UserModule,
     CustomersModule,
+    WalletModule,
+    ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService],
+  providers: [AppService, PrismaService, JwtService],
 })
 export class AppModule {}
