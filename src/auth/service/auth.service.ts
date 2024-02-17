@@ -166,12 +166,56 @@ export class AuthService {
 
             return { success: true, status: HttpStatus.OK, error: null, data: auth };
         } catch (err) {
-            return { status: HttpStatus.NOT_FOUND, error: 'Something went wrong: ' + err.message, success: false, data: null };
+            return { status: HttpStatus.INTERNAL_SERVER_ERROR, error: 'Something went wrong: ' + err.message, success: false, data: null };
         };
     }
 
     async getDetails({clientId, userId}) {
-        
+        try {
+            let user: any = await this.prisma.user.findUnique({ 
+                where: { id: userId, clientId },
+                include: {
+                    userDetails: true,
+                    role: true,
+                }  
+            });
+            if (user) {
+                const balanceRes = await this.walletService.getWallet({
+                    userId: user.id,
+                    clientId,
+                }).toPromise();
+    
+                const auth: any = {...user};
+
+                if(balanceRes.success){
+                    const {balance, availableBalance, sportBonusBalance, casinoBonusBalance, virtualBonusBalance, trustBalance } = balanceRes.data
+                    auth.balance = balance;
+                    auth.availableBalance = availableBalance;
+                    auth.sportBonusBalance = sportBonusBalance;
+                    auth.casinoBonusBalance = casinoBonusBalance;
+                    auth.virtualBonusBalance = virtualBonusBalance;
+                    auth.trustBalance = trustBalance;
+                }
+    
+                auth.token = this.jwtService.generateToken(auth);
+                auth.firstName = user.userDetails.firstName;
+                auth.lastName = user.userDetails.lastName;
+                auth.email = user.userDetails.email;
+                auth.phone = user.userDetails.phone;
+                auth.role = user.role.name;
+                auth.roleId = user.role.id;
+    
+                delete auth.password;
+
+                return {success: true, status: HttpStatus.OK, message: 'User found', data: auth};
+
+            } else {
+                return {success: false, status: HttpStatus.NOT_FOUND, message: 'User not found', data: null};
+
+            }
+        } catch (e) {
+            return {success: false, status: 501, message: 'Internal error ' + e.message, data: null};
+        }
     }
 
     public async validate({ token }: ValidateRequestDto): Promise<ValidateResponse> {

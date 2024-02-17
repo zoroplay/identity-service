@@ -54,7 +54,7 @@ export class AppService {
   }
 
 
-  @Timeout(11000)
+  // @Timeout(11000)
   async importUsers() {
     console.log('start importing')
     try {
