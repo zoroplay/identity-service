@@ -63,9 +63,12 @@ model Client {
   name          String
   country       String
   currency      String
-  website       String?
+  apiUrl        String?
   contactNumber String?
   contactEmail  String
+  webUrl        String?
+  mobileUrl     String?
+  shopUrl       String?
   createdAt     DateTime   @default(now()) @map("created_at")
   updatedAt     DateTime   @updatedAt @map("updated_at")
 

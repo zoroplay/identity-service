@@ -33,23 +33,22 @@ export class AppService {
     try { 
       const client = await this.prisma.client.findUnique({where: {id: data.clientId}});
       
-      if (!client) return {username: '', email:'', clientUrl: ''};
+      if (!client) return {username: '', email:'', callbackUrl: ''};
 
       const user = await this.prisma.user.findFirst({
         where: {id: data.userId},
         include: {userDetails: true}
       });
       
-      if (!user) return {username: '', email:'', clientUrl: ''};
-
+      if (!user) return {username: '', email:'', callbackUrl: ''};
       return {
         username: user.username, 
         email: user.userDetails.email, 
-        clientUrl: client.website
+        callbackUrl: client[`${data.source}Url`],
       };
 
     } catch (e) {
-      return {username: '', email:'', clientUrl: ''};
+      return {username: '', email:'', callbackUrl: ''};
     }
   }
 
@@ -61,12 +60,12 @@ export class AppService {
       const clients = await this.prisma.client.findMany();
       for (const client of clients) {
         // get total page
-        const resTotal = await axios.get(`${client.website}/api/migrate-users`);
+        const resTotal = await axios.get(`${client.apiUrl}/api/migrate-users`);
         const {data} = resTotal;
 
         if (data.last_page) {
           for (let index = 1; index <= data.last_page; index++) {
-            const res = await axios.get(`${client.website}/api/migrate-users?page=${index}`);
+            const res = await axios.get(`${client.apiUrl}/api/migrate-users?page=${index}`);
             console.log('current page', res.data.current_page)
             const {data} = res.data;
             for (const user of data) {

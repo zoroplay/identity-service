@@ -2,7 +2,10 @@ export class CreateClientDto {
   name: string;
   country: string;
   currency: string;
-  website?: string;
+  apiUrl?: string;
+  mobileUrl?: string;
+  webUrl?: string;
+  shopUrl?: string;
   contactNumber?: string;
   contactEmail: string;
   clientID?: number;
