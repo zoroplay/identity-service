@@ -86,9 +86,9 @@ export interface CreateShareBetBonusRequest {
 export interface CreateBonusRequest {
   clientId: number;
   bonusType: string;
-  minimumStake: number;
-  expiryInHours: number;
-  minimumEvents: number;
+  creditType: string;
+  duration: number;
+  minimumSelection: number;
   minimumOddsPerEvent: number;
   minimumTotalOdds: number;
   applicableBetType: string;
@@ -102,7 +102,7 @@ export interface CreateBonusRequest {
   rolloverCount: number;
   name: string;
   minimumEntryAmount: number;
-  minimumBettingStake: number;
+  maxAmount: number;
   product: string;
 }
 

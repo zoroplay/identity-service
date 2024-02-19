@@ -55,27 +55,27 @@ export class AuthService {
                 let bonus = 0;
 
                 // check if promo code is provided and activate bonus
-                if (promoCode && promoCode !== '') {
-                    const campaignRes = await this.bonusService.getBonusCampaign({promoCode, clientId}).toPromise();
-                    console.log('campaign res', campaignRes)
-                    if (campaignRes.success) {
+                // if (promoCode && promoCode !== '') {
+                //     const campaignRes = await this.bonusService.getBonusCampaign({promoCode, clientId}).toPromise();
+                //     console.log('campaign res', campaignRes)
+                //     if (campaignRes.success) {
                         
-                        const awardRes = await this.bonusService.awardBonus({
-                            clientId, 
-                            userId: newUser.id.toString(),
-                            username: newUser.username,
-                            bonusId: campaignRes.data.bonus.id,
-                            amount: campaignRes.data.bonus.bonusAmount,
-                            baseValue: 0,
-                            promoCode,
-                        }).toPromise();
-                        console.log('award bonus response', awardRes)
+                //         const awardRes = await this.bonusService.awardBonus({
+                //             clientId, 
+                //             userId: newUser.id.toString(),
+                //             username: newUser.username,
+                //             bonusId: campaignRes.data.bonus.id,
+                //             amount: campaignRes.data.bonus.bonusAmount,
+                //             baseValue: 0,
+                //             promoCode,
+                //         }).toPromise();
+                //         console.log('award bonus response', awardRes)
 
-                        // if bonus was awarded successfully, set bonus amount
-                        if (awardRes.status === 201)
-                            bonus = awardRes.bonus.amount;
-                    }
-                }
+                //         // if bonus was awarded successfully, set bonus amount
+                //         if (awardRes.status === 201)
+                //             bonus = awardRes.bonus.amount;
+                //     }
+                // }
 
                 //create user wallet
                 const balanceRes = await this.walletService.createWallet({
