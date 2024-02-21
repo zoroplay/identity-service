@@ -45,6 +45,7 @@ export interface CreateUserRequest {
   currency?: string | undefined;
   parent?: number | undefined;
   promoCode?: string | undefined;
+  trackingToken?: string | undefined;
 }
 
 /** user */
