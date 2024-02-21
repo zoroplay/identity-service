@@ -26,6 +26,8 @@ export class RegisterRequestDto implements CreateUserRequest {
     public phoneNumber: string;
 
     promoCode: string;
+
+    trackingToken: string;
 }
 
 export class ValidateRequestDto implements ValidateRequest {

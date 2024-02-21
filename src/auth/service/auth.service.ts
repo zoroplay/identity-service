@@ -6,6 +6,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { User } from '@prisma/client';
 import { WalletService } from 'src/wallet/wallet.service';
 import { BonusService } from 'src/bonus/bonus.service';
+import { TrackierService } from 'src/user/trackier/trackier.service';
 
 @Injectable()
 export class AuthService {
@@ -15,9 +16,10 @@ export class AuthService {
         private readonly prisma: PrismaService,
         private readonly walletService: WalletService,
         private readonly bonusService: BonusService,
+        private trackierService: TrackierService,
     ) {}
 
-    public async register({ clientId, username, password, phoneNumber, promoCode }: RegisterRequestDto): Promise<RegisterResponse> {
+    public async register({ clientId, username, password, phoneNumber, promoCode, trackingToken }: RegisterRequestDto): Promise<RegisterResponse> {
       
         try {
             let user: any = await this.prisma.user.findUnique({ where: { username, clientId } });
@@ -54,28 +56,35 @@ export class AuthService {
                 const auth: any = {...newUser};
                 let bonus = 0;
 
-                // check if promo code is provided and activate bonus
-                // if (promoCode && promoCode !== '') {
-                //     const campaignRes = await this.bonusService.getBonusCampaign({promoCode, clientId}).toPromise();
-                //     console.log('campaign res', campaignRes)
-                //     if (campaignRes.success) {
-                        
-                //         const awardRes = await this.bonusService.awardBonus({
-                //             clientId, 
-                //             userId: newUser.id.toString(),
-                //             username: newUser.username,
-                //             bonusId: campaignRes.data.bonus.id,
-                //             amount: campaignRes.data.bonus.bonusAmount,
-                //             baseValue: 0,
-                //             promoCode,
-                //         }).toPromise();
-                //         console.log('award bonus response', awardRes)
+                //check if promo code is provided and activate bonus
+                if (promoCode && promoCode !== '') {
+                    const campaignRes = await this.bonusService.getBonusCampaign({promoCode, clientId}).toPromise();
+                    if (campaignRes.success) {
+                    
+                        const awardRes = await this.bonusService.awardBonus({
+                            clientId, 
+                            userId: newUser.id.toString(),
+                            username: newUser.username,
+                            bonusId: campaignRes.data.bonus.id,
+                            amount: campaignRes.data.bonus.bonusAmount,
+                            baseValue: 0,
+                            promoCode,
+                        }).toPromise();
 
-                //         // if bonus was awarded successfully, set bonus amount
-                //         if (awardRes.status === 201)
-                //             bonus = awardRes.bonus.amount;
-                //     }
-                // }
+                        // if bonus was awarded successfully, set bonus amount
+                        if (awardRes.status === 201)
+                            bonus = awardRes.bonus.amount;
+                    }
+                }
+
+                if (trackingToken && trackingToken !== '') {
+                    const trackREs = await this.trackierService.createCustòmer({
+                        customerId: newUser.username,
+                        customerName: newUser.username,
+                        trackingToken,
+                    })
+                    console.log(trackREs)
+                }
 
                 //create user wallet
                 const balanceRes = await this.walletService.createWallet({

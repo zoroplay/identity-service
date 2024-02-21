@@ -1,20 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
+import * as dayjs from 'dayjs';
 import { handleError } from 'src/common/helpers';
 
 @Injectable()
 export class TrackierService {
-  async createCustòmer(createUserDto, user) {
-    const authres: any = this.getAccessToken();
-    if (!authres.status) return handleError(authres.error.message, null);
+  protected baseUrl = 'https://api.trackierigaming.io';
 
-    await axios.post(
-      'https://api.trackierigaming.com/customer',
+  async createCustòmer({customerId, customerName, trackingToken}) {
+    const authres: any = await this.getAccessToken();
+    if (!authres.status) return handleError(authres.error.response.message, null);
+
+    return await axios.post(
+      `${this.baseUrl}/customer`,
       {
-        customerId: user.id,
-        customerName: user.username,
-        currency: 'Naira',
-        promocode: createUserDto.promoCode,
+        customerId,
+        customerName,
+        date: dayjs().format('YYYY-MM-DD'),
+        timestamp: dayjs().unix(),
+        country: 'NG',
+        currency: 'ngn',
+        trackingToken,
+        productId: '1',
       },
       {
         headers: {
@@ -26,11 +33,12 @@ export class TrackierService {
   }
 
   async registerAffiliate(user_details, user, hashedPassword) {
-    const authres: any = this.getAccessToken();
+    const authres: any = await this.getAccessToken();
+
     if (!authres.status) return handleError(authres.error.message, null);
 
     await axios.post(
-      'https://api.trackierigaming.com/affiliate/register',
+            `${this.baseUrl}/affiliate/register`,
 
       {
         affiliate: {
@@ -52,9 +60,9 @@ export class TrackierService {
 
   async getAccessToken() {
     return axios.post(
-      'https://api.trackierigaming.com/oauth/access-refresh-token',
+      `${this.baseUrl}/oauth/access-refresh-token`,
       {
-        auth_code: process.env.AUTH_CODE,
+        auth_code: "$2a$04$geRYyxPlSFlL6uMVUQNgnOV0YvXQB4cr3usXLfp7b0WzZHpky61nO",
       },
     );
   }

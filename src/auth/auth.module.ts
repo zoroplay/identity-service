@@ -7,6 +7,7 @@ import { JwtStrategy } from './strategy/jwt.strategy';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { WalletModule } from 'src/wallet/wallet.module';
 import { BonusModule } from 'src/bonus/bonus.module';
+import { TrackierService } from 'src/user/trackier/trackier.service';
 
 @Module({
   imports: [
@@ -18,6 +19,6 @@ import { BonusModule } from 'src/bonus/bonus.module';
     BonusModule
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtService, JwtStrategy, PrismaService],
+  providers: [AuthService, JwtService, JwtStrategy, PrismaService, TrackierService],
 })
 export class AuthModule { }
