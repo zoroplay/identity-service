@@ -204,6 +204,8 @@ export class AuthService {
                 auth.phone = user.userDetails.phone;
                 auth.role = user.role.name;
                 auth.roleId = user.role.id;
+                auth.registered = user.createdAt;
+                auth.authCode  = user.auth_code;
     
                 delete auth.password;
 
