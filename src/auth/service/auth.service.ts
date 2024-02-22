@@ -7,6 +7,7 @@ import { User } from '@prisma/client';
 import { WalletService } from 'src/wallet/wallet.service';
 import { BonusService } from 'src/bonus/bonus.service';
 import { TrackierService } from 'src/user/trackier/trackier.service';
+import * as dayjs from 'dayjs';
 
 @Injectable()
 export class AuthService {
@@ -146,6 +147,15 @@ export class AuthService {
                 return { status: HttpStatus.NOT_FOUND, error: 'Invalid password', success: false, data: null };
             }
             const auth: any = {...user};
+
+            // update last login
+            await this.prisma.user.update({
+                data: {
+                    lastLogin: dayjs().format('YYYY-MM-DD')
+                }, where: {
+                    id: auth.id
+                }
+            })
 
             //get user wallet
             const balanceRes = await this.walletService.getWallet({

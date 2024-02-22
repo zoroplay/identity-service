@@ -2,7 +2,7 @@ import { Controller } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
 import { UserService } from './user.service';
 import { UserDetailsDto, LoginDto } from './dto/create-user.dto';
-import { CreateUserRequest, IDENTITY_SERVICE_NAME } from 'src/proto/identity.pb';
+import { CreateUserRequest, IDENTITY_SERVICE_NAME, SearchPlayerRequest } from 'src/proto/identity.pb';
 
 @Controller()
 export class UserController {
@@ -22,6 +22,7 @@ export class UserController {
   updateDetails(createUserDto: UserDetailsDto) {
     return this.userService.updateDetails(createUserDto);
   }
+
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'createShopUser')
   createShopUser(createUserDto: UserDetailsDto & LoginDto) {
     return this.userService.createShopUser(createUserDto);
@@ -32,9 +33,9 @@ export class UserController {
     // return this.userService.findAll();
   }
 
-  @GrpcMethod(IDENTITY_SERVICE_NAME, 'findOneUser')
-  findOne(id: number) {
-    return this.userService.findOne(id);
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'SearchPlayer')
+  SearchPlayer(param: SearchPlayerRequest) {
+    return this.userService.searchPlayer(param);
   }
 
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'removeUser')
