@@ -20,8 +20,10 @@ model User {
   auth_code     String?
   virtualToken  String?       @map("virutal_token")
   registrationSource  String?       @map("registration_source")
+  trackierToken String?       @map("trakier_token")
   lastLogin     String?       @map("last_login")
   status        Int           @default(1)
+  verified      Int           @default(1)
 
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @updatedAt @map("updated_at")
