@@ -1,7 +1,7 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { JwtService } from './jwt.service';
 import { RegisterRequestDto, LoginRequestDto, ValidateRequestDto } from '../auth.dto';
-import { LoginResponse, RegisterResponse, ValidateResponse } from 'src/proto/identity.pb';
+import { CreateUserRequest, LoginResponse, RegisterResponse, UpdateUserRequest, UpdateUserResponse, ValidateResponse } from 'src/proto/identity.pb';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { User } from '@prisma/client';
 import { WalletService } from 'src/wallet/wallet.service';
@@ -178,6 +178,12 @@ export class AuthService {
             auth.lastName = user.userDetails.lastName;
             auth.email = user.userDetails.email;
             auth.phone = user.userDetails.phone;
+            auth.gender = user.userDetails.gender;
+            auth.city = user.userDetails.city;
+            auth.address = user.userDetails.address;
+            auth.country = user.userDetails.country;
+            auth.currency = user.userDetails.currency;
+            auth.dateOfBirth = user.userDetails.date_of_birth;
             auth.role = user.role.name;
             auth.roleId = user.role.id;
 
@@ -225,6 +231,12 @@ export class AuthService {
                 auth.roleId = user.role.id;
                 auth.registered = user.createdAt;
                 auth.authCode  = user.auth_code;
+                auth.gender = user.userDetails.gender;
+                auth.city = user.userDetails.city;
+                auth.address = user.userDetails.address;
+                auth.country = user.userDetails.country;
+                auth.currency = user.userDetails.currency;
+                auth.dateOfBirth = user.userDetails.date_of_birth;
     
                 delete auth.password;
 
@@ -236,6 +248,31 @@ export class AuthService {
             }
         } catch (e) {
             return {success: false, status: 501, message: 'Internal error ' + e.message, data: null};
+        }
+    }
+
+    async updateUserDetails (param: UpdateUserRequest): Promise<UpdateUserResponse> {
+        try {
+            await this.prisma.userDetails.update({
+                where: {userId: param.userId},
+                data: {
+                    email: param.email,
+                    firstName: param.firstName,
+                    lastName: param.lastName,
+                    phone: param.phoneNumber,
+                    gender: param.gender,
+                    date_of_birth: param.dateOfBirth,
+                    country: param.country,
+                    state: param.state,
+                    city: param.city,
+                    address: param.address,
+                    language: param.language,
+                    currency: param.currency
+                }
+            })
+            return {success: true, message: 'Details updated successfully'};
+        } catch (err) {
+            return {success: false, message: 'Error updating details ' + err.message};
         }
     }
 

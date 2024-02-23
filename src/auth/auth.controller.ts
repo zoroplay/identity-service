@@ -1,7 +1,7 @@
 import { Controller, Inject } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
 import { LoginRequestDto, RegisterRequestDto, ValidateRequestDto } from './auth.dto';
-import { GetUserDetailsRequest, GetUserDetailsResponse, IDENTITY_SERVICE_NAME, LoginResponse, RegisterResponse, ValidateResponse } from '../proto/identity.pb';
+import { CreateUserRequest, GetUserDetailsRequest, GetUserDetailsResponse, IDENTITY_SERVICE_NAME, LoginResponse, RegisterResponse, UpdateUserRequest, ValidateResponse } from '../proto/identity.pb';
 import { AuthService } from './service/auth.service';
 
 @Controller()
@@ -22,6 +22,11 @@ export class AuthController {
     @GrpcMethod(IDENTITY_SERVICE_NAME, 'GetUserDetails')
     GetUserDetails(payload: GetUserDetailsRequest): Promise<any> {
         return this.service.getDetails(payload);
+    }
+
+    @GrpcMethod(IDENTITY_SERVICE_NAME, 'UpdateUserDetails')
+    UpdateUserDetails(payload: UpdateUserRequest): Promise<any> {
+        return this.service.updateUserDetails(payload);
     }
 
     @GrpcMethod(IDENTITY_SERVICE_NAME, 'Validate')
