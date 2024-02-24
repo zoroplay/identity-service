@@ -140,6 +140,12 @@ export interface ValidateResponse {
   userId: number;
 }
 
+export interface ValidateClientResponse {
+  status: number;
+  error: string;
+  clientId: number;
+}
+
 export interface ClientRequest {
   name: string;
   country: string;
@@ -280,6 +286,43 @@ export interface Player {
   role: string;
 }
 
+export interface GetUserByUsernameRequest {
+  clientId: number;
+  username: string;
+}
+
+export interface GetUserByUsernameResponse {
+  responseCode: string;
+  responseMessage: string;
+  data: GetUserByUsernameResponse_Data | undefined;
+}
+
+export interface GetUserByUsernameResponse_Data {
+  referenceID?: string | undefined;
+  CustomerName?: string | undefined;
+  Phoneno?: string | undefined;
+  Status?: string | undefined;
+}
+
+export interface OnlinePlayersRequest {
+  clientId: number;
+  username: string;
+  country: string;
+  state: string;
+  source: string;
+  page?: number | undefined;
+  limit?: number | undefined;
+}
+
+export interface OnlinePlayersResponse {
+  from: number;
+  to: number;
+  total: number;
+  currentPage: number;
+  perPage: number;
+  data: Player[];
+}
+
 export interface EmptyRequest {
 }
 
@@ -291,6 +334,8 @@ export interface IdentityServiceClient {
   login(request: LoginRequest): Observable<LoginResponse>;
 
   validate(request: ValidateRequest): Observable<ValidateResponse>;
+
+  validateClient(request: ValidateRequest): Observable<ValidateClientResponse>;
 
   getUserDetails(request: GetUserDetailsRequest): Observable<GetUserDetailsResponse>;
 
@@ -327,6 +372,10 @@ export interface IdentityServiceClient {
   searchPlayer(request: SearchPlayerRequest): Observable<SearchPlayerResponse>;
 
   updateUserDetails(request: UpdateUserRequest): Observable<UpdateUserResponse>;
+
+  getUserByUsername(request: GetUserByUsernameRequest): Observable<GetUserByUsernameResponse>;
+
+  onlinePlayersReport(request: OnlinePlayersRequest): Observable<OnlinePlayersResponse>;
 }
 
 export interface IdentityServiceController {
@@ -335,6 +384,10 @@ export interface IdentityServiceController {
   login(request: LoginRequest): Promise<LoginResponse> | Observable<LoginResponse> | LoginResponse;
 
   validate(request: ValidateRequest): Promise<ValidateResponse> | Observable<ValidateResponse> | ValidateResponse;
+
+  validateClient(
+    request: ValidateRequest,
+  ): Promise<ValidateClientResponse> | Observable<ValidateClientResponse> | ValidateClientResponse;
 
   getUserDetails(
     request: GetUserDetailsRequest,
@@ -381,6 +434,14 @@ export interface IdentityServiceController {
   updateUserDetails(
     request: UpdateUserRequest,
   ): Promise<UpdateUserResponse> | Observable<UpdateUserResponse> | UpdateUserResponse;
+
+  getUserByUsername(
+    request: GetUserByUsernameRequest,
+  ): Promise<GetUserByUsernameResponse> | Observable<GetUserByUsernameResponse> | GetUserByUsernameResponse;
+
+  onlinePlayersReport(
+    request: OnlinePlayersRequest,
+  ): Promise<OnlinePlayersResponse> | Observable<OnlinePlayersResponse> | OnlinePlayersResponse;
 }
 
 export function IdentityServiceControllerMethods() {
@@ -389,6 +450,7 @@ export function IdentityServiceControllerMethods() {
       "register",
       "login",
       "validate",
+      "validateClient",
       "getUserDetails",
       "createClient",
       "createPermission",
@@ -407,6 +469,8 @@ export function IdentityServiceControllerMethods() {
       "getPaymentData",
       "searchPlayer",
       "updateUserDetails",
+      "getUserByUsername",
+      "onlinePlayersReport",
     ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);

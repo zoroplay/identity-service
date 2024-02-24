@@ -71,6 +71,7 @@ model Client {
   webUrl        String?
   mobileUrl     String?
   shopUrl       String?
+  oAuthToken    String?
   createdAt     DateTime   @default(now()) @map("created_at")
   updatedAt     DateTime   @updatedAt @map("updated_at")
 
