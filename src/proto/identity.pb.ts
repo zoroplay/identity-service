@@ -284,6 +284,7 @@ export interface Player {
   lifeTimeWithdrawal: number;
   openBets: number;
   role: string;
+  lastLogin: string;
 }
 
 export interface GetUserByUsernameRequest {
@@ -314,7 +315,16 @@ export interface OnlinePlayersRequest {
   limit?: number | undefined;
 }
 
-export interface OnlinePlayersResponse {
+export interface RegistrationReportRequest {
+  clientId: number;
+  from: string;
+  to: string;
+  source: string;
+  page?: number | undefined;
+  limit?: number | undefined;
+}
+
+export interface PlayersListResponse {
   from: number;
   to: number;
   total: number;
@@ -375,7 +385,9 @@ export interface IdentityServiceClient {
 
   getUserByUsername(request: GetUserByUsernameRequest): Observable<GetUserByUsernameResponse>;
 
-  onlinePlayersReport(request: OnlinePlayersRequest): Observable<OnlinePlayersResponse>;
+  onlinePlayersReport(request: OnlinePlayersRequest): Observable<PlayersListResponse>;
+
+  registrationReport(request: RegistrationReportRequest): Observable<PlayersListResponse>;
 }
 
 export interface IdentityServiceController {
@@ -441,7 +453,11 @@ export interface IdentityServiceController {
 
   onlinePlayersReport(
     request: OnlinePlayersRequest,
-  ): Promise<OnlinePlayersResponse> | Observable<OnlinePlayersResponse> | OnlinePlayersResponse;
+  ): Promise<PlayersListResponse> | Observable<PlayersListResponse> | PlayersListResponse;
+
+  registrationReport(
+    request: RegistrationReportRequest,
+  ): Promise<PlayersListResponse> | Observable<PlayersListResponse> | PlayersListResponse;
 }
 
 export function IdentityServiceControllerMethods() {
@@ -471,6 +487,7 @@ export function IdentityServiceControllerMethods() {
       "updateUserDetails",
       "getUserByUsername",
       "onlinePlayersReport",
+      "registrationReport",
     ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
