@@ -5,6 +5,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { JwtModule } from '@nestjs/jwt';
 import { TrackierService } from './trackier/trackier.service';
 import { WalletModule } from 'src/wallet/wallet.module';
+import { PlayerService } from './player.service';
 
 @Module({
   imports: [
@@ -16,6 +17,6 @@ import { WalletModule } from 'src/wallet/wallet.module';
     WalletModule
   ],
   controllers: [UserController],
-  providers: [UserService, PrismaService, TrackierService],
+  providers: [UserService, PlayerService, PrismaService, TrackierService],
 })
 export class UserModule {}

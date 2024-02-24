@@ -1,9 +1,9 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { JwtService } from './jwt.service';
 import { RegisterRequestDto, LoginRequestDto, ValidateRequestDto } from '../auth.dto';
-import { CreateUserRequest, LoginResponse, RegisterResponse, UpdateUserRequest, UpdateUserResponse, ValidateResponse } from 'src/proto/identity.pb';
+import { CreateUserRequest, GetUserByUsernameRequest, GetUserByUsernameResponse, LoginResponse, RegisterResponse, UpdateUserRequest, UpdateUserResponse, ValidateClientResponse, ValidateResponse } from 'src/proto/identity.pb';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { User } from '@prisma/client';
+import { Client, User } from '@prisma/client';
 import { WalletService } from 'src/wallet/wallet.service';
 import { BonusService } from 'src/bonus/bonus.service';
 import { TrackierService } from 'src/user/trackier/trackier.service';
@@ -276,6 +276,35 @@ export class AuthService {
         }
     }
 
+    public async getUserByUsername({ clientId, username }: GetUserByUsernameRequest): Promise<GetUserByUsernameResponse> {
+        const user: any = await this.prisma.user.findFirst({
+            where: {
+                username,
+                clientId
+            },
+            include: {userDetails: true}
+        });
+
+        if (user) {
+            return {
+                responseCode: "00000",
+                responseMessage: "SUCCESSFUL",
+                data: {
+                    referenceID: user.username,
+                    CustomerName: user.userDetails.firstName + " " + user.userDetails.lastName,
+                    Phoneno: user.userDetails.phone,
+                    Status: "00"
+                }
+            }
+        } else {
+            return {
+                responseCode: "10967",
+                responseMessage: "Invalid User",
+                data: {}
+            }
+        }
+    }
+
     public async validate({ token }: ValidateRequestDto): Promise<ValidateResponse> {
         const decoded: User = await this.jwtService.verify(token);
 
@@ -290,5 +319,17 @@ export class AuthService {
         }
 
         return { status: HttpStatus.OK, error: null, userId: decoded.id };
+    }
+
+    public async validateClient({ token }: ValidateRequestDto): Promise<ValidateClientResponse> {
+        const client: Client = await this.prisma.client.findFirst({
+            where: {oAuthToken: token}
+        });
+
+        if (!client) {
+            return { status: HttpStatus.FORBIDDEN, error: 'Token is invalid', clientId: null };
+        }
+
+        return { status: HttpStatus.OK, error: null, clientId: client.id };
     }
 }

@@ -24,9 +24,9 @@ export class ClientController {
     return this.clientService.findOne(data.id);
   }
 
-  @GrpcMethod(IDENTITY_SERVICE_NAME, 'updateClient')
-  update(@Payload() updateClientDto: UpdateClientDto) {
-    // return this.clientService.update(updateClientDto.id, updateClientDto);
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'RefreshToken')
+  refreshToken(@Payload() updateClientDto: UpdateClientDto) {
+    // return this.clientService.refreshToken();
   }
 
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'DeleteClient')

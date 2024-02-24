@@ -2,11 +2,15 @@ import { Controller } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
 import { UserService } from './user.service';
 import { UserDetailsDto, LoginDto } from './dto/create-user.dto';
-import { CreateUserRequest, IDENTITY_SERVICE_NAME, SearchPlayerRequest } from 'src/proto/identity.pb';
+import { CreateUserRequest, IDENTITY_SERVICE_NAME, OnlinePlayersRequest, SearchPlayerRequest } from 'src/proto/identity.pb';
+import { PlayerService } from './player.service';
 
 @Controller()
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly playerService: PlayerService,
+  ) {}
 
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'CreateAdmin')
   CreateAdmin(createUserDto: CreateUserRequest) {
@@ -35,7 +39,12 @@ export class UserController {
 
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'SearchPlayer')
   SearchPlayer(param: SearchPlayerRequest) {
-    return this.userService.searchPlayer(param);
+    return this.playerService.searchPlayer(param);
+  }
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'OnlinePlayersReport')
+  OnlinePlayersReport(param: OnlinePlayersRequest) {
+    return this.playerService.onlinePlayerReports(param);
   }
 
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'removeUser')
