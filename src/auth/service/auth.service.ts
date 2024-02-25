@@ -309,16 +309,16 @@ export class AuthService {
         const decoded: User = await this.jwtService.verify(token);
 
         if (!decoded) {
-            return { status: HttpStatus.FORBIDDEN, error: 'Token is invalid', userId: null };
+            return { status: HttpStatus.FORBIDDEN, error: 'Token is invalid', user: null };
         }
 
         const auth: User = await this.jwtService.validateUser(decoded);
 
         if (!auth) {
-            return { status: HttpStatus.CONFLICT, error: 'User not found', userId: null };
+            return { status: HttpStatus.CONFLICT, error: 'User not found', user: null };
         }
 
-        return { status: HttpStatus.OK, error: null, userId: decoded.id };
+        return { status: HttpStatus.OK, error: null, user: decoded };
     }
 
     public async validateClient({ token }: ValidateRequestDto): Promise<ValidateClientResponse> {
