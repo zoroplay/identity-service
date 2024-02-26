@@ -37,9 +37,14 @@ export class UserController {
     // return this.userService.findAll();
   }
 
-  @GrpcMethod(IDENTITY_SERVICE_NAME, 'SearchPlayer')
-  SearchPlayer(param: SearchPlayerRequest) {
-    return this.playerService.searchPlayer(param);
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'SearchPlayers')
+  SearchPlayers(param: SearchPlayerRequest) {
+    return this.playerService.searchPlayers(param);
+  }
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'GetPlayerData')
+  GetPlayerData(param: SearchPlayerRequest) {
+    // return this.playerService.getPlayerData(param);
   }
 
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'OnlinePlayersReport')

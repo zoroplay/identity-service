@@ -14,7 +14,7 @@ export class PlayerService {
     private readonly walletService: WalletService,
   ) {}
 
-  async searchPlayer({clientId, searchKey}: SearchPlayerRequest): Promise<SearchPlayerResponse> {
+  async searchPlayers({clientId, searchKey}: SearchPlayerRequest): Promise<SearchPlayerResponse> {
     const key = `%${searchKey.toLowerCase()}%`
       try {
           const users: any = await this.prisma.$queryRaw`SELECT u.id, u.username, u.code, u.created_at, u.status, u.verified,
@@ -305,5 +305,46 @@ export class PlayerService {
           }
 
     return {perPage, currentPage, total, data, from, to};
+  }
+
+  async getPlayerData({clientId, userId}) {
+    try {
+      let data = {
+        deposits: 0,
+        totalDeposit: 0,
+        withdrawals: 0,
+        totalWithdrawal: 0,
+        pendingWithdrawals: 0,
+        avgWithdrawals: 0,
+        lastLogin: {
+          date: '',
+          ipAddress: '',
+        },
+        lastBonus: {},
+        lastDeposit: {
+          date: '',
+          amount: 0,
+        },
+        lastWithdrawal: {
+          date: '',
+          amount: 0
+        },
+        firstActivityDate: '',
+        lastActivityDate: ''
+      };
+      // get user data
+
+      // get last login data
+
+      // get wallet info (sum total deposit, sum total withdrawal, pending withdrawal, last deposit, 
+      //last withdrawal, total deposit count, total withdrawal count, avg withdrawal
+
+      //check if user is tied to an agent
+
+
+      return {success: true, message: "Player found", data}
+    } catch (e) {
+      return {success: false, message: `Something went wrong ${e.message}`, data: null}
+    }
   }
 }
