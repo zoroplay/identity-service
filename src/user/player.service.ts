@@ -335,7 +335,8 @@ export class PlayerService {
       user.currency = user.userDetails.currency;
       user.dateOfBirth = user.userDetails.date_of_birth;
 
-      const wallet = await firstValueFrom(this.walletService.getWalletSummary({clientId, userId}))
+      const wallet = await this.walletService.getWalletSummary({clientId, userId}).toPromise();
+      console.log(wallet)
 
       let data: any = {
         user,
