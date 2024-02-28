@@ -338,6 +338,43 @@ export interface PlayersListResponse {
   data: Player[];
 }
 
+export interface GetPlayerDataRequest {
+  clientId: number;
+  userId: number;
+}
+
+export interface GetPlayerDataResponse {
+  success: boolean;
+  message: string;
+  data?: GetPlayerDataResponse_PlayerData | undefined;
+}
+
+export interface GetPlayerDataResponse_PlayerData {
+  user: Player | undefined;
+  wallet: PlayerWalletData | undefined;
+  bonus: PlayerBonusData | undefined;
+}
+
+export interface PlayerWalletData {
+  sportBalance: number;
+  totalDeposits: number;
+  sportBonusBalance: number;
+  totalWithdrawals: number;
+  pendingWithdrawals: number;
+  avgWithdrawals: number;
+  lastDepositDate: string;
+  lastWithdrawalDate: string;
+  lastDepositAmount: number;
+  lastWithdrawalAmount: number;
+  firstActivityDate: string;
+  lastActivityDate: string;
+  noOfDeposits: number;
+  noOfWithdrawals: number;
+}
+
+export interface PlayerBonusData {
+}
+
 export interface EmptyRequest {
 }
 
@@ -384,7 +421,7 @@ export interface IdentityServiceClient {
 
   getPaymentData(request: GetPaymentDataRequest): Observable<GetPaymentDataResponse>;
 
-  searchPlayer(request: SearchPlayerRequest): Observable<SearchPlayerResponse>;
+  searchPlayers(request: SearchPlayerRequest): Observable<SearchPlayerResponse>;
 
   updateUserDetails(request: UpdateUserRequest): Observable<UpdateUserResponse>;
 
@@ -393,6 +430,8 @@ export interface IdentityServiceClient {
   onlinePlayersReport(request: OnlinePlayersRequest): Observable<PlayersListResponse>;
 
   registrationReport(request: RegistrationReportRequest): Observable<PlayersListResponse>;
+
+  getPlayerData(request: GetPlayerDataRequest): Observable<GetPlayerDataResponse>;
 }
 
 export interface IdentityServiceController {
@@ -444,7 +483,7 @@ export interface IdentityServiceController {
     request: GetPaymentDataRequest,
   ): Promise<GetPaymentDataResponse> | Observable<GetPaymentDataResponse> | GetPaymentDataResponse;
 
-  searchPlayer(
+  searchPlayers(
     request: SearchPlayerRequest,
   ): Promise<SearchPlayerResponse> | Observable<SearchPlayerResponse> | SearchPlayerResponse;
 
@@ -463,6 +502,10 @@ export interface IdentityServiceController {
   registrationReport(
     request: RegistrationReportRequest,
   ): Promise<PlayersListResponse> | Observable<PlayersListResponse> | PlayersListResponse;
+
+  getPlayerData(
+    request: GetPlayerDataRequest,
+  ): Promise<GetPlayerDataResponse> | Observable<GetPlayerDataResponse> | GetPlayerDataResponse;
 }
 
 export function IdentityServiceControllerMethods() {
@@ -488,11 +531,12 @@ export function IdentityServiceControllerMethods() {
       "getAdminUsers",
       "getClient",
       "getPaymentData",
-      "searchPlayer",
+      "searchPlayers",
       "updateUserDetails",
       "getUserByUsername",
       "onlinePlayersReport",
       "registrationReport",
+      "getPlayerData",
     ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
