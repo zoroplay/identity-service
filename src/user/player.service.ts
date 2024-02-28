@@ -2,8 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { TrackierService } from './trackier/trackier.service';
-import { OnlinePlayersRequest, PlayersListResponse, Player, SearchPlayerRequest, SearchPlayerResponse, RegistrationReportRequest } from 'src/proto/identity.pb';
+import { OnlinePlayersRequest, PlayersListResponse, Player, SearchPlayerRequest, SearchPlayerResponse, RegistrationReportRequest, GetPlayerDataResponse } from 'src/proto/identity.pb';
 import { WalletService } from 'src/wallet/wallet.service';
+import { firstValueFrom } from 'rxjs';
+import * as dayjs from 'dayjs';
 
 @Injectable()
 export class PlayerService {
@@ -31,7 +33,7 @@ export class PlayerService {
 
           const data = [];
 
-          console.log(users)
+          // console.log(users)
           if (users.length > 0) {
             for (const user of users) {
               const userObject: Player = {
@@ -307,30 +309,42 @@ export class PlayerService {
     return {perPage, currentPage, total, data, from, to};
   }
 
-  async getPlayerData({clientId, userId}) {
+  async getPlayerData({clientId, userId}): Promise<GetPlayerDataResponse> {
     try {
-      let data = {
-        deposits: 0,
-        totalDeposit: 0,
-        withdrawals: 0,
-        totalWithdrawal: 0,
-        pendingWithdrawals: 0,
-        avgWithdrawals: 0,
+      let userDetails: any = await this.prisma.user.findUnique({ 
+        where: { id: userId, clientId },
+        include: {
+            userDetails: true,
+            role: true,
+        }  
+      });
+      const user: any = {...userDetails}
+
+      user.firstName = user.userDetails.firstName;
+      user.lastName = user.userDetails.lastName;
+      user.email = user.userDetails.email;
+      user.phone = user.userDetails.phone;
+      user.role = user.role.name;
+      user.roleId = user.role.id;
+      user.registered = dayjs(user.createdAt).format('YYYY-MM-DD HH:mm:ss');
+      user.authCode  = user.auth_code;
+      user.gender = user.userDetails.gender;
+      user.city = user.userDetails.city;
+      user.address = user.userDetails.address;
+      user.country = user.userDetails.country;
+      user.currency = user.userDetails.currency;
+      user.dateOfBirth = user.userDetails.date_of_birth;
+
+      const wallet = await firstValueFrom(this.walletService.getWalletSummary({clientId, userId}))
+
+      let data: any = {
+        user,
+        wallet,
         lastLogin: {
           date: '',
           ipAddress: '',
         },
         lastBonus: {},
-        lastDeposit: {
-          date: '',
-          amount: 0,
-        },
-        lastWithdrawal: {
-          date: '',
-          amount: 0
-        },
-        firstActivityDate: '',
-        lastActivityDate: ''
       };
       // get user data
 
@@ -340,7 +354,6 @@ export class PlayerService {
       //last withdrawal, total deposit count, total withdrawal count, avg withdrawal
 
       //check if user is tied to an agent
-
 
       return {success: true, message: "Player found", data}
     } catch (e) {

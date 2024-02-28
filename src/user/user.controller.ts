@@ -2,7 +2,7 @@ import { Controller } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
 import { UserService } from './user.service';
 import { UserDetailsDto, LoginDto } from './dto/create-user.dto';
-import { CreateUserRequest, IDENTITY_SERVICE_NAME, OnlinePlayersRequest, RegistrationReportRequest, SearchPlayerRequest } from 'src/proto/identity.pb';
+import { CreateUserRequest, GetPlayerDataRequest, IDENTITY_SERVICE_NAME, OnlinePlayersRequest, RegistrationReportRequest, SearchPlayerRequest } from 'src/proto/identity.pb';
 import { PlayerService } from './player.service';
 
 @Controller()
@@ -43,8 +43,8 @@ export class UserController {
   }
 
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'GetPlayerData')
-  GetPlayerData(param: SearchPlayerRequest) {
-    // return this.playerService.getPlayerData(param);
+  GetPlayerData(param: GetPlayerDataRequest) {
+    return this.playerService.getPlayerData(param);
   }
 
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'OnlinePlayersReport')

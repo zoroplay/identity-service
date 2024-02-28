@@ -20,4 +20,8 @@ export class WalletService {
     public getWallet(param: GetBalanceRequest) {
         return this.svc.getBalance(param);
     }
+
+    public getWalletSummary(param: GetBalanceRequest) {
+        return this.svc.getPlayerWalletData(param);
+    }
 }
