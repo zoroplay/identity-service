@@ -7,7 +7,7 @@ import { handleError } from 'src/common/helpers';
 export class TrackierService {
   protected baseUrl = 'https://api.trackierigaming.io';
 
-  async createCustòmer({customerId, customerName, trackingToken}) {
+  async createCustomer({customerId, customerName, trackingToken}) {
     const authres: any = await this.getAccessToken();
     if (!authres.status) return handleError(authres.error.response.message, null);
 

@@ -1,7 +1,7 @@
 import { Controller, Inject } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
 import { LoginRequestDto, RegisterRequestDto, ValidateRequestDto } from './auth.dto';
-import { CreateUserRequest, GetUserByUsernameRequest, GetUserDetailsRequest, GetUserDetailsResponse, IDENTITY_SERVICE_NAME, LoginResponse, RegisterResponse, UpdateUserRequest, ValidateClientResponse, ValidateResponse } from '../proto/identity.pb';
+import { ChangePasswordRequest, CreateUserRequest, GetUserByUsernameRequest, GetUserDetailsRequest, GetUserDetailsResponse, IDENTITY_SERVICE_NAME, LoginResponse, RegisterResponse, ResetPasswordRequest, UpdateUserRequest, ValidateClientResponse, ValidateResponse } from '../proto/identity.pb';
 import { AuthService } from './service/auth.service';
 
 @Controller()
@@ -27,6 +27,18 @@ export class AuthController {
     @GrpcMethod(IDENTITY_SERVICE_NAME, 'UpdateUserDetails')
     UpdateUserDetails(payload: UpdateUserRequest): Promise<any> {
         return this.service.updateUserDetails(payload);
+    }
+
+    @GrpcMethod(IDENTITY_SERVICE_NAME, 'ChangeUserPassword')
+    ChangeUserPassword(payload: ChangePasswordRequest): Promise<any> {
+        console.log(payload)
+        return this.service.updateUserPassword(payload);
+    }
+
+    @GrpcMethod(IDENTITY_SERVICE_NAME, 'ResetPassword')
+    ResetPassword(payload: ResetPasswordRequest): Promise<any> {
+        console.log(payload)
+        return this.service.resetPassword(payload);
     }
 
     @GrpcMethod(IDENTITY_SERVICE_NAME, 'GetUserByUsername')
