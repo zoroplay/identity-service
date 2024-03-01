@@ -1,7 +1,7 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { JwtService } from './jwt.service';
 import { RegisterRequestDto, LoginRequestDto, ValidateRequestDto } from '../auth.dto';
-import { CreateUserRequest, GetUserByUsernameRequest, GetUserByUsernameResponse, LoginResponse, RegisterResponse, UpdateUserRequest, UpdateUserResponse, ValidateClientResponse, ValidateResponse } from 'src/proto/identity.pb';
+import { ChangePasswordRequest, CreateUserRequest, GetUserByUsernameRequest, GetUserByUsernameResponse, LoginResponse, RegisterResponse, ResetPasswordRequest, UpdateUserRequest, UpdateUserResponse, ValidateClientResponse, ValidateResponse } from 'src/proto/identity.pb';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Client, User } from '@prisma/client';
 import { WalletService } from 'src/wallet/wallet.service';
@@ -79,12 +79,12 @@ export class AuthService {
                 }
 
                 if (trackingToken && trackingToken !== '') {
-                    const trackREs = await this.trackierService.createCustòmer({
+                    const trackREs = await this.trackierService.createCustomer({
                         customerId: newUser.username,
                         customerName: newUser.username,
                         trackingToken,
                     })
-                    console.log(trackREs)
+                    // console.log(trackREs)
                 }
 
                 //create user wallet
@@ -273,6 +273,56 @@ export class AuthService {
             return {success: true, message: 'Details updated successfully'};
         } catch (err) {
             return {success: false, message: 'Error updating details ' + err.message};
+        }
+    }
+
+    async updateUserPassword (param: ChangePasswordRequest): Promise<UpdateUserResponse> {
+        try {
+            //get user and compare password
+            const user = await this.prisma.user.findUnique({where: {id: param.userId}});
+            if (!user)
+                return {success: false, message: 'User does not exist'};
+
+            const isPasswordValid: boolean = this.jwtService.isPasswordValid(param.oldPassword, user.password);
+
+            if (!isPasswordValid) {
+                return { message: 'Incorrect old password', success: false };
+            }
+
+            await this.prisma.user.update({
+                where: {id: param.userId},
+                data: {
+                    password: this.jwtService.encodePassword(param.password),
+                }
+            })
+            return {success: true, message: 'Password changed successfully'}
+        } catch (e) {
+            return {success: false, message: 'Something went wrong'};
+        }
+    }
+
+
+    async resetPassword (param: ResetPasswordRequest): Promise<UpdateUserResponse> {
+        try {
+            //get user and compare password
+            const user = await this.prisma.user.findFirst({
+                where: {
+                    username: param.username,
+                    clientId: param.clientId
+                }
+            });
+            if (!user)
+                return {success: false, message: 'User does not exist'};
+
+            await this.prisma.user.update({
+                where: {id: user.id},
+                data: {
+                    password: this.jwtService.encodePassword(param.password),
+                }
+            })
+            return {success: true, message: 'Password changed successfully'}
+        } catch (e) {
+            return {success: false, message: 'Something went wrong'};
         }
     }
 
