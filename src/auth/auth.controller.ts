@@ -29,15 +29,13 @@ export class AuthController {
         return this.service.updateUserDetails(payload);
     }
 
-    @GrpcMethod(IDENTITY_SERVICE_NAME, 'ChangeUserPassword')
+    @GrpcMethod(IDENTITY_SERVICE_NAME, 'ChangePassword')
     ChangeUserPassword(payload: ChangePasswordRequest): Promise<any> {
-        console.log(payload)
         return this.service.updateUserPassword(payload);
     }
 
     @GrpcMethod(IDENTITY_SERVICE_NAME, 'ResetPassword')
     ResetPassword(payload: ResetPasswordRequest): Promise<any> {
-        console.log(payload)
         return this.service.resetPassword(payload);
     }
 
