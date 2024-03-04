@@ -12,7 +12,7 @@ datasource db {
 
 model User {
   id            Int           @id @default(autoincrement())
-  username      String        @unique
+  username      String        
   password      String
   code          String?
   roleId        Int?          @map("role_id")
