@@ -129,7 +129,7 @@ export class AuthService {
 
     public async login({ clientId, username, password }: LoginRequestDto): Promise<LoginResponse> {
         try {
-            const user = await this.prisma.user.findUnique({ 
+            const user = await this.prisma.user.findFirst({ 
                 where: { username, clientId },
                 include: {
                     userDetails: true,
