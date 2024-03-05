@@ -27,7 +27,7 @@ export class UserService {
           },
         }),
 
-        this.prisma.user.findUnique({
+        this.prisma.user.findFirst({
           where: {
             username: data.username,
             clientId: data.clientId
@@ -240,7 +240,7 @@ export class UserService {
 
   async login(loginUserDto: LoginDto) {
     try {
-      let user = await this.prisma.user.findUnique({
+      let user = await this.prisma.user.findFirst({
         where: {
           username: loginUserDto.username,
         },
