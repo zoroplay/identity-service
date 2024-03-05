@@ -20,7 +20,7 @@ export class CustomersService {
       },
       {
         headers: {
-          'x-api-key': process.env.X_API_KEY,
+          'x-api-key': process.env.TRACKIER_API_KEY,
           authorization: `BEARER ${authres.data.accessToken}`,
         },
       },
@@ -51,7 +51,7 @@ export class CustomersService {
         },
         {
           headers: {
-            'x-api-key': process.env.X_API_KEY,
+            'x-api-key': process.env.TRACKIER_API_KEY,
             authorization: `BEARER ${authres.data.accessToken}`,
           },
         },
@@ -74,7 +74,7 @@ export class CustomersService {
 
         {
           headers: {
-            'x-api-key': process.env.X_API_KEY,
+            'x-api-key': process.env.TRACKIER_API_KEY,
             authorization: `BEARER ${authres.data.accessToken}`,
           },
         },
