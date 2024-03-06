@@ -328,6 +328,27 @@ export interface PlayerWalletData {
   noOfWithdrawals: number;
 }
 
+export interface ListDepositRequests {
+  clientId: number;
+  startDate: string;
+  endDate: string;
+  paymentMethod: string;
+  status: number;
+  username: string;
+  transactionId: string;
+  page: number;
+}
+
+export interface PaginationResponse {
+  message: string;
+  count: number;
+  currentPage: number;
+  nextPage: number;
+  prevPage: number;
+  lastPage: number;
+  data: string;
+}
+
 export const WALLET_PACKAGE_NAME = "wallet";
 
 export interface WalletServiceClient {
@@ -360,6 +381,8 @@ export interface WalletServiceClient {
   opayLookUpWebhook(request: OpayWebhookRequest): Observable<OpayWebhookResponse>;
 
   listWithdrawals(request: ListWithdrawalRequests): Observable<ListWithdrawalRequestResponse>;
+
+  listDeposits(request: ListDepositRequests): Observable<PaginationResponse>;
 
   userTransactions(request: UserTransactionRequest): Observable<UserTransactionResponse>;
 
@@ -421,6 +444,10 @@ export interface WalletServiceController {
     request: ListWithdrawalRequests,
   ): Promise<ListWithdrawalRequestResponse> | Observable<ListWithdrawalRequestResponse> | ListWithdrawalRequestResponse;
 
+  listDeposits(
+    request: ListDepositRequests,
+  ): Promise<PaginationResponse> | Observable<PaginationResponse> | PaginationResponse;
+
   userTransactions(
     request: UserTransactionRequest,
   ): Promise<UserTransactionResponse> | Observable<UserTransactionResponse> | UserTransactionResponse;
@@ -452,6 +479,7 @@ export function WalletServiceControllerMethods() {
       "opayDepositWebhook",
       "opayLookUpWebhook",
       "listWithdrawals",
+      "listDeposits",
       "userTransactions",
       "updateWithdrawal",
       "getPlayerWalletData",
