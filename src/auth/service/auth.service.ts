@@ -196,6 +196,7 @@ export class AuthService {
     }
 
     async getDetails({clientId, userId}) {
+        console.log('getting user details')
         try {
             let user: any = await this.prisma.user.findUnique({ 
                 where: { id: userId, clientId },
@@ -240,13 +241,16 @@ export class AuthService {
     
                 delete auth.password;
 
+                console.log('success fully returned')
                 return {success: true, status: HttpStatus.OK, message: 'User found', data: auth};
 
             } else {
+                console.log('user not found returned')
                 return {success: false, status: HttpStatus.NOT_FOUND, message: 'User not found', data: null};
 
             }
         } catch (e) {
+            console.log('error occured')
             return {success: false, status: 501, message: 'Internal error ' + e.message, data: null};
         }
     }
