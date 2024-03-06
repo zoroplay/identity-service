@@ -161,7 +161,7 @@ export class AuthService {
             const balanceRes = await this.walletService.getWallet({
                 userId: user.id,
                 clientId,
-            }).toPromise();
+            })
 
             if(balanceRes.success){
                 const {balance, availableBalance, sportBonusBalance, casinoBonusBalance, virtualBonusBalance, trustBalance } = balanceRes.data
@@ -209,7 +209,9 @@ export class AuthService {
                 const balanceRes = await this.walletService.getWallet({
                     userId: user.id,
                     clientId,
-                }).toPromise();
+                })
+
+                console.log(balanceRes)
     
                 const auth: any = {...user};
 
