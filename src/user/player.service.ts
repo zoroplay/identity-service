@@ -61,7 +61,7 @@ export class PlayerService {
               const balanceRes = await this.walletService.getWallet({
                 userId: user.id,
                 clientId,
-              }).toPromise();
+              });
 
               if(balanceRes.success){
                 const {balance, availableBalance, sportBonusBalance, casinoBonusBalance, virtualBonusBalance, trustBalance } = balanceRes.data
@@ -182,7 +182,7 @@ export class PlayerService {
               const balanceRes = await this.walletService.getWallet({
                 userId: user.id,
                 clientId,
-              }).toPromise();
+              })
 
               if(balanceRes.success){
                 const {balance, availableBalance, sportBonusBalance, casinoBonusBalance, virtualBonusBalance, trustBalance } = balanceRes.data
@@ -295,7 +295,7 @@ export class PlayerService {
               const balanceRes = await this.walletService.getWallet({
                 userId: user.id,
                 clientId,
-              }).toPromise();
+              })
 
               if(balanceRes.success){
                 const {balance, availableBalance, sportBonusBalance, casinoBonusBalance, virtualBonusBalance, trustBalance } = balanceRes.data
@@ -358,6 +358,39 @@ export class PlayerService {
       return {success: true, message: "Player found", data}
     } catch (e) {
       return {success: false, message: `Something went wrong ${e.message}`, data: null}
+    }
+  }
+
+  async updateProfile(data) {
+    try {
+      await this.prisma.user.update({
+        where: {id: data.id},
+        data: {
+          username: data.username,
+        }
+      })
+
+      await this.prisma.userDetails.update({
+        where: {id: data.id},
+        data: {
+          country: data.country,
+          state: data.state,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          email: data.email,
+          phone: data.phoneNumber,
+          date_of_birth: data.dateOfBirth,
+          // city: data.city,
+          address: data.address,
+          currency: data.currency,
+          language: data.language,
+        }
+      })
+
+      return {success: true, message: 'Updated successfully'}
+
+    } catch(e) {
+      return { success: false, message: 'An error occured ' +e.message};
     }
   }
 }
