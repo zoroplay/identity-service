@@ -1,7 +1,7 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { JwtService } from './jwt.service';
 import { RegisterRequestDto, LoginRequestDto, ValidateRequestDto } from '../auth.dto';
-import { ChangePasswordRequest, CreateUserRequest, GetUserByUsernameRequest, GetUserByUsernameResponse, LoginResponse, RegisterResponse, ResetPasswordRequest, UpdateUserRequest, UpdateUserResponse, ValidateClientResponse, ValidateResponse } from 'src/proto/identity.pb';
+import { ChangePasswordRequest, GetUserByUsernameRequest, GetUserByUsernameResponse, LoginResponse, RegisterResponse, ResetPasswordRequest, UpdateUserRequest, UpdateUserResponse, ValidateClientResponse, ValidateResponse } from 'src/proto/identity.pb';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Client, User } from '@prisma/client';
 import { WalletService } from 'src/wallet/wallet.service';
@@ -210,8 +210,6 @@ export class AuthService {
                     userId: user.id,
                     clientId,
                 })
-
-                console.log(balanceRes)
     
                 const auth: any = {...user};
 
