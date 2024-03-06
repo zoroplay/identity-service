@@ -9,6 +9,9 @@ COPY . .
 RUN npm install
 
 RUN npm run proto:install
+RUN npm run proto:install
+RUN npm run proto:identity
+RUN npm run proto:bonus
 
 RUN chmod +x /app/entrypoint.sh
 
