@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
+import { firstValueFrom } from 'rxjs';
 import { CreateWalletRequest, GetBalanceRequest, WALLET_SERVICE_NAME, WalletServiceClient, protobufPackage } from 'src/proto/wallet.pb';
 
 @Injectable()
@@ -18,7 +19,7 @@ export class WalletService {
     }
 
     public getWallet(param: GetBalanceRequest) {
-        return this.svc.getBalance(param);
+        return firstValueFrom(this.svc.getBalance(param));
     }
 
     public getWalletSummary(param: GetBalanceRequest) {
