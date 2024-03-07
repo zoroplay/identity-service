@@ -310,6 +310,7 @@ export class PlayerService {
   }
 
   async getPlayerData({clientId, userId}): Promise<GetPlayerDataResponse> {
+    console.log('get player data');
     try {
       let userDetails: any = await this.prisma.user.findUnique({ 
         where: { id: userId, clientId },
@@ -335,7 +336,8 @@ export class PlayerService {
       user.currency = user.userDetails.currency;
       user.dateOfBirth = user.userDetails.date_of_birth;
 
-      const wallet = await firstValueFrom(this.walletService.getWalletSummary({clientId, userId}))
+      const wallet = await this.walletService.getWalletSummary({clientId, userId})
+      console.log(wallet);
 
       let data: any = {
         user,
@@ -349,9 +351,6 @@ export class PlayerService {
       // get user data
 
       // get last login data
-
-      // get wallet info (sum total deposit, sum total withdrawal, pending withdrawal, last deposit, 
-      //last withdrawal, total deposit count, total withdrawal count, avg withdrawal
 
       //check if user is tied to an agent
 
