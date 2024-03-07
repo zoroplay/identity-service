@@ -22,7 +22,7 @@ export class WalletService {
         return firstValueFrom(this.svc.getBalance(param));
     }
 
-    public getWalletSummary(param: GetBalanceRequest) {
-        return this.svc.getPlayerWalletData(param);
+    public async getWalletSummary(param: GetBalanceRequest) {
+        return await firstValueFrom(this.svc.getPlayerWalletData(param));
     }
 }

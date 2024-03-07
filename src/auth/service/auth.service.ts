@@ -196,7 +196,6 @@ export class AuthService {
     }
 
     async getDetails({clientId, userId}) {
-        console.log('getting user details')
         try {
             let user: any = await this.prisma.user.findUnique({ 
                 where: { id: userId, clientId },
