@@ -47,6 +47,13 @@ export class UserController {
     return this.playerService.getPlayerData(param);
   }
 
+  
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'UpdatePlayerData')
+  UpdatePlayerData(param: GetPlayerDataRequest) {
+    return this.playerService.updateProfile(param);
+  }
+
+
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'OnlinePlayersReport')
   OnlinePlayersReport(param: OnlinePlayersRequest) {
     return this.playerService.onlinePlayerReports(param);
