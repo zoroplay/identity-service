@@ -310,7 +310,6 @@ export class PlayerService {
   }
 
   async getPlayerData({clientId, userId}): Promise<GetPlayerDataResponse> {
-    console.log('get player data');
     try {
       let userDetails: any = await this.prisma.user.findUnique({ 
         where: { id: userId, clientId },
@@ -337,7 +336,6 @@ export class PlayerService {
       user.dateOfBirth = user.userDetails.date_of_birth;
 
       const wallet = await this.walletService.getWalletSummary({clientId, userId})
-      console.log(wallet);
 
       let data: any = {
         user,
@@ -363,14 +361,14 @@ export class PlayerService {
   async updateProfile(data) {
     try {
       await this.prisma.user.update({
-        where: {id: data.id},
+        where: {id: data.userId},
         data: {
           username: data.username,
         }
       })
 
       await this.prisma.userDetails.update({
-        where: {id: data.id},
+        where: {userId: data.userId},
         data: {
           country: data.country,
           state: data.state,

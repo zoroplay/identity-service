@@ -240,7 +240,6 @@ export class AuthService {
     
                 delete auth.password;
 
-                console.log('success fully returned')
                 return {success: true, status: HttpStatus.OK, message: 'User found', data: auth};
 
             } else {
