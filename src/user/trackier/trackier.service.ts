@@ -58,13 +58,11 @@ export class TrackierService {
   }
 
   async getAccessToken() {
-    const resp = await axios.post(
+    return axios.post(
       `${this.baseUrl}/oauth/access-refresh-token`,
       {
         auth_code: "$2a$04$geRYyxPlSFlL6uMVUQNgnOV0YvXQB4cr3usXLfp7b0WzZHpky61nO",
       },
     );
-
-    return resp.data;
   }
 }
