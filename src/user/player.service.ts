@@ -10,17 +10,17 @@ import {
   SearchPlayerResponse,
   RegistrationReportRequest,
   GetPlayerDataResponse,
-  FetchPlayerRequest,
-  FetchPlayerResponse,
-  FetchPlayersRequest,
-  FetchDepositRangeRequest,
-  FetchBetRangeRequest,
-  FetchDepositCountRequest,
+  FetchPlayerFilterRequest,
 } from 'src/proto/identity.pb';
 import { WalletService } from 'src/wallet/wallet.service';
 import { firstValueFrom, tap } from 'rxjs';
 import * as dayjs from 'dayjs';
 import { authPlugins } from 'mysql2';
+import {
+  FetchBetRangeRequest,
+  FetchDepositCountRequest,
+  FetchDepositRangeRequest,
+} from 'src/proto/wallet.pb';
 
 @Injectable()
 export class PlayerService {
@@ -30,6 +30,25 @@ export class PlayerService {
     private trackierService: TrackierService,
     private readonly walletService: WalletService,
   ) {}
+
+  fetchPlayerFilter(FetchPlayerFilterDto: FetchPlayerFilterRequest) {
+    switch (Number(FetchPlayerFilterDto.filterType)) {
+      case 1:
+        return this.fetchRegisteredPlayers(FetchPlayerFilterDto);
+      case 2:
+        return this.fetchDepositRange(FetchPlayerFilterDto);
+      case 3:
+        return this.fetchDepositCount(FetchPlayerFilterDto);
+      case 4:
+        return this.fetchBetRange(FetchPlayerFilterDto);
+      default:
+        return {
+          success: true,
+          status: HttpStatus.OK,
+          error: 'invald filter type',
+        };
+    }
+  }
 
   async fetchBetRange(FetchBetRangeDto: FetchBetRangeRequest) {
     try {
@@ -75,7 +94,7 @@ export class PlayerService {
       };
     }
   }
-  async fetchDepositCount(FetchDepositCountDto: FetchDepositCountRequest) {
+  async fetchDepositCount(FetchDepositCountDto: FetchPlayerFilterRequest) {
     try {
       const role = await this.prisma.role.findFirst({
         where: { name: 'Player' },
@@ -171,28 +190,11 @@ export class PlayerService {
       };
     }
   }
-  async fetchPlayer({ clientId }: FetchPlayerRequest) {
-    try {
-      const role = await this.prisma.role.findFirst({
-        where: { name: 'Player' },
-      });
-      const data = await this.prisma.user.findMany({
-        where: {
-          roleId: role.id,
-          id: clientId,
-        },
-      });
 
-      return { success: true, status: HttpStatus.OK, data };
-    } catch (error) {
-      return {
-        success: false,
-        status: 404,
-        error: 'An error occured: ' + error.message,
-      };
-    }
-  }
-  async fetchRegisteredPlayers({ startDate, endDate }: FetchPlayersRequest) {
+  async fetchRegisteredPlayers({
+    startDate,
+    endDate,
+  }: FetchPlayerFilterRequest) {
     try {
       const role = await this.prisma.role.findFirst({
         where: { name: 'Player' },

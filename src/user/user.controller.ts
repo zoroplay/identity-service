@@ -4,11 +4,7 @@ import { UserService } from './user.service';
 import { UserDetailsDto, LoginDto } from './dto/create-user.dto';
 import {
   CreateUserRequest,
-  FetchBetRangeRequest,
-  FetchDepositCountRequest,
-  FetchDepositRangeRequest,
-  FetchPlayerRequest,
-  FetchPlayersRequest,
+  FetchPlayerFilterRequest,
   GetPlayerDataRequest,
   IDENTITY_SERVICE_NAME,
   OnlinePlayersRequest,
@@ -24,23 +20,9 @@ export class UserController {
     private readonly playerService: PlayerService,
   ) {}
 
-  @GrpcMethod(IDENTITY_SERVICE_NAME, 'FetchDepositCount')
-  FetchDepositCount(FetchDepositCountDto: FetchDepositCountRequest) {
-    return this.playerService.fetchDepositCount(FetchDepositCountDto);
-  }
-
-  @GrpcMethod(IDENTITY_SERVICE_NAME, 'FetchDepositRange')
-  FetchDepositRange(FetchDepositRangeDto: FetchDepositRangeRequest) {
-    return this.playerService.fetchDepositRange(FetchDepositRangeDto);
-  }
-  @GrpcMethod(IDENTITY_SERVICE_NAME, 'FetchBetRange')
-  FetchBetRange(FetchBetRangeDto: FetchBetRangeRequest) {
-    return this.playerService.fetchBetRange(FetchBetRangeDto);
-  }
-
-  @GrpcMethod(IDENTITY_SERVICE_NAME, 'FetchRegisteredPlayers')
-  FetchRegisteredPlayers(fetchPlayerDto: FetchPlayersRequest) {
-    return this.playerService.fetchRegisteredPlayers(fetchPlayerDto);
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'FetchPlayerFilters')
+  FetchPlayerFilters(FetchPlayerFilterDto: FetchPlayerFilterRequest) {
+    return this.playerService.fetchPlayerFilter(FetchPlayerFilterDto);
   }
 
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'CreateAdmin')

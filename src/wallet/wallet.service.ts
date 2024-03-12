@@ -1,14 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { Observable, firstValueFrom } from 'rxjs';
-import {
-  FetchBetRangeRequest,
-  FetchDepositRangeRequest,
-  FetchDepositRangeResponse,
-} from 'src/proto/identity.pb';
+
 import {
   CreateWalletRequest,
+  FetchBetRangeRequest,
   FetchDepositCountRequest,
+  FetchDepositRangeRequest,
   FetchPlayerDepositRequest,
   FetchPlayerDepositResponse,
   GetBalanceRequest,
