@@ -39,6 +39,12 @@ export class PlayerService {
       await betRange$
         .toPromise()
         .then(async (value) => {
+          if (!value.data)
+            return {
+              success: false,
+              status: 404,
+              error: 'An error occured: Invalid bet range',
+            };
           const result = await Promise.all(
             value.data.map(async (item) => {
               const user = await this.prisma.user.findUnique({
@@ -53,6 +59,11 @@ export class PlayerService {
         })
         .catch((error) => {
           console.error('An error occurred:', error);
+          return {
+            success: false,
+            status: 404,
+            error: 'An error occured: ' + error,
+          };
         });
 
       return { success: true, status: HttpStatus.OK, data: x };
