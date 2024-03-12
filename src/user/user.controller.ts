@@ -2,7 +2,19 @@ import { Controller } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
 import { UserService } from './user.service';
 import { UserDetailsDto, LoginDto } from './dto/create-user.dto';
-import { CreateUserRequest, GetPlayerDataRequest, IDENTITY_SERVICE_NAME, OnlinePlayersRequest, RegistrationReportRequest, SearchPlayerRequest } from 'src/proto/identity.pb';
+import {
+  CreateUserRequest,
+  FetchBetRangeRequest,
+  FetchDepositCountRequest,
+  FetchDepositRangeRequest,
+  FetchPlayerRequest,
+  FetchPlayersRequest,
+  GetPlayerDataRequest,
+  IDENTITY_SERVICE_NAME,
+  OnlinePlayersRequest,
+  RegistrationReportRequest,
+  SearchPlayerRequest,
+} from 'src/proto/identity.pb';
 import { PlayerService } from './player.service';
 
 @Controller()
@@ -11,6 +23,25 @@ export class UserController {
     private readonly userService: UserService,
     private readonly playerService: PlayerService,
   ) {}
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'FetchDepositCount')
+  FetchDepositCount(FetchDepositCountDto: FetchDepositCountRequest) {
+    return this.playerService.fetchDepositCount(FetchDepositCountDto);
+  }
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'FetchDepositRange')
+  FetchDepositRange(FetchDepositRangeDto: FetchDepositRangeRequest) {
+    return this.playerService.fetchDepositRange(FetchDepositRangeDto);
+  }
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'FetchBetRange')
+  FetchBetRange(FetchBetRangeDto: FetchBetRangeRequest) {
+    return this.playerService.fetchBetRange(FetchBetRangeDto);
+  }
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'FetchRegisteredPlayers')
+  FetchRegisteredPlayers(fetchPlayerDto: FetchPlayersRequest) {
+    return this.playerService.fetchRegisteredPlayers(fetchPlayerDto);
+  }
 
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'CreateAdmin')
   CreateAdmin(createUserDto: CreateUserRequest) {
@@ -47,12 +78,10 @@ export class UserController {
     return this.playerService.getPlayerData(param);
   }
 
-  
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'UpdatePlayerData')
   UpdatePlayerData(param: GetPlayerDataRequest) {
     return this.playerService.updateProfile(param);
   }
-
 
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'OnlinePlayersReport')
   OnlinePlayersReport(param: OnlinePlayersRequest) {
