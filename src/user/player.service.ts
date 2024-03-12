@@ -20,6 +20,7 @@ import {
 import { WalletService } from 'src/wallet/wallet.service';
 import { firstValueFrom, tap } from 'rxjs';
 import * as dayjs from 'dayjs';
+import { authPlugins } from 'mysql2';
 
 @Injectable()
 export class PlayerService {
@@ -65,36 +66,64 @@ export class PlayerService {
   }
   async fetchDepositCount(FetchDepositCountDto: FetchDepositCountRequest) {
     try {
-      const depositCount$ =
-        this.walletService.fetchDepositCount(FetchDepositCountDto);
+      const role = await this.prisma.role.findFirst({
+        where: { name: 'Player' },
+      });
 
-      let x;
-      await depositCount$
-        .toPromise()
-        .then(async (value) => {
-          const result = await Promise.all(
-            value.data.map(async (item) => {
-              const user = await this.prisma.user.findUnique({
-                where: {
-                  id: item,
-                },
-              });
-              return user;
-            }),
-          );
-          x = result;
-        })
-        .catch((error) => {
-          console.error('An error occurred:', error);
-        });
+      const data = await this.prisma.user.findMany({
+        where: {
+          roleId: role.id,
+          createdAt: {
+            gte: FetchDepositCountDto.startDate,
+            lte: FetchDepositCountDto.endDate,
+          },
+        },
+      });
 
-      return { success: true, status: HttpStatus.OK, data: x };
-    } catch (error) {
+      const players = await Promise.all(
+        data.map(async (player) => {
+          try {
+            console.log(125, player);
+            const x = await this.walletService
+              .fetchDepositCount({
+                startDate: FetchDepositCountDto.startDate,
+                endDate: FetchDepositCountDto.endDate,
+                clientId: player.clientId,
+              })
+              .toPromise();
+
+            if (!x || !x.data.length)
+              throw new Error('No player fits this category');
+
+            return x.data;
+          } catch (error) {
+            console.error('Error fetching player deposit:', error);
+            return null;
+          }
+        }),
+      );
+
+      let newplayermap = players[0].filter(
+        (player) => FetchDepositCountDto.depositCount === players[0].length,
+      );
+
+      let playermap = await Promise.all(
+        newplayermap.map((newx) =>
+          this.prisma.user.findUnique({
+            where: {
+              id: newx.userId,
+            },
+          }),
+        ),
+      );
+
       return {
-        success: false,
-        status: 404,
-        error: 'An error occured: ' + error.message,
+        success: true,
+        status: HttpStatus.OK,
+        data: playermap,
       };
+    } catch (error) {
+      return { success: true, status: HttpStatus.OK, error: error.message };
     }
   }
   async fetchDepositRange(FetchDepositRangeDto: FetchDepositRangeRequest) {
@@ -182,7 +211,8 @@ export class PlayerService {
               })
               .toPromise();
 
-            console.log('njwhwfie', x.data);
+            if (!x || !x.data.length)
+              throw new Error('No player fits this category');
 
             return x.data;
           } catch (error) {
@@ -196,7 +226,6 @@ export class PlayerService {
         players[0].find((client) => client.clientId !== player.clientId),
       );
 
-      console.log(142, players[0], x);
       return { success: true, status: HttpStatus.OK, data: x };
     } catch (error) {
       return { success: true, status: HttpStatus.OK, error: error.message };

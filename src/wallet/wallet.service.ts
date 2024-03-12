@@ -3,12 +3,12 @@ import { ClientGrpc } from '@nestjs/microservices';
 import { Observable, firstValueFrom } from 'rxjs';
 import {
   FetchBetRangeRequest,
-  FetchDepositCountRequest,
   FetchDepositRangeRequest,
   FetchDepositRangeResponse,
 } from 'src/proto/identity.pb';
 import {
   CreateWalletRequest,
+  FetchDepositCountRequest,
   FetchPlayerDepositRequest,
   FetchPlayerDepositResponse,
   GetBalanceRequest,
