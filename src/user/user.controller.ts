@@ -2,7 +2,15 @@ import { Controller } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
 import { UserService } from './user.service';
 import { UserDetailsDto, LoginDto } from './dto/create-user.dto';
-import { CreateUserRequest, GetPlayerDataRequest, IDENTITY_SERVICE_NAME, OnlinePlayersRequest, RegistrationReportRequest, SearchPlayerRequest } from 'src/proto/identity.pb';
+import {
+  CreateUserRequest,
+  FetchPlayerFilterRequest,
+  GetPlayerDataRequest,
+  IDENTITY_SERVICE_NAME,
+  OnlinePlayersRequest,
+  RegistrationReportRequest,
+  SearchPlayerRequest,
+} from 'src/proto/identity.pb';
 import { PlayerService } from './player.service';
 
 @Controller()
@@ -11,6 +19,11 @@ export class UserController {
     private readonly userService: UserService,
     private readonly playerService: PlayerService,
   ) {}
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'FetchPlayerFilters')
+  FetchPlayerFilters(FetchPlayerFilterDto: FetchPlayerFilterRequest) {
+    return this.playerService.fetchPlayerFilter(FetchPlayerFilterDto);
+  }
 
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'CreateAdmin')
   CreateAdmin(createUserDto: CreateUserRequest) {
@@ -47,12 +60,10 @@ export class UserController {
     return this.playerService.getPlayerData(param);
   }
 
-  
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'UpdatePlayerData')
   UpdatePlayerData(param: GetPlayerDataRequest) {
     return this.playerService.updateProfile(param);
   }
-
 
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'OnlinePlayersReport')
   OnlinePlayersReport(param: OnlinePlayersRequest) {
