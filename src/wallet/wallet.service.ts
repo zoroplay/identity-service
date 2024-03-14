@@ -8,7 +8,6 @@ import {
   FetchDepositCountRequest,
   FetchDepositRangeRequest,
   FetchPlayerDepositRequest,
-  FetchPlayerDepositResponse,
   GetBalanceRequest,
   WALLET_SERVICE_NAME,
   WalletServiceClient,
@@ -26,18 +25,17 @@ export class WalletService {
     this.svc = this.client.getService<WalletServiceClient>(WALLET_SERVICE_NAME);
   }
 
-  public fetchBetRange(data: FetchBetRangeRequest) {
-    return this.svc.fetchBetRange(data);
+  public async fetchBetRange(data: FetchBetRangeRequest) {
+    return firstValueFrom(this.svc.fetchBetRange(data));
   }
-  public fetchDepositCount(data: FetchDepositCountRequest) {
-    return this.svc.fetchDepositCount(data);
+  public async fetchDepositCount(data: FetchDepositCountRequest) {
+    return firstValueFrom(this.svc.fetchDepositCount(data));
   }
-  public fetchDepositRange(data: FetchDepositRangeRequest) {
-    return this.svc.fetchDepositRange(data);
+  public async fetchDepositRange(data: FetchDepositRangeRequest) {
+    return firstValueFrom(this.svc.fetchDepositRange(data));
   }
-  public fetchPlayerDeposit(data: FetchPlayerDepositRequest) {
-    console.log('nwe ones', data);
-    return this.svc.fetchPlayerDeposit(data);
+  public async fetchPlayerDeposit(data: FetchPlayerDepositRequest) {
+    return firstValueFrom(this.svc.fetchPlayerDeposit(data));
   }
   public createWallet(data: CreateWalletRequest) {
     return this.svc.createWallet(data);
