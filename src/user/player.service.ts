@@ -13,14 +13,12 @@ import {
   FetchPlayerFilterRequest,
 } from 'src/proto/identity.pb';
 import { WalletService } from 'src/wallet/wallet.service';
-import { firstValueFrom, tap } from 'rxjs';
 import * as dayjs from 'dayjs';
-import { authPlugins } from 'mysql2';
 import {
   FetchBetRangeRequest,
-  FetchDepositCountRequest,
   FetchDepositRangeRequest,
 } from 'src/proto/wallet.pb';
+import { paginateResponse } from 'src/common/helpers';
 
 @Injectable()
 export class PlayerService {
@@ -31,10 +29,10 @@ export class PlayerService {
     private readonly walletService: WalletService,
   ) {}
 
-  fetchPlayerFilter(FetchPlayerFilterDto: FetchPlayerFilterRequest) {
+    fetchPlayerFilter(FetchPlayerFilterDto: FetchPlayerFilterRequest) {
     switch (Number(FetchPlayerFilterDto.filterType)) {
       case 1:
-        return this.fetchRegisteredPlayers(FetchPlayerFilterDto);
+        return this.fetchRegisteredNotDeposit(FetchPlayerFilterDto);
       case 2:
         return this.fetchDepositRange(FetchPlayerFilterDto);
       case 3:
@@ -56,7 +54,6 @@ export class PlayerService {
 
       let x;
       await betRange$
-        .toPromise()
         .then(async (value) => {
           if (!value.data)
             return {
@@ -94,6 +91,7 @@ export class PlayerService {
       };
     }
   }
+
   async fetchDepositCount(FetchDepositCountDto: FetchPlayerFilterRequest) {
     try {
       const role = await this.prisma.role.findFirst({
@@ -114,13 +112,13 @@ export class PlayerService {
         data.map(async (player) => {
           try {
             console.log(125, player);
+
             const x = await this.walletService
               .fetchDepositCount({
                 startDate: FetchDepositCountDto.startDate,
                 endDate: FetchDepositCountDto.endDate,
                 clientId: player.clientId,
               })
-              .toPromise();
 
             if (!x || !x.data.length)
               throw new Error('No player fits this category');
@@ -156,6 +154,7 @@ export class PlayerService {
       return { success: true, status: HttpStatus.OK, error: error.message };
     }
   }
+
   async fetchDepositRange(FetchDepositRangeDto: FetchDepositRangeRequest) {
     try {
       const depositRange$ =
@@ -163,7 +162,6 @@ export class PlayerService {
 
       let x;
       await depositRange$
-        .toPromise()
         .then(async (value) => {
           const result = await Promise.all(
             value.data.map(async (item) => {
@@ -191,11 +189,15 @@ export class PlayerService {
     }
   }
 
-  async fetchRegisteredPlayers({
+  async fetchRegisteredNotDeposit({
     startDate,
     endDate,
+    clientId,
+    page
   }: FetchPlayerFilterRequest) {
+    let limit = 100;
     try {
+
       const role = await this.prisma.role.findFirst({
         where: { name: 'Player' },
       });
@@ -205,45 +207,62 @@ export class PlayerService {
         where: {
           roleId: role.id,
           createdAt: {
-            gte: startDate,
-            lte: endDate,
+            gte: new Date(startDate),
+            lte: new Date(endDate),
           },
+          clientId
         },
+        include: {
+          userDetails: true
+        }
       });
-      let newx;
 
-      const players = await Promise.all(
-        data.map(async (player) => {
-          try {
-            console.log(125, player);
-            const x = await this.walletService
-              .fetchPlayerDeposit({
-                startDate,
-                endDate,
-                clientId: player.clientId,
-              })
-              .toPromise();
+      if (data.length > 0) {
+        const players = [];
 
-            if (!x || !x.data.length)
-              throw new Error('No player fits this category');
+        for (const player of data) {
+          // console.log(125, player);
+          const walletRes = await this.walletService
+          .fetchPlayerDeposit({
+            startDate,
+            endDate,
+            userId: player.id
+          });
+                        
+          if (walletRes.success) {
+            players.push({
+              id: player.id,
+              code: player.code,
+              username: player.username,
+              email: player.userDetails.email,
+              firstName: player.userDetails.firstName,
+              lastName: player.userDetails.lastName,
+              phoneNumber: player.userDetails.phone,
+              registered: player.createdAt,
+              country: player.userDetails.country,
+              currency: player.userDetails.currency,
+              status: player.status,
+              verified: player.verified,
+              balance: walletRes.data.balance,
+              bonus: walletRes.data.sportBonusBalance + walletRes.data.casinoBonusBalance + walletRes.data.virtualBonusBalance,
+              lifeTimeDeposit: 0,
+              lifeTimeWithdrawal: 0,
+              openBets: 0,
+              role: role.name,
+              lastLogin: player.lastLogin,
+            })
+          }     
+        }
 
-            return x.data;
-          } catch (error) {
-            console.error('Error fetching player deposit:', error);
-            return null;
-          }
-        }),
-      );
+        // console.log(players)
 
-      const x = data.filter((player) =>
-        players[0].find((client) => client.clientId !== player.clientId),
-      );
-
-      return { success: true, status: HttpStatus.OK, data: x };
+        return paginateResponse([players, players.length], page, limit)
+      } else {
+        return paginateResponse([[], 0], page, limit);
+      }
     } catch (error) {
-      return { success: true, status: HttpStatus.OK, error: error.message };
+      return paginateResponse([[], 0], 1, limit, 'Something went wrong');
     }
-    // return { success: true, status: HttpStatus.OK, data: players };
   }
 
   async searchPlayers({
