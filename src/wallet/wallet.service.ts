@@ -32,7 +32,7 @@ export class WalletService {
     return firstValueFrom(this.svc.fetchDepositCount(data));
   }
   public async fetchDepositRange(data: FetchDepositRangeRequest) {
-    return firstValueFrom(this.svc.fetchDepositRange(data));
+    return await firstValueFrom(this.svc.fetchDepositRange(data));
   }
   public async fetchPlayerDeposit(data: FetchPlayerDepositRequest) {
     return firstValueFrom(this.svc.fetchPlayerDeposit(data));
