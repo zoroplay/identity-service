@@ -1,7 +1,5 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { JwtService } from '@nestjs/jwt';
-import { TrackierService } from './trackier/trackier.service';
 import {
   OnlinePlayersRequest,
   PlayersListResponse,
@@ -16,6 +14,7 @@ import { WalletService } from 'src/wallet/wallet.service';
 import * as dayjs from 'dayjs';
 import {
   FetchBetRangeRequest,
+  FetchDepositCountRequest,
   FetchDepositRangeRequest,
 } from 'src/proto/wallet.pb';
 import { paginateResponse } from 'src/common/helpers';
@@ -24,8 +23,6 @@ import { paginateResponse } from 'src/common/helpers';
 export class PlayerService {
   constructor(
     private prisma: PrismaService,
-    private jwtService: JwtService,
-    private trackierService: TrackierService,
     private readonly walletService: WalletService,
   ) {}
 
@@ -34,11 +31,11 @@ export class PlayerService {
       case 1:
         return this.fetchRegisteredNotDeposit(FetchPlayerFilterDto);
       case 2:
-        return this.fetchDepositRange(FetchPlayerFilterDto);
+        return this.fetchDepositRange(FetchPlayerFilterDto, FetchPlayerFilterDto.page);
       case 3:
-        return this.fetchDepositCount(FetchPlayerFilterDto);
+        return this.fetchDepositCount(FetchPlayerFilterDto, FetchPlayerFilterDto.page);
       case 4:
-        return this.fetchBetRange(FetchPlayerFilterDto);
+        return this.fetchBetRange(FetchPlayerFilterDto, FetchPlayerFilterDto.page);
       default:
         return {
           success: true,
@@ -48,41 +45,48 @@ export class PlayerService {
     }
   }
 
-  async fetchBetRange(FetchBetRangeDto: FetchBetRangeRequest) {
+  async fetchBetRange(FetchBetRangeDto: FetchBetRangeRequest, page) {
     try {
-      const betRange$ = this.walletService.fetchBetRange(FetchBetRangeDto);
+      let limit = 100;
 
-      let x;
-      await betRange$
-        .then(async (value) => {
-          if (!value.data)
-            return {
-              success: false,
-              status: 404,
-              error: 'An error occured: Invalid bet range',
-            };
-          const result = await Promise.all(
-            value.data.map(async (item) => {
-              const user = await this.prisma.user.findUnique({
-                where: {
-                  id: item,
-                },
-              });
-              return user;
-            }),
-          );
-          x = result;
-        })
-        .catch((error) => {
-          console.error('An error occurred:', error);
-          return {
-            success: false,
-            status: 404,
-            error: 'An error occured: ' + error,
-          };
+      const betRange$ = await this.walletService.fetchBetRange(FetchBetRangeDto);
+
+      let data = [];
+      if (betRange$.success && betRange$.data.length > 0) {
+
+        const users = await this.prisma.user.findMany({
+          where: {
+            id: {in: betRange$.data}
+          },
+          include: {userDetails: true, role: true},
+          take: limit
         });
 
-      return { success: true, status: HttpStatus.OK, data: x };
+        for (const user of users) {
+          data.push({
+            id: user.id,
+            code: user.code,
+            username: user.username,
+            email: user.userDetails.email,
+            firstName: user.userDetails.firstName,
+            lastName: user.userDetails.lastName,
+            phoneNumber: user.userDetails.phone,
+            registered: user.createdAt,
+            country: user.userDetails.country,
+            currency: user.userDetails.currency,
+            status: user.status,
+            verified: user.verified,
+            deopists: 0,
+            lifeTimeDeposit: 0,
+            lifeTimeWithdrawal: 0,
+            openBets: 0,
+            role: user.role.name,
+            lastLogin: user.lastLogin,
+          })
+        }
+      }
+
+      return paginateResponse([data, data.length], page, limit)
     } catch (error) {
       return {
         success: false,
@@ -92,94 +96,100 @@ export class PlayerService {
     }
   }
 
-  async fetchDepositCount(FetchDepositCountDto: FetchPlayerFilterRequest) {
+  async fetchDepositCount(FetchDepositCountDto: FetchPlayerFilterRequest, page) {
     try {
-      const role = await this.prisma.role.findFirst({
-        where: { name: 'Player' },
+      let limit = 100;
+
+      const deposits = await this.walletService.fetchDepositCount({
+        startDate: FetchDepositCountDto.startDate,
+        endDate: FetchDepositCountDto.endDate,
+        clientId: FetchDepositCountDto.clientId,
+        count: FetchDepositCountDto.depositCount
       });
 
-      const data = await this.prisma.user.findMany({
-        where: {
-          roleId: role.id,
-          createdAt: {
-            gte: FetchDepositCountDto.startDate,
-            lte: FetchDepositCountDto.endDate,
+      let data = [];
+      if (deposits.success && deposits.data.length > 0) {
+
+        const users = await this.prisma.user.findMany({
+          where: {
+            id: {in: deposits.data}
           },
-        },
-      });
+          include: {userDetails: true, role: true},
+          take: limit
+        });
 
-      const players = await Promise.all(
-        data.map(async (player) => {
-          try {
-            console.log(125, player);
+        for (const user of users) {
+          data.push({
+            id: user.id,
+            code: user.code,
+            username: user.username,
+            email: user.userDetails.email,
+            firstName: user.userDetails.firstName,
+            lastName: user.userDetails.lastName,
+            phoneNumber: user.userDetails.phone,
+            registered: user.createdAt,
+            country: user.userDetails.country,
+            currency: user.userDetails.currency,
+            status: user.status,
+            verified: user.verified,
+            deopists: 0,
+            lifeTimeDeposit: 0,
+            lifeTimeWithdrawal: 0,
+            openBets: 0,
+            role: user.role.name,
+            lastLogin: user.lastLogin,
+          })
+        }
+      }
 
-            const x = await this.walletService
-              .fetchDepositCount({
-                startDate: FetchDepositCountDto.startDate,
-                endDate: FetchDepositCountDto.endDate,
-                clientId: player.clientId,
-              })
+      return paginateResponse([data, data.length], page, limit)
 
-            if (!x || !x.data.length)
-              throw new Error('No player fits this category');
-
-            return x.data;
-          } catch (error) {
-            console.error('Error fetching player deposit:', error);
-            return null;
-          }
-        }),
-      );
-
-      let newplayermap = players[0].filter(
-        (player) => FetchDepositCountDto.depositCount === players[0].length,
-      );
-
-      let playermap = await Promise.all(
-        newplayermap.map((newx) =>
-          this.prisma.user.findUnique({
-            where: {
-              id: newx.userId,
-            },
-          }),
-        ),
-      );
-
-      return {
-        success: true,
-        status: HttpStatus.OK,
-        data: playermap,
-      };
     } catch (error) {
       return { success: true, status: HttpStatus.OK, error: error.message };
     }
   }
 
-  async fetchDepositRange(FetchDepositRangeDto: FetchDepositRangeRequest) {
+  async fetchDepositRange(FetchDepositRangeDto: FetchDepositRangeRequest, page) {
     try {
-      const depositRange$ =
-        this.walletService.fetchDepositRange(FetchDepositRangeDto);
+      let limit = 100;
 
-      let x;
-      await depositRange$
-        .then(async (value) => {
-          const result = await Promise.all(
-            value.data.map(async (item) => {
-              const user = await this.prisma.user.findUnique({
-                where: {
-                  id: item,
-                },
-              });
-              return user;
-            }),
-          );
-          x = result;
-        })
-        .catch((error) => {
-          console.error('An error occurred:', error);
+      const depositRange = await this.walletService.fetchDepositRange(FetchDepositRangeDto);
+
+      let data = [];
+      if (depositRange.success && depositRange.data.length > 0) {
+        const users = await this.prisma.user.findMany({
+          where: {
+            id: {in: depositRange.data}
+          },
+          include: {userDetails: true, role: true},
+          take: limit
         });
 
-      return { success: true, status: HttpStatus.OK, data: x };
+        for (const user of users) {
+          data.push({
+            id: user.id,
+            code: user.code,
+            username: user.username,
+            email: user.userDetails.email,
+            firstName: user.userDetails.firstName,
+            lastName: user.userDetails.lastName,
+            phoneNumber: user.userDetails.phone,
+            registered: user.createdAt,
+            country: user.userDetails.country,
+            currency: user.userDetails.currency,
+            status: user.status,
+            verified: user.verified,
+            deopists: 0,
+            lifeTimeDeposit: 0,
+            lifeTimeWithdrawal: 0,
+            openBets: 0,
+            role: user.role.name,
+            lastLogin: user.lastLogin,
+          })
+        }
+      }
+
+      return paginateResponse([data, data.length], page, limit)
     } catch (error) {
       return {
         success: false,
@@ -214,7 +224,8 @@ export class PlayerService {
         },
         include: {
           userDetails: true
-        }
+        },
+        take: limit
       });
 
       if (data.length > 0) {
