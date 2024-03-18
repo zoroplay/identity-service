@@ -234,13 +234,14 @@ export class PlayerService {
         for (const player of data) {
           // console.log(125, player);
           const walletRes = await this.walletService
-          .fetchPlayerDeposit({
-            startDate,
-            endDate,
-            userId: player.id
-          });
+            .fetchPlayerDeposit({
+              startDate,
+              endDate,
+              userId: player.id
+            });
                         
-          if (walletRes.success) {
+          if (!walletRes.success) {
+            console.log('building players')
             players.push({
               id: player.id,
               code: player.code,
@@ -254,8 +255,8 @@ export class PlayerService {
               currency: player.userDetails.currency,
               status: player.status,
               verified: player.verified,
-              balance: walletRes.data.balance,
-              bonus: walletRes.data.sportBonusBalance + walletRes.data.casinoBonusBalance + walletRes.data.virtualBonusBalance,
+              // balance: walletRes.data.balance,
+              // bonus: walletRes.data.sportBonusBalance + walletRes.data.casinoBonusBalance + walletRes.data.virtualBonusBalance,
               lifeTimeDeposit: 0,
               lifeTimeWithdrawal: 0,
               openBets: 0,
@@ -264,8 +265,6 @@ export class PlayerService {
             })
           }     
         }
-
-        // console.log(players)
 
         return paginateResponse([players, players.length], page, limit)
       } else {
