@@ -51,6 +51,7 @@ export class PlayerService {
 
       const betRange$ = await this.walletService.fetchBetRange(FetchBetRangeDto);
 
+      console.log(betRange$.data);
       let data = [];
       if (betRange$.success && betRange$.data.length > 0) {
 
@@ -82,8 +83,8 @@ export class PlayerService {
             currency: user.userDetails.currency,
             status: user.status,
             verified: user.verified,
-            stake: da.stake,
-            bets: da.bets,
+            stake: da.total,
+            bets: da.count,
             balance: da.balance,
             openBets: 0,
             role: user.role.name,
