@@ -110,15 +110,21 @@ export class PlayerService {
       let data = [];
       if (deposits.success && deposits.data.length > 0) {
 
+        const userIds = deposits.data.map((deposit: any) => {
+          return Number(deposit.userId);
+        });
+
         const users = await this.prisma.user.findMany({
           where: {
-            id: {in: deposits.data}
+            id: {in: userIds}
           },
           include: {userDetails: true, role: true},
           take: limit
         });
 
         for (const user of users) {
+          const da: any = deposits.data.find((dept: any) => dept.userId === user.id);
+
           data.push({
             id: user.id,
             code: user.code,
@@ -132,8 +138,8 @@ export class PlayerService {
             currency: user.userDetails.currency,
             status: user.status,
             verified: user.verified,
-            deopists: 0,
-            lifeTimeDeposit: 0,
+            depositCount: da.total,
+            balance: da.balance,
             lifeTimeWithdrawal: 0,
             openBets: 0,
             role: user.role.name,
@@ -157,15 +163,24 @@ export class PlayerService {
 
       let data = [];
       if (depositRange.success && depositRange.data.length > 0) {
+        
+        const userIds = depositRange.data.map((deposit: any) => {
+          return Number(deposit.userId);
+        });
+
         const users = await this.prisma.user.findMany({
           where: {
-            id: {in: depositRange.data}
+            id: {in: userIds}
           },
           include: {userDetails: true, role: true},
           take: limit
         });
 
+
         for (const user of users) {
+          const deposits: any = depositRange.data.find((dept: any) => dept.userId === user.id);
+
+
           data.push({
             id: user.id,
             code: user.code,
@@ -179,8 +194,8 @@ export class PlayerService {
             currency: user.userDetails.currency,
             status: user.status,
             verified: user.verified,
-            deopists: 0,
-            lifeTimeDeposit: 0,
+            deposits: deposits.total,
+            balance: deposits.balance,
             lifeTimeWithdrawal: 0,
             openBets: 0,
             role: user.role.name,
