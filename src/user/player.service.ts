@@ -54,15 +54,21 @@ export class PlayerService {
       let data = [];
       if (betRange$.success && betRange$.data.length > 0) {
 
+        const userIds = betRange$.data.map((deposit: any) => {
+          return Number(deposit.userId);
+        });
+
         const users = await this.prisma.user.findMany({
           where: {
-            id: {in: betRange$.data}
+            id: {in: userIds}
           },
           include: {userDetails: true, role: true},
           take: limit
         });
 
         for (const user of users) {
+          const da: any = betRange$.data.find((dept: any) => dept.userId === user.id);
+
           data.push({
             id: user.id,
             code: user.code,
@@ -76,9 +82,9 @@ export class PlayerService {
             currency: user.userDetails.currency,
             status: user.status,
             verified: user.verified,
-            deopists: 0,
-            lifeTimeDeposit: 0,
-            lifeTimeWithdrawal: 0,
+            stake: da.stake,
+            bets: da.bets,
+            balance: da.balance,
             openBets: 0,
             role: user.role.name,
             lastLogin: user.lastLogin,
