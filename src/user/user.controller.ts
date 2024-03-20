@@ -3,12 +3,16 @@ import { GrpcMethod } from '@nestjs/microservices';
 import { UserService } from './user.service';
 import { UserDetailsDto, LoginDto } from './dto/create-user.dto';
 import {
+  AddToSegmentRequest,
   CreateUserRequest,
+  DeleteItemRequest,
   FetchPlayerFilterRequest,
+  FetchPlayerSegmentRequest,
   GetPlayerDataRequest,
   IDENTITY_SERVICE_NAME,
   OnlinePlayersRequest,
   RegistrationReportRequest,
+  SaveSegmentRequest,
   SearchPlayerRequest,
 } from 'src/proto/identity.pb';
 import { PlayerService } from './player.service';
@@ -78,5 +82,31 @@ export class UserController {
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'removeUser')
   remove(id: number) {
     return this.userService.remove(id);
+  }
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'SavePlayerSegment')
+  saveSegment(payload: SaveSegmentRequest) {
+    return this.userService.savePlayerSegment(payload);
+  }
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'FetchPlayerSegment')
+  fetchSegments(payload: FetchPlayerSegmentRequest) {
+    return this.userService.fetchPlayerSegment(payload);
+  }
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'DeletePlayerSegment')
+  deletePlayerSegment(payload: DeleteItemRequest) {
+    return this.userService.deletePlayerSegment(payload);
+  }
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'AddToSegment')
+  addToSegment(payload: AddToSegmentRequest) {
+    return this.userService.addToSegment(payload);
+  }
+
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'RemovePlayerFromSegment')
+  removePlayerFromSegment(payload: DeleteItemRequest) {
+    return this.userService.removePlayerFromSegment(payload);
   }
 }
