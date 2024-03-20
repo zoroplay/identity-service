@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { LoginDto, UserDetailsDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -6,8 +6,9 @@ import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { handleError, handleResponse } from 'src/common/helpers';
 import { TrackierService } from './trackier/trackier.service';
-import { CreateUserRequest, Player, SearchPlayerRequest, SearchPlayerResponse } from 'src/proto/identity.pb';
+import { AddToSegmentRequest, CommonResponse, CreateUserRequest, DeleteItemRequest, FetchPlayerSegmentRequest, SaveSegmentRequest } from 'src/proto/identity.pb';
 import { WalletService } from 'src/wallet/wallet.service';
+import { PlayerSegment } from '@prisma/client';
 
 @Injectable()
 export class UserService {
@@ -346,4 +347,146 @@ export class UserService {
   remove(id: number) {
     return `This action removes a #${id} user`;
   }
+
+  async savePlayerSegment(payload: SaveSegmentRequest) {
+    try {
+      const {clientId, title, minOdd, minSelection, message, id} = payload;
+      let data: PlayerSegment;
+      if (id) {
+        data = await this.prisma.playerSegment.update({
+          where: {id},
+          data: {
+            title, 
+            minOdd,
+            minSelection,
+            message
+          }
+        })
+      } else {
+        data = await this.prisma.playerSegment.create({
+          data: {
+            clientId,
+            title, 
+            minOdd,
+            minSelection,
+            message
+          }
+        })
+      }
+      
+      return {
+        status: HttpStatus.OK, 
+        success: true, 
+        message: 'Data saved', 
+        data: JSON.stringify(data) 
+      }
+    } catch (err) {
+      return {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        success: false, 
+        message: 'An error occured', 
+        errors: err.message
+      }
+    }
+  }
+
+  async fetchPlayerSegment (data: FetchPlayerSegmentRequest): Promise<CommonResponse> {
+    try {
+      const segments = await this.prisma.playerSegment.findMany({
+        where: {clientId: data.clientId}
+      })
+      return {
+        status: HttpStatus.OK, 
+        success: true, 
+        message: 'Data fetched', 
+        data: JSON.stringify(segments) 
+      }
+    } catch (err) {
+      return {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        success: false, 
+        message: 'An error occured', 
+        errors: err.message
+      }
+    }
+  }
+
+  async addToSegment (payload: AddToSegmentRequest) {
+    try {
+      const {clientId, playerId, segmentId} = payload;
+      //check if user already added
+      const isExist = await this.prisma.playerUserSegment.findFirst({
+        where: {userId: playerId, segmentId}
+      })
+      if (isExist) {
+        return {status: HttpStatus.BAD_REQUEST, success: false, message: 'User already exist in this segment'}
+      } else {
+        const player = await this.prisma.playerUserSegment.create({
+          data: {
+            userId: playerId,
+            segmentId,
+          }
+        });
+
+        return {
+          status: HttpStatus.OK, 
+          success: true, 
+          message: 'User added to segment', 
+          data: JSON.stringify(player) 
+        }
+      }
+    } catch (err) {
+      return {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        success: false, 
+        message: 'An error occured', 
+        errors: err.message
+      }
+    }
+  }
+
+  async deletePlayerSegment (payload: DeleteItemRequest) {
+    try {
+
+      await this.prisma.playerSegment.delete({
+        where: {id: payload.id}
+      })
+
+      return {
+        status: HttpStatus.OK, 
+        success: true, 
+        message: 'Segment has been deleted', 
+      }
+    } catch (err) {
+      return {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        success: false, 
+        message: 'An error occured', 
+        errors: err.message
+      }
+    }
+  }
+
+  async removePlayerFromSegment (payload: DeleteItemRequest) {
+    try { 
+      await this.prisma.playerUserSegment.delete({
+        where: {id: payload.id}
+      })
+      
+      return {
+        status: HttpStatus.OK, 
+        success: true, 
+        message: 'Segment has been deleted', 
+      }
+    } catch (err) {
+      return {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        success: false, 
+        message: 'An error occured', 
+        errors: err.message
+      }
+    }
+  }
+
+  
 }

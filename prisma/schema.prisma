@@ -30,6 +30,8 @@ model User {
   userDetails   UserDetails?
   bettingParams UserBettingParameter[]
   userSetting   UserSetting?
+  segmentCreator PlayerSegment[]
+  segments      PlayerUserSegment[]
 
   client        Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
   clientId      Int
@@ -76,6 +78,7 @@ model Client {
   updatedAt     DateTime   @updatedAt @map("updated_at")
 
   users         User[]
+  segments      PlayerSegment[]
 
   @@map("clients")
 }
@@ -164,4 +167,40 @@ model UserSetting {
   updatedAt      DateTime     @updatedAt @map("updated_at")
 
   @@map("user_settings")
+}
+
+model PlayerSegment {
+  id            Int         @id @default(autoincrement())
+  title         String
+  minOdd        Float?      @map("min_odd")
+  minSelection  Int?        @map("min_selection")
+  message       String? 
+
+  createdBy     Int?
+  creator       User?        @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
+  client        Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId      Int
+
+  userSegment   PlayerUserSegment[]
+
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  @@map("player_segments")
+}
+
+model PlayerUserSegment {
+  id            Int               @id @default(autoincrement())
+
+  segmentId     Int               @map("segment_id")
+  segment       PlayerSegment     @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+
+  userId        Int               @map("user_id")
+  player        User              @relation(fields: [userId], references: [id], onDelete: Cascade)    
+
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+
+  @@map("player_user_segments")  
 }
