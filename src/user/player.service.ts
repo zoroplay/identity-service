@@ -26,7 +26,7 @@ export class PlayerService {
     private readonly walletService: WalletService,
   ) {}
 
-    fetchPlayerFilter(FetchPlayerFilterDto: FetchPlayerFilterRequest) {
+  fetchPlayerFilter(FetchPlayerFilterDto: FetchPlayerFilterRequest) {
     switch (Number(FetchPlayerFilterDto.filterType)) {
       case 1:
         return this.fetchRegisteredNotDeposit(FetchPlayerFilterDto);
@@ -249,7 +249,7 @@ export class PlayerService {
         },
         take: limit
       });
-
+      
       if (data.length > 0) {
         const players = [];
 
@@ -261,24 +261,24 @@ export class PlayerService {
               endDate,
               userId: player.id
             });
-                        
+
           if (!walletRes.success) {
-            console.log('building players')
+            // console.log('building players')
             players.push({
               id: player.id,
               code: player.code,
               username: player.username,
-              email: player.userDetails.email,
-              firstName: player.userDetails.firstName,
-              lastName: player.userDetails.lastName,
-              phoneNumber: player.userDetails.phone,
+              email: player.userDetails?.email,
+              firstName: player.userDetails?.firstName,
+              lastName: player.userDetails?.lastName,
+              phoneNumber: player.userDetails?.phone,
               registered: player.createdAt,
-              country: player.userDetails.country,
-              currency: player.userDetails.currency,
+              country: player.userDetails?.country,
+              currency: player.userDetails?.currency,
               status: player.status,
               verified: player.verified,
-              // balance: walletRes.data.balance,
-              // bonus: walletRes.data.sportBonusBalance + walletRes.data.casinoBonusBalance + walletRes.data.virtualBonusBalance,
+              //balance: walletRes.data.balance,
+              //bonus: walletRes.data.sportBonusBalance + walletRes.data.casinoBonusBalance + walletRes.data.virtualBonusBalance,
               lifeTimeDeposit: 0,
               lifeTimeWithdrawal: 0,
               openBets: 0,
@@ -293,6 +293,7 @@ export class PlayerService {
         return paginateResponse([[], 0], page, limit);
       }
     } catch (error) {
+      console.log(error.message)
       return paginateResponse([[], 0], 1, limit, 'Something went wrong');
     }
   }

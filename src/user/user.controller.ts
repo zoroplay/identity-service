@@ -9,11 +9,13 @@ import {
   FetchPlayerFilterRequest,
   FetchPlayerSegmentRequest,
   GetPlayerDataRequest,
+  GetSegmentPlayerRequest,
   IDENTITY_SERVICE_NAME,
   OnlinePlayersRequest,
   RegistrationReportRequest,
   SaveSegmentRequest,
   SearchPlayerRequest,
+  UploadPlayersToSegment,
 } from 'src/proto/identity.pb';
 import { PlayerService } from './player.service';
 
@@ -104,9 +106,18 @@ export class UserController {
     return this.userService.addToSegment(payload);
   }
 
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'UploadToSegment')
+  UploadToSegment(payload: UploadPlayersToSegment) {
+    return this.userService.uploadPlayersToSegment(payload);
+  }
 
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'RemovePlayerFromSegment')
   removePlayerFromSegment(payload: DeleteItemRequest) {
     return this.userService.removePlayerFromSegment(payload);
+  }
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'GetSegmentPlayers')
+  getSegmentPlayers(payload: GetSegmentPlayerRequest) {
+    return this.userService.getSegmentPlayers(payload.segmentId);
   }
 }

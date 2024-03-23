@@ -6,7 +6,7 @@ import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { handleError, handleResponse } from 'src/common/helpers';
 import { TrackierService } from './trackier/trackier.service';
-import { AddToSegmentRequest, CommonResponse, CreateUserRequest, DeleteItemRequest, FetchPlayerSegmentRequest, SaveSegmentRequest } from 'src/proto/identity.pb';
+import { AddToSegmentRequest, CommonResponse, CreateUserRequest, DeleteItemRequest, FetchPlayerSegmentRequest, SaveSegmentRequest, UploadPlayersToSegment } from 'src/proto/identity.pb';
 import { WalletService } from 'src/wallet/wallet.service';
 import { PlayerSegment } from '@prisma/client';
 
@@ -445,6 +445,54 @@ export class UserService {
     }
   }
 
+  async uploadPlayersToSegment({players, segmentId, clientId}: UploadPlayersToSegment) {
+    try {
+      const data = [];
+      for (const username of players) {
+        //  find player
+        const user = await this.prisma.user.findFirst({
+          where: {
+            username,
+            clientId
+          }
+        })
+        if (user) {
+          //check if user already added
+          const isExist = await this.prisma.playerUserSegment.findFirst({
+            where: {userId: user.id, segmentId}
+          })
+
+          if (!isExist) {
+            
+            const player = await this.prisma.playerUserSegment.create({
+              data: {
+                userId: user.id,
+                segmentId,
+              }
+            });
+
+            data.push(player)
+          }
+        }
+      }
+
+      return {
+        status: HttpStatus.OK, 
+        success: true, 
+        message: 'User added to segment', 
+        data: JSON.stringify(data) 
+      }
+
+    } catch (e) {
+      return {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        success: false, 
+        message: 'An error occured', 
+        errors: e.message
+      }
+    }
+  } 
+
   async deletePlayerSegment (payload: DeleteItemRequest) {
     try {
 
@@ -476,9 +524,34 @@ export class UserService {
       return {
         status: HttpStatus.OK, 
         success: true, 
-        message: 'Segment has been deleted', 
+        message: 'Player has been removed from segment', 
       }
     } catch (err) {
+      return {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        success: false, 
+        message: 'An error occured', 
+        errors: err.message
+      }
+    }
+  }
+
+
+  async getSegmentPlayers(segmentId) {
+    try {
+      const players = await this.prisma.playerUserSegment.findMany({
+        where: {segmentId},
+        include: {player: true}
+      });
+
+      return {
+        status: HttpStatus.OK, 
+        success: true, 
+        message: 'Users fetched', 
+        data: JSON.stringify(players) 
+      }
+
+    } catch(err) {
       return {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
         success: false, 

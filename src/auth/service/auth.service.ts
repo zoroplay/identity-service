@@ -303,7 +303,6 @@ export class AuthService {
         }
     }
 
-
     async resetPassword (param: ResetPasswordRequest): Promise<UpdateUserResponse> {
         try {
             //get user and compare password
