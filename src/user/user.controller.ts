@@ -10,6 +10,7 @@ import {
   FetchPlayerSegmentRequest,
   GetPlayerDataRequest,
   GetSegmentPlayerRequest,
+  GrantBonusRequest,
   IDENTITY_SERVICE_NAME,
   OnlinePlayersRequest,
   RegistrationReportRequest,
@@ -120,4 +121,10 @@ export class UserController {
   getSegmentPlayers(payload: GetSegmentPlayerRequest) {
     return this.userService.getSegmentPlayers(payload.segmentId);
   }
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'GrantBonusToSegment')
+  grantBonusToSegment(payload: GrantBonusRequest) {
+    return this.userService.grantBonus(payload);
+  }
+
 }

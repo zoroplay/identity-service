@@ -6,16 +6,17 @@ import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { handleError, handleResponse } from 'src/common/helpers';
 import { TrackierService } from './trackier/trackier.service';
-import { AddToSegmentRequest, CommonResponse, CreateUserRequest, DeleteItemRequest, FetchPlayerSegmentRequest, SaveSegmentRequest, UploadPlayersToSegment } from 'src/proto/identity.pb';
+import { AddToSegmentRequest, CommonResponse, CreateUserRequest, DeleteItemRequest, FetchPlayerSegmentRequest, GrantBonusRequest, SaveSegmentRequest, UploadPlayersToSegment } from 'src/proto/identity.pb';
 import { WalletService } from 'src/wallet/wallet.service';
 import { PlayerSegment } from '@prisma/client';
+import { BonusService } from 'src/bonus/bonus.service';
 
 @Injectable()
 export class UserService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-    private trackierService: TrackierService,
+    private bonusService: BonusService,
     private readonly walletService: WalletService,
   ) {}
 
@@ -549,6 +550,43 @@ export class UserService {
         success: true, 
         message: 'Users fetched', 
         data: JSON.stringify(players) 
+      }
+
+    } catch(err) {
+      return {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        success: false, 
+        message: 'An error occured', 
+        errors: err.message
+      }
+    }
+  }
+
+
+  async grantBonus(payload: GrantBonusRequest) {
+    try {
+      console.log(payload)
+      const players = await this.prisma.playerUserSegment.findMany({
+        where: {segmentId: payload.segmentId},
+        include: {player: true}
+      });
+
+      for (const player of players) {
+        
+        await this.bonusService.awardBonus({
+          userId: player.player.id.toString(),
+          username: player.player.username,
+          bonusId: payload.bonusId,
+          clientId: payload.clientId,
+          amount: payload.amount,
+        })
+      }
+
+      return {
+        status: HttpStatus.OK, 
+        success: true, 
+        message: 'Bonus granted', 
+        data: JSON.stringify([]) 
       }
 
     } catch(err) {
