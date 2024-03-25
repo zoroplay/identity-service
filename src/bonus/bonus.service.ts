@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
+import { firstValueFrom } from 'rxjs';
 import { AwardBonusRequest, BONUS_SERVICE_NAME, BonusServiceClient, GetCampaignRequest, protobufPackage } from 'src/proto/bonus.pb';
 
 @Injectable()
@@ -17,9 +18,9 @@ export class BonusService {
         return this.svc.getCampaign(data);
     }
 
-    public awardBonus(data: AwardBonusRequest) {
+    public async awardBonus(data: AwardBonusRequest) {
         console.log('Award Bonus');
-        return this.svc.awardBonus(data);
+        return firstValueFrom(this.svc.awardBonus(data));
     }
 
 }

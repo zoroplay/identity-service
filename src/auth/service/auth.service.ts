@@ -70,7 +70,7 @@ export class AuthService {
                             amount: campaignRes.data.bonus.bonusAmount,
                             baseValue: 0,
                             promoCode,
-                        }).toPromise();
+                        });
 
                         // if bonus was awarded successfully, set bonus amount
                         if (awardRes.status === 201)
