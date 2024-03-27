@@ -9,7 +9,8 @@ export class TrackierService {
 
   async createCustomer({customerId, customerName, trackingToken}) {
     const authres: any = await this.getAccessToken();
-    if (!authres.status) return handleError(authres.error.response.message, null);
+
+    if (!authres.success) return handleError(authres.error.message, null);
 
     return await axios.post(
       `${this.baseUrl}/customer`,
@@ -35,7 +36,7 @@ export class TrackierService {
   async registerAffiliate(user_details, user, hashedPassword) {
     const authres: any = await this.getAccessToken();
 
-    if (!authres.status) return handleError(authres.error.message, null);
+    if (!authres.success) return handleError(authres.error.message, null);
 
     await axios.post(
             `${this.baseUrl}/affiliate/register`,
