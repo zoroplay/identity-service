@@ -8,7 +8,7 @@ import { handleError, handleResponse } from 'src/common/helpers';
 export class CustomersService {
   async create(createUserDto: CreateCustomerDto) {
     const authres: any = this.getAccessToken();
-    if (!authres.status) return handleError(authres.error.message, null);
+    if (!authres.success) return handleError(authres.error.message, null);
 
     await axios.post(
       'https://api.trackierigaming.com/customer',
@@ -38,7 +38,7 @@ export class CustomersService {
   async update(updateCustomerDto: UpdateCustomerDto) {
     try {
       const authres: any = this.getAccessToken();
-      if (!authres.status) return handleError(authres.error.message, null);
+      if (!authres.success) return handleError(authres.error.message, null);
 
       const response: any = await axios.patch(
         `https://api.trackierigaming.com
@@ -56,7 +56,7 @@ export class CustomersService {
           },
         },
       );
-      if (!response.status) return handleError(response.error.message, null);
+      if (!response.success) return handleError(response.error.message, null);
       return handleResponse(response, 'Customer Deleted successfully');
     } catch (error) {
       return handleError(error.message, error);
@@ -66,7 +66,7 @@ export class CustomersService {
   async remove(createCustomerDto: CreateCustomerDto) {
     try {
       const authres: any = this.getAccessToken();
-      if (!authres.status) return handleError(authres.error.message, null);
+      if (!authres.success) return handleError(authres.error.message, null);
 
       const response: any = await axios.delete(
         `https://api.trackierigaming.com
@@ -79,7 +79,7 @@ export class CustomersService {
           },
         },
       );
-      if (!response.status) return handleError(response.error.message, null);
+      if (!response.success) return handleError(response.error.message, null);
       return handleResponse(response, 'Customer Deleted successfully');
     } catch (error) {
       return handleError(error.message, error);
