@@ -19,6 +19,11 @@ export class RolesController {
     return this.rolesService.findAll();
   }
 
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'GetAgencyRoles')
+  GetAgencyRoles() {
+    return this.rolesService.fetchRetailRoles();
+  }
+
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'updateRole')
   update(payload: UpdateRoleDto) {
     // return this.rolesService.update(updateRoleDto.id, updateRoleDto);

@@ -17,11 +17,14 @@ export class RolesService {
     try {
       let role;
       if (data.roleID) {
-        // role = await this.prisma.role.update({
-        //   where: {id: data.roleID},{
-
-        //   }
-        // })
+        role = await this.prisma.role.update({
+          where: {id: data.roleID},
+          data: {
+            name: data.name,
+            description: data.description,
+            type: data.roleType
+          }
+        })
       } else {
         role = await this.prisma.role.create({
           data: {
@@ -31,7 +34,6 @@ export class RolesService {
           },
         });
       }
-      
 
       return handleResponse(role,
         'Role created successfully',
@@ -44,6 +46,17 @@ export class RolesService {
   async findAll() {
     try {
       const roles = await this.prisma.role.findMany();
+      return handleResponse(roles, 'Roles Fetched successfully');
+    } catch (error) {
+      return handleError(error.message, error);
+    }
+  }
+
+  async fetchRetailRoles() {
+    try {
+      const roles = await this.prisma.role.findMany({
+        where: {type: 'agency'}
+      });
       return handleResponse(roles, 'Roles Fetched successfully');
     } catch (error) {
       return handleError(error.message, error);
