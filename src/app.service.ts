@@ -33,23 +33,38 @@ export class AppService {
     try { 
       const client = await this.prisma.client.findUnique({where: {id: data.clientId}});
       
-      if (!client) return {username: '', email:'', callbackUrl: ''};
+      if (!client) return {username: '', email:'', callbackUrl: '', siteUrl: ''};
 
       const user = await this.prisma.user.findFirst({
         where: {id: data.userId},
         include: {userDetails: true}
       });
       
-      if (!user) return {username: '', email:'', callbackUrl: ''};
+      if (!user) return {username: '', email:'', callbackUrl: '', siteUrl: ''};
       return {
         username: user.username, 
         email: user.userDetails.email, 
         callbackUrl: client[`${data.source}Url`],
+        siteUrl: client.apiUrl
       };
 
     } catch (e) {
-      return {username: '', email:'', callbackUrl: ''};
+      return {username: '', email:'', callbackUrl: '', siteUrl: ''};
     }
+  }
+
+  async getCountries() {
+    const countries = await this.prisma.country.findMany();
+    return countries;
+  }
+
+  async getStatesByCountry(countryId) {
+    const states = await this.prisma.state.findMany({
+      where: {
+        countryId
+      }
+    })
+    return states;
   }
 
 
