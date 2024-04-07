@@ -314,6 +314,7 @@ export interface GetPaymentDataResponse {
   username: string;
   email: string;
   callbackUrl: string;
+  siteUrl: string;
 }
 
 export interface GetClientRequest {
@@ -509,6 +510,33 @@ export interface PaginationResponse {
   data: string;
 }
 
+export interface Country {
+  id: number;
+  name: string;
+  countryCodeLong: string;
+  countryCode: string;
+  dialCode: string;
+  currencyName: string;
+  currencySymbol: string;
+}
+
+export interface GetStatesRequest {
+  countryId: number;
+}
+
+export interface State {
+  id: number;
+  name: string;
+}
+
+export interface GetCountryResponse {
+  countries: Country[];
+}
+
+export interface StateResponse {
+  states: State[];
+}
+
 export interface EmptyRequest {
 }
 
@@ -532,6 +560,8 @@ export interface IdentityServiceClient {
   saveRole(request: RoleRequest): Observable<SaveRoleResponse>;
 
   getRoles(request: EmptyRequest): Observable<GetRolesResponse>;
+
+  getAgencyRoles(request: EmptyRequest): Observable<GetRolesResponse>;
 
   removeRole(request: RemoveRoleRequest): Observable<DeleteResponse>;
 
@@ -590,6 +620,10 @@ export interface IdentityServiceClient {
   getSegmentPlayers(request: GetSegmentPlayerRequest): Observable<CommonResponse>;
 
   grantBonusToSegment(request: GrantBonusRequest): Observable<CommonResponse>;
+
+  getCountries(request: EmptyRequest): Observable<CommonResponse>;
+
+  getStatesByCoutnry(request: GetStatesRequest): Observable<CommonResponse>;
 }
 
 export interface IdentityServiceController {
@@ -614,6 +648,8 @@ export interface IdentityServiceController {
   saveRole(request: RoleRequest): Promise<SaveRoleResponse> | Observable<SaveRoleResponse> | SaveRoleResponse;
 
   getRoles(request: EmptyRequest): Promise<GetRolesResponse> | Observable<GetRolesResponse> | GetRolesResponse;
+
+  getAgencyRoles(request: EmptyRequest): Promise<GetRolesResponse> | Observable<GetRolesResponse> | GetRolesResponse;
 
   removeRole(request: RemoveRoleRequest): Promise<DeleteResponse> | Observable<DeleteResponse> | DeleteResponse;
 
@@ -708,6 +744,10 @@ export interface IdentityServiceController {
   grantBonusToSegment(
     request: GrantBonusRequest,
   ): Promise<CommonResponse> | Observable<CommonResponse> | CommonResponse;
+
+  getCountries(request: EmptyRequest): Promise<CommonResponse> | Observable<CommonResponse> | CommonResponse;
+
+  getStatesByCoutnry(request: GetStatesRequest): Promise<CommonResponse> | Observable<CommonResponse> | CommonResponse;
 }
 
 export function IdentityServiceControllerMethods() {
@@ -722,6 +762,7 @@ export function IdentityServiceControllerMethods() {
       "createPermission",
       "saveRole",
       "getRoles",
+      "getAgencyRoles",
       "removeRole",
       "findAllPermissions",
       "findAllClients",
@@ -751,6 +792,8 @@ export function IdentityServiceControllerMethods() {
       "removePlayerFromSegment",
       "getSegmentPlayers",
       "grantBonusToSegment",
+      "getCountries",
+      "getStatesByCoutnry",
     ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
