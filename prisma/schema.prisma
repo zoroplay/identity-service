@@ -204,3 +204,39 @@ model PlayerUserSegment {
 
   @@map("player_user_segments")  
 }
+
+model Country {
+
+  id              Int             @id @default(autoincrement())
+  name            String
+  CountryCodeLong String          @map("country_code_long")
+  CountryCode     String          @map("country_code")
+  DialCode        String          @map("dial_code")
+  region          CountryRegion       
+  CurrencyName    String          @map("currency_name")
+  CurrencyCode    String          @map("currency_code")
+  CurrencySymbol  String?         @map("currency_symbol")
+  CountryFlag     String?         @map("country_flag")
+  states          State[]
+
+  @@map("countries")
+}
+
+model State {
+  id              Int             @id @default(autoincrement())
+  name            String
+  countryId       Int             @map("country_id")
+  country         Country         @relation(fields: [countryId], references: [id], onDelete: Cascade)
+
+  @@map("states")
+}
+
+enum CountryRegion {
+  Africa
+  Antarctica
+  Asia
+  Europe
+  North_America @map("North America")
+  Oceania
+  South_America @map("South America")
+}
