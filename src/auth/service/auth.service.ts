@@ -146,6 +146,10 @@ export class AuthService {
             if (!isPasswordValid) {
                 return { status: HttpStatus.NOT_FOUND, error: 'Invalid password', success: false, data: null };
             }
+
+            if (user.status !== 1) 
+                return { status: HttpStatus.NOT_FOUND, error: 'Your account is not active.', success: false, data: null };
+
             const auth: any = {...user};
 
             // update last login
