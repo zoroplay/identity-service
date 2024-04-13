@@ -1,13 +1,14 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { JwtService } from './jwt.service';
 import { RegisterRequestDto, LoginRequestDto, ValidateRequestDto } from '../auth.dto';
-import { ChangePasswordRequest, GetUserByUsernameRequest, GetUserByUsernameResponse, LoginResponse, RegisterResponse, ResetPasswordRequest, UpdateUserRequest, UpdateUserResponse, ValidateClientResponse, ValidateResponse } from 'src/proto/identity.pb';
+import { ChangePasswordRequest, CommonResponse, GetUserByUsernameRequest, GetUserByUsernameResponse, LoginResponse, RegisterResponse, ResetPasswordRequest, SessionRequest, UpdateUserRequest, UpdateUserResponse, ValidateClientResponse, ValidateResponse, XpressLoginRequest, XpressLoginResponse } from 'src/proto/identity.pb';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Client, User } from '@prisma/client';
 import { WalletService } from 'src/wallet/wallet.service';
 import { BonusService } from 'src/bonus/bonus.service';
 import { TrackierService } from 'src/user/trackier/trackier.service';
 import * as dayjs from 'dayjs';
+import { generateString } from 'src/common/helpers';
 
 @Injectable()
 export class AuthService {
@@ -151,11 +152,13 @@ export class AuthService {
                 return { status: HttpStatus.NOT_FOUND, error: 'Your account is not active.', success: false, data: null };
 
             const auth: any = {...user};
+            const auth_code = generateString(40)
 
             // update last login
             await this.prisma.user.update({
                 data: {
-                    lastLogin: dayjs().format('YYYY-MM-DD')
+                    lastLogin: dayjs().format('YYYY-MM-DD'),
+                    auth_code
                 }, where: {
                     id: auth.id
                 }
@@ -190,6 +193,8 @@ export class AuthService {
             auth.dateOfBirth = user.userDetails.date_of_birth;
             auth.role = user.role.name;
             auth.roleId = user.role.id;
+            auth.status = user.status;
+            auth.authCode = auth_code;
 
             delete auth.password;
 
@@ -235,6 +240,7 @@ export class AuthService {
                 auth.roleId = user.role.id;
                 auth.registered = user.createdAt;
                 auth.authCode  = user.auth_code;
+                auth.status  = user.status;
                 auth.gender = user.userDetails.gender;
                 auth.city = user.userDetails.city;
                 auth.address = user.userDetails.address;
@@ -387,4 +393,143 @@ export class AuthService {
 
         return { status: HttpStatus.OK, error: null, clientId: client.id };
     }
+
+    public async xpressLogin ({token, clientId}: XpressLoginRequest): Promise<XpressLoginResponse> {
+        try {
+            const user = await this.prisma.user.findFirst({
+                where: {
+                    auth_code: token,
+                    clientId,
+                },
+                include: {role: true, client: true}
+            })
+
+            if (user) {
+                let group;
+                if(user.role.name === 'Player') {
+                    group = `${user.client.groupName}_Online`
+                } else {
+
+                }
+                //get user wallet
+                const balanceRes = await this.walletService.getWallet({
+                    userId: user.id,
+                    clientId,
+                })
+                const virtual_token = generateString(60)
+
+                await this.prisma.user.update({
+                    where: {id: user.id},
+                    data: {
+                        virtualToken: virtual_token
+                    }
+                })
+
+                const data = {
+                    playerId: `${group}.${user.id}`,
+                    playerNickname: user.username,
+                    sessionId: virtual_token,
+                    balance: balanceRes.data.availableBalance,
+                    group,
+                    currency: user.client.currency
+                }
+                return {status: true, code: HttpStatus.OK, message: 'success', data};
+            } else {
+                return {
+                    status: false,
+                    code: HttpStatus.NOT_FOUND,
+                    message: 'Invalid token',
+                    data: null,
+                }
+            }
+        } catch (e) {
+            return {
+                status: false,
+                code: HttpStatus.INTERNAL_SERVER_ERROR,
+                message: 'Something went wrong',
+                data: null, 
+            }
+        }
+    }
+
+    public async xpressLogout ({sessionId, clientId}: SessionRequest): Promise<XpressLoginResponse> {
+        try {
+            await this.prisma.user.update({
+                where: {id: parseInt(sessionId)},
+                data: {
+                    virtualToken: null
+                }
+            })
+
+            // get user 
+            const user = await this.prisma.user.findFirst({
+                where: {id: parseInt(sessionId)},
+                include: {role: true, client: true}
+            })
+            //get balance
+            let group;
+            if(user.role.name === 'Player') {
+                group = `${user.client.groupName}_Online`
+            } else {
+
+            }
+            //get user wallet
+            const balanceRes = await this.walletService.getWallet({
+                userId: user.id,
+                clientId,
+            })
+
+            const data = {
+                playerId: `${group}.${user.id}`,
+                playerNickname: user.username,
+                sessionId: '',
+                balance: balanceRes.data.availableBalance,
+                group,
+                currency: user.client.currency
+            }
+            return {status: true, code: HttpStatus.OK, message: 'success', data};
+
+        } catch (e) {
+            return {
+                status: false,
+                code: HttpStatus.INTERNAL_SERVER_ERROR,
+                message: 'Something went wrong',
+                data: null, 
+            }
+        }
+    }
+
+    public async validateXpressSession ({sessionId, clientId}: SessionRequest): Promise<CommonResponse> {
+        try {
+            const user = await this.prisma.user.findFirst({
+                where: {
+                    virtualToken: sessionId,
+                    clientId
+                }
+            })
+            if (user) {
+                return {
+                    success: true,
+                    status: HttpStatus.OK,
+                    message: 'Success',
+                    data: JSON.stringify(user)
+                }
+            } else {
+                return {
+                    success: false,
+                    status: HttpStatus.NOT_FOUND,
+                    message: 'Session Expired',
+                    data: null, 
+                }
+            }
+        } catch(e) {
+            return {
+                success: false,
+                status: HttpStatus.INTERNAL_SERVER_ERROR,
+                message: 'Something went wrong',
+                data: null, 
+            }
+        }
+    }
+
 }

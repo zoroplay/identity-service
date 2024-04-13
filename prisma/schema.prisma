@@ -67,6 +67,7 @@ model Client {
   name          String
   country       String
   currency      String
+  groupName     String?
   apiUrl        String?
   contactNumber String?
   contactEmail  String

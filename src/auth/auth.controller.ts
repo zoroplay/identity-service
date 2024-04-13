@@ -1,7 +1,7 @@
 import { Controller, Inject } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
 import { LoginRequestDto, RegisterRequestDto, ValidateRequestDto } from './auth.dto';
-import { ChangePasswordRequest, CreateUserRequest, GetUserByUsernameRequest, GetUserDetailsRequest, GetUserDetailsResponse, IDENTITY_SERVICE_NAME, LoginResponse, RegisterResponse, ResetPasswordRequest, UpdateUserRequest, ValidateClientResponse, ValidateResponse } from '../proto/identity.pb';
+import { ChangePasswordRequest, CreateUserRequest, GetUserByUsernameRequest, GetUserDetailsRequest, GetUserDetailsResponse, IDENTITY_SERVICE_NAME, LoginResponse, RegisterResponse, ResetPasswordRequest, SessionRequest, UpdateUserRequest, ValidateClientResponse, ValidateResponse, XpressLoginRequest } from '../proto/identity.pb';
 import { AuthService } from './service/auth.service';
 
 @Controller()
@@ -52,5 +52,23 @@ export class AuthController {
     @GrpcMethod(IDENTITY_SERVICE_NAME, 'ValidateClient')
     ValidateClient(payload: ValidateRequestDto): Promise<ValidateClientResponse> {
         return this.service.validateClient(payload);
+    }
+
+    @GrpcMethod(IDENTITY_SERVICE_NAME, 'xpressGameLogin')
+    xpressGameLogin(data: XpressLoginRequest) {
+        // console.log('xpress login', data);
+        return this.service.xpressLogin(data);
+    }
+
+    @GrpcMethod(IDENTITY_SERVICE_NAME, 'xpressGameLogout')
+    xpressGameLogout(data: SessionRequest) {
+        // console.log('xpress login', data);
+        return this.service.xpressLogout(data);
+    }
+
+    @GrpcMethod(IDENTITY_SERVICE_NAME, 'ValidateXpressSession')
+    ValidateXpressSession(data: SessionRequest) {
+        // console.log('xpress session validation', data);
+        return this.service.validateXpressSession(data);
     }
 }
