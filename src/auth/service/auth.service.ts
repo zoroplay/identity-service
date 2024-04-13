@@ -135,6 +135,7 @@ export class AuthService {
                 include: {
                     userDetails: true,
                     role: true,
+                    client: true,
                 } 
             });
 
@@ -152,7 +153,13 @@ export class AuthService {
                 return { status: HttpStatus.NOT_FOUND, error: 'Your account is not active.', success: false, data: null };
 
             const auth: any = {...user};
-            const auth_code = generateString(40)
+            const auth_code = generateString(40);
+            let group;
+                if(user.role.name === 'Player') {
+                    group = `${user.client.groupName}_Online`
+                } else {
+
+                }
 
             // update last login
             await this.prisma.user.update({
@@ -195,6 +202,7 @@ export class AuthService {
             auth.roleId = user.role.id;
             auth.status = user.status;
             auth.authCode = auth_code;
+            auth.group = group;
 
             delete auth.password;
 
@@ -211,6 +219,7 @@ export class AuthService {
                 include: {
                     userDetails: true,
                     role: true,
+                    client: true,
                 }  
             });
             if (user) {
@@ -220,6 +229,12 @@ export class AuthService {
                 })
     
                 const auth: any = {...user};
+                let group;
+                if(user.role.name === 'Player') {
+                    group = `${user.client.groupName}_Online`
+                } else {
+
+                }
 
                 if(balanceRes.success){
                     const {balance, availableBalance, sportBonusBalance, casinoBonusBalance, virtualBonusBalance, trustBalance } = balanceRes.data
@@ -247,6 +262,7 @@ export class AuthService {
                 auth.country = user.userDetails.country;
                 auth.currency = user.userDetails.currency;
                 auth.dateOfBirth = user.userDetails.date_of_birth;
+                auth.group = group;
     
                 delete auth.password;
 
