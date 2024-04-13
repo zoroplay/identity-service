@@ -125,6 +125,7 @@ export interface UserData {
   gender: string;
   dateOfBirth: string;
   status: number;
+  group: string;
 }
 
 export interface CreateUserRequest {
