@@ -8,6 +8,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { WalletModule } from 'src/wallet/wallet.module';
 import { BonusModule } from 'src/bonus/bonus.module';
 import { TrackierService } from 'src/user/trackier/trackier.service';
+import { SettingsService } from 'src/client/settings/settings.service';
 
 @Module({
   imports: [
@@ -19,6 +20,6 @@ import { TrackierService } from 'src/user/trackier/trackier.service';
     BonusModule
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtService, JwtStrategy, PrismaService, TrackierService],
+  providers: [AuthService, JwtService, JwtStrategy, PrismaService, SettingsService, TrackierService],
 })
 export class AuthModule { }
