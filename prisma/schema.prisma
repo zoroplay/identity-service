@@ -80,18 +80,22 @@ model Client {
 
   users         User[]
   segments      PlayerSegment[]
+  settings      Setting[]
 
   @@map("clients")
 }
 
 model Setting {
-  id        Int       @id @default(autoincrement())
-  option    String
-  value     String
-  category  String
-  createdAt DateTime   @default(now()) @map("created_at")
-  updatedAt DateTime   @updatedAt @map("updated_at")
+  id          Int         @id @default(autoincrement())
+  clientId    Int         @map("client_id")
+  client      Client      @relation(fields: [clientId], references: [id])
+  option      String
+  value       String
+  category    String
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
 
+  @@unique([clientId, option, category], name: "client_option_category")
   @@map("settings")
 }
 
@@ -112,8 +116,8 @@ model Permission {
   id               Int               @id @default(autoincrement())
   name             String
   description      String
-  createdAt      DateTime   @default(now()) @map("created_at")
-  updatedAt      DateTime   @updatedAt @map("updated_at")
+  createdAt        DateTime   @default(now()) @map("created_at")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
 
   @@map("permissions")
 }
@@ -134,7 +138,7 @@ model UserBettingParameter {
   user        User          @relation(fields: [userId], references: [id])
   period      String        @default("period")
   maxPayout   Float         @map("max_payout") @default(0)
-  singleMaxOddLength Float  @map("singleMaxOddLength") @default(100)
+  singleMaxOddLength Float  @map("single_max_odd_length") @default(100)
   combiMaxOddLength Float   @map("combi_max_odd_length") @default(1000000)
   minTicketSize Int?        @map("min_ticket_size") @default(1)
   maxTicketSize Int?        @map("max_ticket_size") @default(40)
@@ -144,10 +148,11 @@ model UserBettingParameter {
   combiMaxStake Float       @map("combi_max_stake") @default(10000)
   maxCancelTime Int?        @map("max_cancel_time") @default(300)
   dailyCancelLimit Int?     @map("daily_cancel_limit") @default(5)
-  holdBets      Float       @map("hold_bets") @default(100000)
+  holdBetsFrom      Float   @map("hold_bets_from") @default(100000)
   createdAt      DateTime   @default(now()) @map("created_at")
   updatedAt      DateTime   @updatedAt @map("updated_at")
 
+  @@unique([userId, period], name: "user_period")
   @@map("user_betting_parameters")
 }
 

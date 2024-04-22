@@ -3,11 +3,15 @@ import { GrpcMethod, Payload } from '@nestjs/microservices';
 import { ClientService } from './client.service';
 import { CLIENT_SERVICE, CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
-import { GetClientRequest, IDENTITY_SERVICE_NAME } from 'src/proto/identity.pb';
+import { GetClientRequest, GetSettingsRequest, IDENTITY_SERVICE_NAME, SettingsRequest } from 'src/proto/identity.pb';
+import { SettingsService } from './settings/settings.service';
 
 @Controller()
 export class ClientController {
-  constructor(private readonly clientService: ClientService) {}
+  constructor(
+    private readonly clientService: ClientService,
+    private readonly settingService: SettingsService,
+  ) {}
 
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'CreateClient')
   CreateClient(payload: CreateClientDto) {
@@ -32,5 +36,20 @@ export class ClientController {
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'DeleteClient')
   DeleteClient(payload: CreateClientDto) {
     return this.clientService.remove(payload.clientID);
+  }
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'SaveSettings')
+  saveSettings(payload: SettingsRequest) {
+    return this.settingService.saveSettings(payload);
+  }
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'SaveRiskSettings')
+  saveRiskSettings(payload: SettingsRequest) {
+    return this.settingService.saveRiskSettings(payload);
+  }
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'GetSettings')
+  getSettings(payload: GetSettingsRequest) {
+    return this.settingService.getSettings(payload);
   }
 }
