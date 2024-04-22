@@ -21,26 +21,29 @@ export class SettingsService {
             for (const [key, value] of Object.entries(data)) {
                 console.log(`Key: ${key}, Value: ${value}`);
                 const val: any = value
-                await this.prisma.setting.upsert({
-                    where: {
-                        client_option_category: {
+                if (key !== 'logo' && key !== 'print_logo') {
+
+                    await this.prisma.setting.upsert({
+                        where: {
+                            client_option_category: {
+                                clientId,
+                                option: key,
+                                category: 'general'
+                            },
+                        },
+                        // update existing
+                        update: {
+                            value: val
+                        },
+                        // new record
+                        create: {
                             clientId,
                             option: key,
+                            value: val,
                             category: 'general'
-                        },
-                    },
-                    // update existing
-                    update: {
-                        value: val
-                    },
-                    // new record
-                    create: {
-                        clientId,
-                        option: key,
-                        value: val,
-                        category: 'general'
-                    }
-                })
+                        }
+                    })
+                }
             }
             return {success: true, status: HttpStatus.OK, message: 'Saved successfully'};
         } catch (e) {
