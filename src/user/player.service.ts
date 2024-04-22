@@ -9,6 +9,7 @@ import {
   RegistrationReportRequest,
   GetPlayerDataResponse,
   FetchPlayerFilterRequest,
+  GetUserIdNameResponse,
 } from 'src/proto/identity.pb';
 import { WalletService } from 'src/wallet/wallet.service';
 import * as dayjs from 'dayjs';
@@ -705,5 +706,26 @@ export class PlayerService {
     } catch (e) {
       return { success: false, message: 'An error occured ' + e.message };
     }
+  }
+
+  async findUsersByUsername(key): Promise<GetUserIdNameResponse> {
+    const users = await this.prisma.user.findMany({
+      select: {
+        id: true,
+        username: true,
+      },
+      where: {
+        username: {
+          contains: key
+        }
+      }
+    });
+
+    const data = [];
+    for (const user of users) {
+      data.push({id: user.id, username:  user.username})
+    }
+
+    return {data};
   }
 }
