@@ -1,7 +1,7 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import * as dayjs from 'dayjs';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CommonResponse, PlaceBetRequest, SettingsRequest } from 'src/proto/identity.pb';
+import { AutoDisbursementResponse, CommonResponse, PlaceBetRequest, SettingsRequest } from 'src/proto/identity.pb';
 import { WalletService } from 'src/wallet/wallet.service';
 var customParseFormat = require('dayjs/plugin/customParseFormat')
 dayjs.extend(customParseFormat)
@@ -264,6 +264,44 @@ export class SettingsService {
         }else {
             return null;
         }
+    }
+
+    async getDisbursementSettings(clientId: number): Promise<AutoDisbursementResponse> {
+        let autoDisburse = await this.prisma.setting.findFirst({
+            where: {
+                clientId,
+                option: `auto_disbursement`
+            }
+        });
+
+        let autoDisburseMin = await this.prisma.setting.findFirst({
+            where: {
+                clientId,
+                option: `auto_disbursement_min`
+            }
+        });
+
+        let autoDisburseMax = await this.prisma.setting.findFirst({
+            where: {
+                clientId,
+                option: `auto_disbursement_max`
+            }
+        });
+
+        let autoDisburseCount = await this.prisma.setting.findFirst({
+            where: {
+                clientId,
+                option: `auto_disbursement_per_day`
+            }
+        });
+
+        return {
+            autoDisbursement: parseInt(autoDisburse.value), 
+            autoDisbursementMin: parseFloat(autoDisburseMin.value), 
+            autoDisbursementMax: parseFloat(autoDisburseMax.value),
+            autoDisbursementCount: parseInt(autoDisburseCount.value),
+        }
+        
     }
 
     getBettingPeriod() {
