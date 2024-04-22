@@ -4,6 +4,19 @@ import { Observable } from "rxjs";
 
 export const protobufPackage = "identity";
 
+export interface GetUserIdNameRequest {
+  username: string;
+}
+
+export interface GetUserIdNameResponse {
+  data: GetUserIdNameResponse_Users[];
+}
+
+export interface GetUserIdNameResponse_Users {
+  id: number;
+  username: string;
+}
+
 export interface AutoDisbursementRequest {
   clientId: number;
 }
@@ -744,6 +757,8 @@ export interface IdentityServiceClient {
   validateBet(request: PlaceBetRequest): Observable<CommonResponse>;
 
   getAutoDisbursementSettings(request: AutoDisbursementRequest): Observable<AutoDisbursementResponse>;
+
+  getUserIdandName(request: GetUserIdNameRequest): Observable<GetUserIdNameResponse>;
 }
 
 export interface IdentityServiceController {
@@ -894,6 +909,10 @@ export interface IdentityServiceController {
   getAutoDisbursementSettings(
     request: AutoDisbursementRequest,
   ): Promise<AutoDisbursementResponse> | Observable<AutoDisbursementResponse> | AutoDisbursementResponse;
+
+  getUserIdandName(
+    request: GetUserIdNameRequest,
+  ): Promise<GetUserIdNameResponse> | Observable<GetUserIdNameResponse> | GetUserIdNameResponse;
 }
 
 export function IdentityServiceControllerMethods() {
@@ -949,6 +968,7 @@ export function IdentityServiceControllerMethods() {
       "getSettings",
       "validateBet",
       "getAutoDisbursementSettings",
+      "getUserIdandName",
     ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);

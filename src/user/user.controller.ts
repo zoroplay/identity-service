@@ -10,6 +10,7 @@ import {
   FetchPlayerSegmentRequest,
   GetPlayerDataRequest,
   GetSegmentPlayerRequest,
+  GetUserIdNameRequest,
   GrantBonusRequest,
   IDENTITY_SERVICE_NAME,
   OnlinePlayersRequest,
@@ -60,6 +61,11 @@ export class UserController {
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'SearchPlayers')
   SearchPlayers(param: SearchPlayerRequest) {
     return this.playerService.searchPlayers(param);
+  }
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'GetUserIdandName')
+  findByUsername(param: GetUserIdNameRequest) {
+    return this.playerService.findUsersByUsername(param.username);
   }
 
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'GetPlayerData')
