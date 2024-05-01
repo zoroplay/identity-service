@@ -230,7 +230,19 @@ export class SettingsService {
                     return {success: false, status: HttpStatus.NOT_ACCEPTABLE, message: `Min allowed stake is ${combiMinStake}`}
             }
 
-            return {success: true, status: HttpStatus.OK, message: 'verified'};
+            const max_winning     = await this.getBettingParameter(userId, clientId, period, 'max_payout');
+
+            let currency = await this.prisma.setting.findFirst({
+                where: {
+                    clientId,
+                    option: `currency_code`
+                }
+            });
+
+            const params = {max_winning, currency: currency.value};
+
+
+            return {success: true, status: HttpStatus.OK, message: 'verified', data: JSON.stringify(params)};
 
         } catch (e) {
             console.log(e.message);
