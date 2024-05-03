@@ -15,7 +15,7 @@ export class BonusService {
     }
 
     public getBonusCampaign(data: GetCampaignRequest) {
-        return this.svc.getCampaign(data);
+        return  firstValueFrom(this.svc.getCampaign(data));
     }
 
     public async awardBonus(data: AwardBonusRequest) {

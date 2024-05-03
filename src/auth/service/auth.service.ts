@@ -22,7 +22,7 @@ export class AuthService {
     ) {}
 
     public async register({ clientId, username, password, phoneNumber, promoCode, trackingToken }: RegisterRequestDto): Promise<RegisterResponse> {
-      
+        // console.log(promoCode)
         try {
             let user: any = await this.prisma.user.findFirst({ where: { username, clientId } });
 
@@ -56,14 +56,22 @@ export class AuthService {
 
                 // make a copy of user object
                 const auth: any = {...newUser};
-                let bonus = 0;
 
-                //check if promo code is provided and activate bonus
-                if (promoCode && promoCode !== '') {
-                    const campaignRes = await this.bonusService.getBonusCampaign({promoCode, clientId}).toPromise();
+                //create user wallet
+                const balanceRes = await this.walletService.createWallet({
+                    userId: newUser.id,
+                    username: newUser.username,
+                    clientId,
+                    amount: 0,
+                })
+
+                 //check if promo code is provided and activate bonus
+                 if (promoCode && promoCode !== '') {
+                    const campaignRes = await this.bonusService.getBonusCampaign({promoCode, clientId});
+
                     if (campaignRes.success) {
                     
-                        const awardRes = await this.bonusService.awardBonus({
+                        await this.bonusService.awardBonus({
                             clientId, 
                             userId: newUser.id.toString(),
                             username: newUser.username,
@@ -72,15 +80,9 @@ export class AuthService {
                             baseValue: 0,
                             promoCode,
                         });
-
-                        // if bonus was awarded successfully, set bonus amount
-                        if (awardRes.status === 201)
-                            bonus = awardRes.bonus.amount;
                     }
-                }
-
-                if (trackingToken && trackingToken !== '') {
-                    const trackREs = await this.trackierService.createCustomer({
+                } else if (trackingToken && trackingToken !== '') {
+                    await this.trackierService.createCustomer({
                         customerId: newUser.username,
                         customerName: newUser.username,
                         trackingToken,
@@ -88,16 +90,6 @@ export class AuthService {
                     // console.log(trackREs)
                 }
 
-                //create user wallet
-                const balanceRes = await this.walletService.createWallet({
-                    userId: newUser.id,
-                    username: newUser.username,
-                    clientId,
-                    amount: 0,
-                    bonus,
-                }).toPromise();
-
-                // console.log('balance response', balanceRes)
 
                 if(balanceRes.success){
                     const {balance, availableBalance, sportBonusBalance, casinoBonusBalance, virtualBonusBalance, trustBalance } = balanceRes.data
@@ -124,6 +116,7 @@ export class AuthService {
             
             return { success: true, status: HttpStatus.CREATED, error: null, data: user };
         } catch(e) {
+            console.log(e.message)
             return { success: false, status: HttpStatus.BAD_REQUEST, error: e.message, data: null };
         }
     }
