@@ -38,7 +38,7 @@ export class WalletService {
     return firstValueFrom(this.svc.fetchPlayerDeposit(data));
   }
   public createWallet(data: CreateWalletRequest) {
-    return this.svc.createWallet(data);
+    return firstValueFrom(this.svc.createWallet(data));
   }
 
   public getWallet(param: GetBalanceRequest) {
