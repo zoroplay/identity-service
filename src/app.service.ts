@@ -41,6 +41,7 @@ export class AppService {
       });
       
       if (!user) return {username: '', email:'', callbackUrl: '', siteUrl: ''};
+      
       return {
         username: user.username, 
         email: user.userDetails.email, 
