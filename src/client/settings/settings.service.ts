@@ -173,7 +173,7 @@ export class SettingsService {
             if(!user && isBooking === 0) 
                 return {status: HttpStatus.NOT_FOUND, message: "please login to procceed", success: false};
 
-            if (user.status !== 1 && isBooking === 0)
+            if (isBooking === 0 && user.status !== 1)
                 return {status: 401, message: "Your account has been disabled", success: false};
 
             if (data.type === 'live') {
@@ -189,10 +189,10 @@ export class SettingsService {
             const wallet = await this.walletService.getWallet({userId, clientId});
 
             // validate wallet balance
-            if (!data.useBonus && wallet.data.availableBalance < stake && isBooking === 0)// if not bonus bet, use real balance
+            if (isBooking === 0 && !data.useBonus && wallet.data.availableBalance < stake)// if not bonus bet, use real balance
                 return {status: 400, message: "Insufficient balance ", success: false};
             // check bonus wallet balance for bonus bet
-            if (data.useBonus && wallet.data.sportBonusBalance < stake && isBooking === 0)// if bonus bet, use bonus balance
+            if (isBooking === 0 && data.useBonus && wallet.data.sportBonusBalance < stake)// if bonus bet, use bonus balance
                 return {status: 400, message: "Insufficient balance ", success: false};
 
             if (totalSelections > maxSelections)
