@@ -162,19 +162,18 @@ export class SettingsService {
     async validateBet(data: PlaceBetRequest): Promise<CommonResponse> {
         // console.log(data);
         try {
-            const {userId, clientId, stake, selections, totalOdds } = data;
+            const {userId, clientId, stake, selections, totalOdds, isBooking } = data;
             const period = this.getBettingPeriod();
-            console.log('period is ', period);
             const totalSelections = selections.length;
             const user              = await this.prisma.user.findFirst({where: {id: userId}});
             const maxSelections     = await this.getBettingParameter(userId, clientId, period, 'size_max');
             const minSelections     = await this.getBettingParameter(userId, clientId, period, 'size_min');
             
 
-            if(!user) 
+            if(!user && isBooking === 0) 
                 return {status: HttpStatus.NOT_FOUND, message: "please login to procceed", success: false};
 
-            if (user.status !== 1)
+            if (user.status !== 1 && isBooking === 0)
                 return {status: 401, message: "Your account has been disabled", success: false};
 
             if (data.type === 'live') {
@@ -190,10 +189,10 @@ export class SettingsService {
             const wallet = await this.walletService.getWallet({userId, clientId});
 
             // validate wallet balance
-            if (!data.useBonus && wallet.data.availableBalance < stake)// if not bonus bet, use real balance
+            if (!data.useBonus && wallet.data.availableBalance < stake && isBooking === 0)// if not bonus bet, use real balance
                 return {status: 400, message: "Insufficient balance ", success: false};
             // check bonus wallet balance for bonus bet
-            if (data.useBonus && wallet.data.sportBonusBalance < stake)// if bonus bet, use bonus balance
+            if (data.useBonus && wallet.data.sportBonusBalance < stake && isBooking === 0)// if bonus bet, use bonus balance
                 return {status: 400, message: "Insufficient balance ", success: false};
 
             if (totalSelections > maxSelections)
