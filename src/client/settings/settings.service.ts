@@ -98,38 +98,40 @@ export class SettingsService {
 
     async saveUserRiskSettings(param): Promise<CommonResponse> {
         try {
+            // console.log(param);
             const settings = JSON.parse(param.inputs);
             const user_id = param.userId;
             const period = param.period;
             const data = {
                 period,
                 userId: user_id,
-                max_payout: settings.max_payout,
-                single_odd_length: settings.single_odd_length,
-                combi_odd_length: settings.combi_odd_length,
-                single_delay: settings.single_delay,
-                combi_delay: settings.combi_delay,
-                single_min: settings.single_min,
-                single_max: settings.single_max,
-                combi_max: settings.combi_max,
-                combi_min: settings.combi_min,
-                size_min: settings.size_min,
-                size_max: settings.size_max,
-                single_max_winning: settings.single_max_winning,
-                min_withdrawal: settings.min_withdrawal,
-                max_withdrawal: settings.max_withdrawal,
-                hold_bets_from: settings.hold_bets_from,
-                min_bonus_odd: settings.min_bonus_odd,
-                live_size_min: settings.live_size_min,
-                live_size_max: settings.live_size_max,
-                enable_cashout: settings.enable_cashout,
-                enable_cut_x: settings.enable_cut_x,
-                max_duplicate_ticket: settings.max_duplicate_ticket,
-                accept_prematch_bets: settings.accept_prematch_bets,
-                accept_live_bets: settings.accept_live_bets,
-                accept_system_bets: settings.accept_system_bets,
-                accept_split_bets: settings.accept_split_bets,
+                max_payout: parseFloat(settings.max_payout),
+                single_odd_length: parseInt(settings.single_odd_length),
+                combi_odd_length: parseInt(settings.combi_odd_length),
+                // single_delay: settings.single_delay,
+                // combi_delay: settings.combi_delay,
+                single_min: parseFloat(settings.single_min),
+                single_max: parseFloat(settings.single_max),
+                combi_max: parseFloat(settings.combi_max),
+                combi_min: parseFloat(settings.combi_min),
+                size_min: parseInt(settings.size_min),
+                size_max: parseInt(settings.size_max),
+                single_max_winning: parseFloat(settings.single_max_winning),
+                min_withdrawal: parseFloat(settings.min_withdrawal),
+                max_withdrawal: parseFloat(settings.max_withdrawal),
+                hold_bets_from: parseFloat(settings.hold_bets_from),
+                min_bonus_odd: parseFloat(settings.min_bonus_odd),
+                live_size_min: parseInt(settings.live_size_min),
+                live_size_max: parseInt(settings.live_size_max),
+                enable_cashout: parseInt(settings.enable_cashout),
+                enable_cut_x: parseInt(settings.enable_cut_x),
+                max_duplicate_ticket: parseInt(settings.max_duplicate_ticket),
+                accept_prematch_bets: parseInt(settings.accept_prematch_bets) || 0,
+                accept_live_bets: settings.accept_live_bets || 0,
+                accept_system_bets: settings.accept_system_bets || 0,
+                accept_split_bets: settings.accept_split_bets || 0,
             }
+
 
             await this.prisma.userBettingParameter.upsert({
                 where: {
@@ -144,6 +146,7 @@ export class SettingsService {
 
             return {success: true, status: HttpStatus.OK, message: 'Saved successfully'};
         } catch (e) {
+            console.log(e.message);
             return {success: false, status: HttpStatus.INTERNAL_SERVER_ERROR, message: `Something went wrong: ${e.message}`};
         }
     }
@@ -334,6 +337,33 @@ export class SettingsService {
             return 'night';
         } else {
             return 'day';
+        }
+    }
+
+    async getUserBettingParameters ({userId, clientId}): Promise<CommonResponse> {
+        try {
+            let settings: any = await this.prisma.userBettingParameter.findMany({where: {
+                userId
+            }})
+
+            let isNew = false;
+
+            if (!settings.length) {
+                settings = await this.prisma.setting.findMany({
+                    where: {
+                        clientId,
+                        category: 'online'
+                    }
+                })
+                isNew = true;
+            }
+
+            const data = {settings, isNew}
+
+            return {success: true, status: HttpStatus.OK, message: 'successful', data: JSON.stringify(data)}
+
+        } catch (e) {
+            return {success: false, message: 'error fetching parameters: ' + e.message};
         }
     }
 
