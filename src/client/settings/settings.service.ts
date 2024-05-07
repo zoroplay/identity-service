@@ -1,7 +1,7 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import * as dayjs from 'dayjs';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { AutoDisbursementResponse, CommonResponse, PlaceBetRequest, SettingsRequest } from 'src/proto/identity.pb';
+import { WithdrawalSettingsResponse, CommonResponse, PlaceBetRequest, SettingsRequest, GetWithdrawalSettingsRequest } from 'src/proto/identity.pb';
 import { WalletService } from 'src/wallet/wallet.service';
 var customParseFormat = require('dayjs/plugin/customParseFormat')
 dayjs.extend(customParseFormat)
@@ -280,7 +280,11 @@ export class SettingsService {
         }
     }
 
-    async getDisbursementSettings(clientId: number): Promise<AutoDisbursementResponse> {
+    async getWithdrawalSettings(data: GetWithdrawalSettingsRequest): Promise<WithdrawalSettingsResponse> {
+        const {clientId, userId} = data;
+
+        const period = this.getBettingPeriod();
+
         let autoDisburse = await this.prisma.setting.findFirst({
             where: {
                 clientId,
@@ -309,11 +313,38 @@ export class SettingsService {
             }
         });
 
+        let minWithdrawal = await this.prisma.setting.findFirst({
+            where: {
+                clientId,
+                option: `min_withdrawal_${period}`
+            }
+        });
+
+        let maxWithdrawal = await this.prisma.setting.findFirst({
+            where: {
+                clientId,
+                option: `max_withdrawal_${period}`
+            }
+        });
+
+
+        if (userId) {
+            const userSettings = await this.prisma.userBettingParameter.findFirst({where: {
+                userId, period
+            }})
+            if (userSettings) {
+                maxWithdrawal.value = userSettings.max_withdrawal.toString(),
+                minWithdrawal.value = userSettings.min_withdrawal.toString()
+            }
+        }
+
         return {
             autoDisbursement: parseInt(autoDisburse.value), 
             autoDisbursementMin: parseFloat(autoDisburseMin.value), 
             autoDisbursementMax: parseFloat(autoDisburseMax.value),
             autoDisbursementCount: parseInt(autoDisburseCount.value),
+            maximumWithdrawal: parseFloat(maxWithdrawal.value),
+            minimumWithdrawal: parseFloat(minWithdrawal.value)
         }
         
     }

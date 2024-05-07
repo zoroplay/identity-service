@@ -1,9 +1,9 @@
 import { Controller } from '@nestjs/common';
 import { GrpcMethod, Payload } from '@nestjs/microservices';
 import { ClientService } from './client.service';
-import { CLIENT_SERVICE, CreateClientDto } from './dto/create-client.dto';
+import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
-import { AutoDisbursementRequest, GetAgentUsersRequest, GetClientRequest, GetSettingsRequest, GetUserIdNameRequest, IDENTITY_SERVICE_NAME, SettingsRequest, UserRiskSettingsRequest } from 'src/proto/identity.pb';
+import { GetAgentUsersRequest, GetClientRequest, GetSettingsRequest, GetUserIdNameRequest, GetWithdrawalSettingsRequest, IDENTITY_SERVICE_NAME, SettingsRequest, UserRiskSettingsRequest } from 'src/proto/identity.pb';
 import { SettingsService } from './settings/settings.service';
 
 @Controller()
@@ -63,8 +63,8 @@ export class ClientController {
     return this.settingService.getUserBettingParameters(payload);
   }
 
-  @GrpcMethod(IDENTITY_SERVICE_NAME, 'GetAutoDisbursementSettings')
-  getAutoDisbursementSettings(data: AutoDisbursementRequest) {
-    return this.settingService.getDisbursementSettings(data.clientId);
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'GetWithdrawalSettings')
+  GetWithdrawalSettings(data: GetWithdrawalSettingsRequest) {
+    return this.settingService.getWithdrawalSettings(data);
   }
 }
