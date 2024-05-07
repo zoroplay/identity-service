@@ -33,7 +33,10 @@ model User {
   segmentCreator PlayerSegment[]
   segments      PlayerUserSegment[]
 
-  client        Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  agentUser     AgentUser?    @relation("agentUser")
+  agentUsers    AgentUser[]   @relation("agent")
+
+  client        Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
   clientId      Int
 
   @@map("users")
@@ -60,6 +63,19 @@ model UserDetails {
   updatedAt      DateTime   @updatedAt @map("updated_at")
 
   @@map("user_details")
+}
+
+model AgentUser {
+  id            Int         @id @default(autoincrement())
+  agent_id      Int
+  agent         User        @relation(fields: [agent_id], references: [id], name: "agent", onDelete: NoAction, onUpdate: NoAction)
+  user_id       Int         @unique
+  agentUser     User        @relation(fields: [user_id], references: [id], name: "agentUser", onDelete: NoAction, onUpdate: NoAction)
+
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  @@map("agent_users")
 }
 
 model Client {
@@ -133,22 +149,36 @@ model RolePermission {
 }
 
 model UserBettingParameter {
-  id          Int           @id @default(autoincrement())
-  userId      Int           @map("user_id")
-  user        User          @relation(fields: [userId], references: [id])
-  period      String        @default("period")
-  maxPayout   Float         @map("max_payout") @default(0)
-  singleMaxOddLength Float  @map("single_max_odd_length") @default(100)
-  combiMaxOddLength Float   @map("combi_max_odd_length") @default(1000000)
-  minTicketSize Int?        @map("min_ticket_size") @default(1)
-  maxTicketSize Int?        @map("max_ticket_size") @default(40)
-  singleMinStake Float      @map("single_min_stake") @default(100)
-  singleMaxStake Float      @map("single_max_stake") @default(10000)
-  combiMinStake Float       @map("combi_min_stake") @default(100)
-  combiMaxStake Float       @map("combi_max_stake") @default(10000)
-  maxCancelTime Int?        @map("max_cancel_time") @default(300)
-  dailyCancelLimit Int?     @map("daily_cancel_limit") @default(5)
-  holdBetsFrom      Float   @map("hold_bets_from") @default(100000)
+  id          Int               @id @default(autoincrement())
+  userId      Int               @map("user_id")
+  user        User              @relation(fields: [userId], references: [id])
+  period      String            @default("period")
+  max_payout   Float            @default(0)
+  single_odd_length Int         @default(100)
+  combi_odd_length Int          @default(1000000)
+  size_max Int?                 @default(1)
+  size_min Int?                 @default(40)
+  single_min Float              @default(100)
+  single_max Float              @default(10000)
+  combi_min Float               @default(100)
+  combi_max Float               @default(10000)
+  max_time_to_cancel Int?       @default(300)
+  daily_cancel_limit Int?       @default(5)
+  hold_bets_from      Float     @default(100000)
+  single_max_winning  Float     @default(100000)
+  min_withdrawal  Float         @default(1000)
+  max_withdrawal  Float         @default(100000)
+  min_bonus_odd  Float          @default(100000)
+  live_size_min  Int?           @default(1)
+  live_size_max  Int?           @default(20)
+  enable_cashout  Int?          @default(0)
+  enable_cut_x  Int?            @default(0)
+  max_duplicate_ticket  Int?   @default(4)
+  accept_prematch_bets  Int?   @default(1)
+  accept_live_bets  Int?       @default(1)
+  accept_system_bets  Int?     @default(1)
+  accept_split_bets  Int?       @default(1)
+
   createdAt      DateTime   @default(now()) @map("created_at")
   updatedAt      DateTime   @updatedAt @map("updated_at")
 
