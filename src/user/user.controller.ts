@@ -48,11 +48,6 @@ export class UserController {
     return this.userService.updateDetails(createUserDto);
   }
 
-  @GrpcMethod(IDENTITY_SERVICE_NAME, 'createShopUser')
-  createShopUser(createUserDto: UserDetailsDto & LoginDto) {
-    return this.userService.createShopUser(createUserDto);
-  }
-
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'findAllUser')
   findAll() {
     // return this.userService.findAll();

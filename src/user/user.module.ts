@@ -7,6 +7,7 @@ import { TrackierService } from './trackier/trackier.service';
 import { WalletModule } from 'src/wallet/wallet.module';
 import { PlayerService } from './player.service';
 import { BonusModule } from 'src/bonus/bonus.module';
+import { JwtService } from 'src/auth/service/jwt.service';
 
 @Module({
   imports: [
@@ -19,6 +20,6 @@ import { BonusModule } from 'src/bonus/bonus.module';
     WalletModule
   ],
   controllers: [UserController],
-  providers: [UserService, PlayerService, PrismaService, TrackierService],
+  providers: [JwtService, UserService, PlayerService, PrismaService, TrackierService],
 })
 export class UserModule {}

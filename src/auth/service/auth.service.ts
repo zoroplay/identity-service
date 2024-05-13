@@ -356,13 +356,14 @@ export class AuthService {
         });
 
         if (user) {
+            const name = user.userDetails.firstname ? user.userDetails.firstName + " " + user.userDetails.lastName : user.username;
             return {
                 responseCode: "00000",
                 responseMessage: "SUCCESSFUL",
                 data: {
                     referenceID: user.username,
                     CustomerName: user.userDetails.firstName + " " + user.userDetails.lastName,
-                    Phoneno: user.userDetails.phone,
+                    Phoneno: user.userDetails.phone || "",
                     Status: "00"
                 }
             }
