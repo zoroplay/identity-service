@@ -1,13 +1,9 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { LoginDto, UserDetailsDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
-import { JwtService } from '@nestjs/jwt';
 import { handleError, handleResponse } from 'src/common/helpers';
-import { TrackierService } from './trackier/trackier.service';
 import { AddToSegmentRequest, CommonResponse, CreateUserRequest, DeleteItemRequest, FetchPlayerSegmentRequest, GrantBonusRequest, SaveSegmentRequest, UploadPlayersToSegment } from 'src/proto/identity.pb';
-import { WalletService } from 'src/wallet/wallet.service';
 import { PlayerSegment } from '@prisma/client';
 import { BonusService } from 'src/bonus/bonus.service';
 
@@ -15,9 +11,7 @@ import { BonusService } from 'src/bonus/bonus.service';
 export class UserService {
   constructor(
     private prisma: PrismaService,
-    private jwtService: JwtService,
     private bonusService: BonusService,
-    private readonly walletService: WalletService,
   ) {}
 
   async saveAdminUser(data: CreateUserRequest) {
@@ -240,33 +234,6 @@ export class UserService {
     }
   }
 
-  async login(loginUserDto: LoginDto) {
-    try {
-      let user = await this.prisma.user.findFirst({
-        where: {
-          username: loginUserDto.username,
-        },
-      });
-
-      if (!user)
-        return handleError(`The User specified doesn't exist, register`, null);
-      
-      const isMatch = await bcrypt.compare(
-        loginUserDto.password,
-        user.password,
-      );
-
-      if (!isMatch) return handleError('Password Incorrect, verify', null);
-
-      delete user.password;
-      const token = this.jwtService.sign(user);
-
-      return handleResponse({ ...user, token }, 'User Logged in successfully');
-    } catch (error) {
-      return handleError(error.message, error);
-    }
-  }
-
   async getAdminUsers({clientId}) {
     try {
       // find admin roles
@@ -280,69 +247,6 @@ export class UserService {
     } catch (e) {
       return handleError('Something went wrong. ' + e.message, null);
     }
-  }
-
-  async createShopUser(updateUserDto: UpdateUserDto & LoginDto) {
-    // try {
-    //   let [role, user] = await Promise.all([
-    //     this.prisma.role.findUnique({
-    //       where: {
-    //         id: updateUserDto.roleId,
-    //       },
-    //     }),
-
-    //     this.prisma.user.findUnique({
-    //       where: {
-    //         username: updateUserDto.username,
-    //       },
-    //     }),
-    //   ]);
-    //   if (!role) return handleError('The role specified does not exist', null);
-
-    //   if (user)
-    //     return handleError(`The Username specified already exists`, null);
-    //   const salt = 10;
-    //   const hashedPassword = await bcrypt.hash(updateUserDto.password, salt);
-
-    //   user = await this.prisma.user.create({
-    //     data: {
-    //       username: updateUserDto.username,
-    //       password: hashedPassword,
-    //       roleId: role.id,
-    //     },
-    //   });
-
-    //   const { id: user_detailsID, ...user_details } =
-    //     await this.prisma.user_Details.create({
-    //       data: {
-    //         firstName: updateUserDto.firstName,
-    //         lastName: updateUserDto.lastName,
-    //         email: updateUserDto.email,
-    //         city: updateUserDto.city,
-    //         country: updateUserDto.country,
-    //         gender: updateUserDto.gender,
-    //         currency: updateUserDto.currency,
-    //         phone: updateUserDto.phone,
-    //         userId: user.id,
-    //       },
-    //     });
-    //   if (role.name === 'Web Affiliate') {
-    //     await this.trackierService.registerAffiliate(
-    //       user_details,
-    //       user,
-    //       hashedPassword,
-    //     );
-    //   }
-
-    //   // delete user.password;
-    //   // const token = this.jwtService.sign(user.id);
-    //   return handleResponse(
-    //     { ...user, ...user_details, user_detailsID },
-    //     'Shop User Created successfully',
-    //   );
-    // } catch (error) {
-    //   return handleError(error.message, error);
-    // }
   }
 
   remove(id: number) {

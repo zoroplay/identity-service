@@ -6,12 +6,12 @@ import { PermissionModule } from './permission/permission.module';
 import { PrismaService } from './prisma/prisma.service';
 import { ClientModule } from './client/client.module';
 import { UserModule } from './user/user.module';
-import { CustomersModule } from './customers/customers.module';
 import { AuthModule } from './auth/auth.module';
 import 'dotenv/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { WalletModule } from './wallet/wallet.module';
 import { JwtService } from './auth/service/jwt.service';
+import { RetailModule } from './retail/retail.module';
 
 @Global()
 @Module({
@@ -22,9 +22,9 @@ import { JwtService } from './auth/service/jwt.service';
     PermissionModule,
     ClientModule,
     UserModule,
-    CustomersModule,
     WalletModule,
     ScheduleModule.forRoot(),
+    RetailModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService, JwtService],
