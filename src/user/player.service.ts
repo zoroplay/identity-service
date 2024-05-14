@@ -518,8 +518,9 @@ export class PlayerService {
     const role = await this.prisma.role.findFirst({
       where: { name: 'Player' },
     });
+    
     total = await this.prisma.user.count({
-      where: { roleId: role.id },
+      where: { roleId: role.id, clientId },
     });
 
     if (total <= perPage) {
@@ -561,7 +562,7 @@ export class PlayerService {
       offset = off;
     }
 
-    console.log(offset, 'offset');
+    // console.log(offset, 'offset');
 
     let sql = `SELECT u.id, u.username, u.code, u.created_at, u.status, u.verified,
     d.email, d.phone, d.firstName, d.lastName, d.country, d.currency, u.last_login
