@@ -371,8 +371,10 @@ export class SettingsService {
         }
     }
 
-    async getUserBettingParameters ({userId, clientId}): Promise<CommonResponse> {
+    async getUserBettingParameters (payload): Promise<CommonResponse> {
         try {
+            const {userId, clientId} = payload;
+
             let settings: any = await this.prisma.userBettingParameter.findMany({where: {
                 userId
             }})
