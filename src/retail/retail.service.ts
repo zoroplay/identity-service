@@ -177,6 +177,8 @@ export class RetailService {
           sql += ` AND state_id = ${state}`;
         }        
 
+        console.log(sql)
+
         const countQuery: any = await this.prisma.$queryRawUnsafe(sql);
 
         const total = countQuery.length;
