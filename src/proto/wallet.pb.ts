@@ -4,6 +4,33 @@ import { Observable } from "rxjs";
 
 export const protobufPackage = "wallet";
 
+export interface GetUserAccountsResponse {
+  data: GetUserAccountsResponse_BankAccount[];
+}
+
+export interface GetUserAccountsResponse_BankAccount {
+  bankCode: string;
+  accountName: string;
+  accountNumber: string;
+  bankName: string;
+}
+
+export interface GetNetworkBalanceRequest {
+  agentId: number;
+  userIds: string;
+  clientId: number;
+}
+
+export interface GetNetworkBalanceResponse {
+  success: boolean;
+  message: string;
+  networkBalance: number;
+  networkTrustBalance: number;
+  trustBalance?: number | undefined;
+  availableBalance?: number | undefined;
+  balance?: number | undefined;
+}
+
 export interface FetchBetRangeRequest {
   minAmount: number;
   maxAmount: number;
@@ -122,6 +149,13 @@ export interface PaystackWebhookRequest {
   event: string;
   body: string;
   paystackKey: string;
+}
+
+export interface MonnifyWebhookRequest {
+  clientId: number;
+  reference: string;
+  event: string;
+  body: string;
 }
 
 export interface WebhookResponse {
@@ -363,12 +397,14 @@ export interface UserTransactionRequest {
   userId: number;
   startDate: string;
   endDate: string;
+  page?: number | undefined;
 }
 
 export interface UserTransactionResponse {
   success: boolean;
   message: string;
   data: TransactionData[];
+  meta?: MetaData | undefined;
 }
 
 export interface TransactionData {
@@ -436,6 +472,15 @@ export interface PaginationResponse {
   data: string;
 }
 
+export interface MetaData {
+  page: number;
+  perPage: number;
+  total: number;
+  lastPage: number;
+  nextPage: number;
+  prevPage: number;
+}
+
 export const WALLET_PACKAGE_NAME = "wallet";
 
 export interface WalletServiceClient {
@@ -471,6 +516,8 @@ export interface WalletServiceClient {
 
   paystackWebhook(request: PaystackWebhookRequest): Observable<WebhookResponse>;
 
+  monnifyWebhook(request: MonnifyWebhookRequest): Observable<WebhookResponse>;
+
   opayDepositWebhook(request: OpayWebhookRequest): Observable<OpayWebhookResponse>;
 
   opayLookUpWebhook(request: OpayWebhookRequest): Observable<OpayWebhookResponse>;
@@ -484,6 +531,10 @@ export interface WalletServiceClient {
   updateWithdrawal(request: UpdateWithdrawalRequest): Observable<UpdateWithdrawalResponse>;
 
   getPlayerWalletData(request: GetBalanceRequest): Observable<PlayerWalletData>;
+
+  getUserAccounts(request: GetBalanceRequest): Observable<GetUserAccountsResponse>;
+
+  getNetworkBalance(request: GetNetworkBalanceRequest): Observable<GetNetworkBalanceResponse>;
 }
 
 export interface WalletServiceController {
@@ -543,6 +594,10 @@ export interface WalletServiceController {
     request: PaystackWebhookRequest,
   ): Promise<WebhookResponse> | Observable<WebhookResponse> | WebhookResponse;
 
+  monnifyWebhook(
+    request: MonnifyWebhookRequest,
+  ): Promise<WebhookResponse> | Observable<WebhookResponse> | WebhookResponse;
+
   opayDepositWebhook(
     request: OpayWebhookRequest,
   ): Promise<OpayWebhookResponse> | Observable<OpayWebhookResponse> | OpayWebhookResponse;
@@ -570,6 +625,14 @@ export interface WalletServiceController {
   getPlayerWalletData(
     request: GetBalanceRequest,
   ): Promise<PlayerWalletData> | Observable<PlayerWalletData> | PlayerWalletData;
+
+  getUserAccounts(
+    request: GetBalanceRequest,
+  ): Promise<GetUserAccountsResponse> | Observable<GetUserAccountsResponse> | GetUserAccountsResponse;
+
+  getNetworkBalance(
+    request: GetNetworkBalanceRequest,
+  ): Promise<GetNetworkBalanceResponse> | Observable<GetNetworkBalanceResponse> | GetNetworkBalanceResponse;
 }
 
 export function WalletServiceControllerMethods() {
@@ -591,6 +654,7 @@ export function WalletServiceControllerMethods() {
       "getPaymentMethods",
       "savePaymentMethod",
       "paystackWebhook",
+      "monnifyWebhook",
       "opayDepositWebhook",
       "opayLookUpWebhook",
       "listWithdrawals",
@@ -598,6 +662,8 @@ export function WalletServiceControllerMethods() {
       "userTransactions",
       "updateWithdrawal",
       "getPlayerWalletData",
+      "getUserAccounts",
+      "getNetworkBalance",
     ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);

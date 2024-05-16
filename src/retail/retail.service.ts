@@ -1,8 +1,8 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from 'src/auth/service/jwt.service';
-import { handleError, handleResponse } from 'src/common/helpers';
+import { handleError, handleResponse, paginateResponse } from 'src/common/helpers';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateUserRequest, GetAgentUsersRequest } from 'src/proto/identity.pb';
+import { CreateUserRequest, GetAgentUsersRequest, MetaData } from 'src/proto/identity.pb';
 import { WalletService } from 'src/wallet/wallet.service';
 
 @Injectable()
@@ -14,7 +14,7 @@ export class RetailService {
     ) {}
 
     async createShopUser(data: CreateUserRequest) {
-        console.log(data);
+        // console.log(data);
         try {
           let [role, user] = await Promise.all([
             this.prisma.role.findUnique({
@@ -105,28 +105,35 @@ export class RetailService {
     async listAgentUsers(payload: GetAgentUsersRequest) {
         try {   
             const {userId, clientId} = payload;
-            const users: any =  await this.prisma
-            .$queryRaw`SELECT u.clientId, u.id, u.username, u.code, u.role_id, CONCAT(ud.firstName, " ", ud.lastName) as name, r.name as rolename FROM agent_users a
+            // get agent users query
+            const agentUsers: any =  await this.prisma
+            .$queryRaw`SELECT u.clientId, u.id, u.username, u.code, u.role_id, CONCAT(ud.firstName, " ", ud.lastName) as name, ud.phone as phone_number, ud.email, r.name as rolename FROM agent_users a
             JOIN users u ON u.id = a.user_id LEFT JOIN roles r ON r.id = u.role_id LEFT JOIN user_details ud ON u.id = ud.user_id
             WHERE agent_id = ${userId} ORDER BY u.created_at DESC`;
+            // get agent details query
+            const agent: any = await this.prisma.$queryRaw`SELECT u.clientId, u.id, u.username, u.code, u.role_id, CONCAT(ud.firstName, " ", ud.lastName) as name, ud.phone as phone_number, ud.email, r.name as rolename FROM users u
+            LEFT JOIN roles r ON r.id = u.role_id LEFT JOIN user_details ud ON u.id = ud.user_id WHERE u.id = ${userId}`;
 
-            const data = []
+
+            // merge arrays
+            const users = [...agentUsers, ...agent];
+
+            const data = [];
+
             if(users.length) {
-                for (const user of users) {
+              for (const user of users) {
+                const balanceRes = await this.walletService.getWallet({
+                    userId: user.id,
+                    clientId: user.clientid,
+                  });
+        
+                if (balanceRes.success) {
+                  const {availableBalance} = balanceRes.data;
 
-                    const balanceRes = await this.walletService.getWallet({
-                        userId: user.id,
-                        clientId: user.clientid,
-                      });
-            
-                    if (balanceRes.success) {
-                        const {availableBalance} = balanceRes.data;
-
-                        user.balance = availableBalance;
-                    }
-
-                    data.push(user);
+                  user.balance = availableBalance;
                 }
+                data.push(user);
+              }
             }
              
             return {success: true, status: HttpStatus.OK, message: 'Users retreived successfully', data: JSON.stringify(data)}
@@ -135,7 +142,103 @@ export class RetailService {
         }
     }
 
-    async listAgents(data) {
+    async listAgents(data: GetAgentUsersRequest) {
+      try {
 
+        const {page, clientId, username, roleId, state} = data;
+        let offset = 0;
+        let limit = 100;
+
+        if (page > 1) {
+          (page - 1) * limit;
+          offset = offset + 1;
+        }
+
+        //find agents roles (shop, agent, super-agent)
+        const roles = await this.prisma.role.findMany({where: {type: 'agency', name: {not: 'Cashier'}}, select: {id: true}});
+
+        const roleIds = roles.map(role => role.id);
+
+        let sql = `SELECT CONCAT(firstName, " ", lastName) as name, users.username, users.status, users.id, roles.name as rolename, roles.id as role_id FROM users
+         JOIN user_details ON user_details.user_id = users.id LEFT JOIN roles ON roles.id = users.role_id WHERE users.clientId = ${clientId}`;
+
+
+        if(username && username !== ''){
+          sql += ` AND username LIKE %${username}% OR first_name LIKE %${username}% OR last_name LIKE %${username}%`;
+        }
+
+        if(roleId){
+          sql += ` AND users.role_id = ${roleId}`;
+        }else{
+          sql += ` AND users.role_id IN (${roleIds})`;
+        }
+
+        if(state){
+          sql += ` AND state_id = ${state}`;
+        }        
+
+        const countQuery: any = await this.prisma.$queryRawUnsafe(sql);
+
+        const total = countQuery.length;
+
+        const finalQuery = sql + ` LIMIT ${offset}, ${limit}`
+
+        const agents: any = await this.prisma.$queryRawUnsafe(finalQuery);
+
+        if (agents.length) {
+          for (const agent of agents) {
+            const agentUsers = await this.prisma.agentUser.findMany({where: {agent_id: agent.id}});
+
+            if (agentUsers.length) {
+              const userIds = agentUsers.map(user => user.user_id);
+              //get network balance and network trust balance
+              const balanceRes = await this.walletService.getNeworkBalance({
+                agentId: agent.id,
+                userIds: userIds.toString(),
+                clientId,
+              });
+    
+              if (balanceRes.success) {
+                const {networkBalance, trustBalance, availableBalance, networkTrustBalance, balance} = balanceRes;
+
+                agent.network_balance = networkBalance;
+                agent.network_trust_balance = networkTrustBalance;
+                agent.available_balance = availableBalance
+                agent.trust_balance = trustBalance
+                agent.balance = balance
+              }
+            } else {
+              const balanceRes = await this.walletService.getWallet({
+                userId: agent.id,
+                clientId,
+              });
+    
+              agent.network_balance = 0;
+              agent.network_trust_balance = 0;
+              agent.available_balance = balanceRes.data.availableBalance
+              agent.trust_balance = balanceRes.data.trustBalance
+              agent.balance = balanceRes.data.balance
+            }
+          }
+        }
+
+        const pager = paginateResponse([agents, total], page, limit);
+
+        const meta: MetaData = {
+          page,
+          perPage: 20,
+          total,
+          lastPage: pager.lastPage,
+          nextPage: pager.nextPage,
+          prevPage: pager.prevPage
+        }
+        
+        const response = {data: agents, meta};
+
+        return {success: true, status: HttpStatus.OK, message: 'Users retreived successfully', data: JSON.stringify(response)};
+
+      } catch (e) {
+        return {success: false, status: HttpStatus.INTERNAL_SERVER_ERROR, message: `Error fetching agents: ${e.message}`};
+      }
     }
 }

@@ -48,4 +48,8 @@ export class WalletService {
   public async getWalletSummary(param: GetBalanceRequest) {
     return await firstValueFrom(this.svc.getPlayerWalletData(param));
   }
+
+  public async getNeworkBalance(param) {
+    return await firstValueFrom(this.svc.getNetworkBalance(param));
+  }
 }
