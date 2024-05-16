@@ -159,7 +159,7 @@ export class RetailService {
 
         const roleIds = roles.map(role => role.id);
 
-        let sql = `SELECT CONCAT(firstName, " ", lastName) as name, users.username, users.status, users.id, roles.name as rolename, roles.id as role_id FROM users
+        let sql = `SELECT firstName, lastName, users.username, users.status, users.id, roles.name as rolename, roles.id as role_id FROM users
          JOIN user_details ON user_details.user_id = users.id LEFT JOIN roles ON roles.id = users.role_id WHERE users.clientId = ${clientId}`;
 
 
@@ -190,7 +190,8 @@ export class RetailService {
         if (agents.length) {
           for (const agent of agents) {
             const agentUsers = await this.prisma.agentUser.findMany({where: {agent_id: agent.id}});
-
+            agent.name = `${agent.firstName} ${agent.lastName}`;
+            
             if (agentUsers.length) {
               const userIds = agentUsers.map(user => user.user_id);
               //get network balance and network trust balance
