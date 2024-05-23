@@ -22,7 +22,7 @@ export class AuthService {
     ) {}
 
     public async register({ clientId, username, password, phoneNumber, promoCode, trackingToken }: RegisterRequestDto): Promise<RegisterResponse> {
-        // console.log(promoCode)
+        console.log(clientId, username)
         try {
             let user: any = await this.prisma.user.findFirst({ where: { username, clientId } });
 
