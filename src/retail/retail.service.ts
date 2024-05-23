@@ -177,7 +177,7 @@ export class RetailService {
           sql += ` AND state_id = ${state}`;
         }        
 
-        console.log(sql)
+        // console.log(sql)
 
         const countQuery: any = await this.prisma.$queryRawUnsafe(sql);
 
@@ -191,7 +191,7 @@ export class RetailService {
           for (const agent of agents) {
             const agentUsers = await this.prisma.agentUser.findMany({where: {agent_id: agent.id}});
             agent.name = `${agent.firstName} ${agent.lastName}`;
-            
+
             if (agentUsers.length) {
               const userIds = agentUsers.map(user => user.user_id);
               //get network balance and network trust balance

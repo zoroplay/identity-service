@@ -168,10 +168,12 @@ export class SettingsService {
             const {userId, clientId, stake, selections, totalOdds, isBooking } = data;
             const period = this.getBettingPeriod();
             const totalSelections = selections.length;
+
             const user              = await this.prisma.user.findFirst({where: {id: userId}});
             const maxSelections     = await this.getBettingParameter(userId, clientId, period, 'size_max');
             const minSelections     = await this.getBettingParameter(userId, clientId, period, 'size_min');
             
+            // console.log(user);
 
             if(!user && isBooking === 0) 
                 return {status: HttpStatus.NOT_FOUND, message: "please login to procceed", success: false};
