@@ -689,6 +689,8 @@ export interface IdentityServiceClient {
 
   xpressGameLogin(request: XpressLoginRequest): Observable<XpressLoginResponse>;
 
+  evoGameLogin(request: XpressLoginRequest): Observable<XpressLoginResponse>;
+
   xpressGameLogout(request: SessionRequest): Observable<XpressLoginResponse>;
 
   validate(request: ValidateRequest): Observable<ValidateResponse>;
@@ -798,6 +800,10 @@ export interface IdentityServiceController {
   login(request: LoginRequest): Promise<LoginResponse> | Observable<LoginResponse> | LoginResponse;
 
   xpressGameLogin(
+    request: XpressLoginRequest,
+  ): Promise<XpressLoginResponse> | Observable<XpressLoginResponse> | XpressLoginResponse;
+
+  evoGameLogin(
     request: XpressLoginRequest,
   ): Promise<XpressLoginResponse> | Observable<XpressLoginResponse> | XpressLoginResponse;
 
@@ -960,6 +966,7 @@ export function IdentityServiceControllerMethods() {
       "register",
       "login",
       "xpressGameLogin",
+      "evoGameLogin",
       "xpressGameLogout",
       "validate",
       "validateClient",
