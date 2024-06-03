@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
@@ -32,11 +33,20 @@ export class PlayerService {
       case 1:
         return this.fetchRegisteredNotDeposit(FetchPlayerFilterDto);
       case 2:
-        return this.fetchDepositRange(FetchPlayerFilterDto, FetchPlayerFilterDto.page);
+        return this.fetchDepositRange(
+          FetchPlayerFilterDto,
+          FetchPlayerFilterDto.page,
+        );
       case 3:
-        return this.fetchDepositCount(FetchPlayerFilterDto, FetchPlayerFilterDto.page);
+        return this.fetchDepositCount(
+          FetchPlayerFilterDto,
+          FetchPlayerFilterDto.page,
+        );
       case 4:
-        return this.fetchBetRange(FetchPlayerFilterDto, FetchPlayerFilterDto.page);
+        return this.fetchBetRange(
+          FetchPlayerFilterDto,
+          FetchPlayerFilterDto.page,
+        );
       default:
         return {
           success: true,
@@ -50,26 +60,28 @@ export class PlayerService {
     try {
       let limit = 100;
 
-      const betRange$ = await this.walletService.fetchBetRange(FetchBetRangeDto);
+      const betRange$ =
+        await this.walletService.fetchBetRange(FetchBetRangeDto);
 
       console.log(betRange$.data);
       let data = [];
       if (betRange$.success && betRange$.data.length > 0) {
-
         const userIds = betRange$.data.map((deposit: any) => {
           return Number(deposit.userId);
         });
 
         const users = await this.prisma.user.findMany({
           where: {
-            id: {in: userIds}
+            id: { in: userIds },
           },
-          include: {userDetails: true, role: true},
-          take: limit
+          include: { userDetails: true, role: true },
+          take: limit,
         });
 
         for (const user of users) {
-          const da: any = betRange$.data.find((dept: any) => dept.userId === user.id);
+          const da: any = betRange$.data.find(
+            (dept: any) => dept.userId === user.id,
+          );
 
           data.push({
             id: user.id,
@@ -90,11 +102,11 @@ export class PlayerService {
             openBets: 0,
             role: user.role.name,
             lastLogin: user.lastLogin,
-          })
+          });
         }
       }
 
-      return paginateResponse([data, data.length], page, limit)
+      return paginateResponse([data, data.length], page, limit);
     } catch (error) {
       return {
         success: false,
@@ -104,7 +116,10 @@ export class PlayerService {
     }
   }
 
-  async fetchDepositCount(FetchDepositCountDto: FetchPlayerFilterRequest, page) {
+  async fetchDepositCount(
+    FetchDepositCountDto: FetchPlayerFilterRequest,
+    page,
+  ) {
     try {
       let limit = 100;
 
@@ -112,26 +127,27 @@ export class PlayerService {
         startDate: FetchDepositCountDto.startDate,
         endDate: FetchDepositCountDto.endDate,
         clientId: FetchDepositCountDto.clientId,
-        count: FetchDepositCountDto.depositCount
+        count: FetchDepositCountDto.depositCount,
       });
 
       let data = [];
       if (deposits.success && deposits.data.length > 0) {
-
         const userIds = deposits.data.map((deposit: any) => {
           return Number(deposit.userId);
         });
 
         const users = await this.prisma.user.findMany({
           where: {
-            id: {in: userIds}
+            id: { in: userIds },
           },
-          include: {userDetails: true, role: true},
-          take: limit
+          include: { userDetails: true, role: true },
+          take: limit,
         });
 
         for (const user of users) {
-          const da: any = deposits.data.find((dept: any) => dept.userId === user.id);
+          const da: any = deposits.data.find(
+            (dept: any) => dept.userId === user.id,
+          );
 
           data.push({
             id: user.id,
@@ -152,42 +168,44 @@ export class PlayerService {
             openBets: 0,
             role: user.role.name,
             lastLogin: user.lastLogin,
-          })
+          });
         }
       }
 
-      return paginateResponse([data, data.length], page, limit)
-
+      return paginateResponse([data, data.length], page, limit);
     } catch (error) {
       return { success: true, status: HttpStatus.OK, error: error.message };
     }
   }
 
-  async fetchDepositRange(FetchDepositRangeDto: FetchDepositRangeRequest, page) {
+  async fetchDepositRange(
+    FetchDepositRangeDto: FetchDepositRangeRequest,
+    page,
+  ) {
     try {
       let limit = 100;
 
-      const depositRange = await this.walletService.fetchDepositRange(FetchDepositRangeDto);
+      const depositRange =
+        await this.walletService.fetchDepositRange(FetchDepositRangeDto);
 
       let data = [];
       if (depositRange.success && depositRange.data.length > 0) {
-        
         const userIds = depositRange.data.map((deposit: any) => {
           return Number(deposit.userId);
         });
 
         const users = await this.prisma.user.findMany({
           where: {
-            id: {in: userIds}
+            id: { in: userIds },
           },
-          include: {userDetails: true, role: true},
-          take: limit
+          include: { userDetails: true, role: true },
+          take: limit,
         });
 
-
         for (const user of users) {
-          const deposits: any = depositRange.data.find((dept: any) => dept.userId === user.id);
-
+          const deposits: any = depositRange.data.find(
+            (dept: any) => dept.userId === user.id,
+          );
 
           data.push({
             id: user.id,
@@ -208,11 +226,11 @@ export class PlayerService {
             openBets: 0,
             role: user.role.name,
             lastLogin: user.lastLogin,
-          })
+          });
         }
       }
 
-      return paginateResponse([data, data.length], page, limit)
+      return paginateResponse([data, data.length], page, limit);
     } catch (error) {
       return {
         success: false,
@@ -226,11 +244,10 @@ export class PlayerService {
     startDate,
     endDate,
     clientId,
-    page
+    page,
   }: FetchPlayerFilterRequest) {
     let limit = 100;
     try {
-
       const role = await this.prisma.role.findFirst({
         where: { name: 'Player' },
       });
@@ -243,25 +260,24 @@ export class PlayerService {
             gte: new Date(startDate),
             lte: new Date(endDate),
           },
-          clientId
+          clientId,
         },
         include: {
-          userDetails: true
+          userDetails: true,
         },
-        take: limit
+        take: limit,
       });
-      
+
       if (data.length > 0) {
         const players = [];
 
         for (const player of data) {
           // console.log(125, player);
-          const walletRes = await this.walletService
-            .fetchPlayerDeposit({
-              startDate,
-              endDate,
-              userId: player.id
-            });
+          const walletRes = await this.walletService.fetchPlayerDeposit({
+            startDate,
+            endDate,
+            userId: player.id,
+          });
 
           if (!walletRes.success) {
             // console.log('building players')
@@ -285,16 +301,16 @@ export class PlayerService {
               openBets: 0,
               role: role.name,
               lastLogin: player.lastLogin,
-            })
-          }     
+            });
+          }
         }
 
-        return paginateResponse([players, players.length], page, limit)
+        return paginateResponse([players, players.length], page, limit);
       } else {
         return paginateResponse([[], 0], page, limit);
       }
     } catch (error) {
-      console.log(error.message)
+      console.log(error.message);
       return paginateResponse([[], 0], 1, limit, 'Something went wrong');
     }
   }
@@ -518,7 +534,7 @@ export class PlayerService {
     const role = await this.prisma.role.findFirst({
       where: { name: 'Player' },
     });
-    
+
     total = await this.prisma.user.count({
       where: { roleId: role.id, clientId },
     });
@@ -717,16 +733,16 @@ export class PlayerService {
       },
       where: {
         username: {
-          contains: key
-        }
-      }
+          contains: key,
+        },
+      },
     });
 
     const data = [];
     for (const user of users) {
-      data.push({id: user.id, username:  user.username})
+      data.push({ id: user.id, username: user.username });
     }
 
-    return {data};
+    return { data };
   }
 }
