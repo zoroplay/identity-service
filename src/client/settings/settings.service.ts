@@ -1,7 +1,7 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import * as dayjs from 'dayjs';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { WithdrawalSettingsResponse, CommonResponse, PlaceBetRequest, SettingsRequest, GetWithdrawalSettingsRequest } from 'src/proto/identity.pb';
+import { WithdrawalSettingsResponse, PlaceBetRequest, SettingsRequest, GetWithdrawalSettingsRequest, CommonResponseObj, CommonResponseArray } from 'src/proto/identity.pb';
 import { WalletService } from 'src/wallet/wallet.service';
 var customParseFormat = require('dayjs/plugin/customParseFormat')
 dayjs.extend(customParseFormat)
@@ -13,7 +13,7 @@ export class SettingsService {
         private readonly walletService: WalletService
     ) {}
 
-    async saveSettings(params: SettingsRequest): Promise<CommonResponse> {
+    async saveSettings(params: SettingsRequest): Promise<CommonResponseObj> {
         try {
             const data = JSON.parse(params.inputs);
             const clientId = params.clientId;
@@ -51,7 +51,7 @@ export class SettingsService {
         }
     }
 
-    async saveRiskSettings(params: SettingsRequest): Promise<CommonResponse> {
+    async saveRiskSettings(params: SettingsRequest): Promise<CommonResponseObj> {
         try {
             // console.log(params)
             const data = JSON.parse(params.inputs);
@@ -96,7 +96,7 @@ export class SettingsService {
         }
     }
 
-    async saveUserRiskSettings(param): Promise<CommonResponse> {
+    async saveUserRiskSettings(param): Promise<CommonResponseObj> {
         try {
             // console.log(param);
             const settings = JSON.parse(param.inputs);
@@ -151,7 +151,7 @@ export class SettingsService {
         }
     }
 
-    async getSettings({clientId, category}): Promise<CommonResponse> {
+    async getSettings({clientId, category}): Promise<CommonResponseArray> {
         const settings = await this.prisma.setting.findMany({
             where: {
                 clientId,
@@ -159,10 +159,10 @@ export class SettingsService {
             }
         })
 
-        return {success: true, status: HttpStatus.OK, message: 'successful', data: JSON.stringify(settings)}
+        return {success: true, status: HttpStatus.OK, message: 'successful', data: settings}
     }
 
-    async validateBet(data: PlaceBetRequest): Promise<CommonResponse> {
+    async validateBet(data: PlaceBetRequest): Promise<CommonResponseObj> {
         // console.log(data);
         try {
             const {userId, clientId, stake, selections, totalOdds, isBooking } = data;
@@ -246,7 +246,7 @@ export class SettingsService {
             const params = {max_winning, currency: currency.value};
 
 
-            return {success: true, status: HttpStatus.OK, message: 'verified', data: JSON.stringify(params)};
+            return {success: true, status: HttpStatus.OK, message: 'verified', data: params};
 
         } catch (e) {
             console.log(e.message);
@@ -329,6 +329,20 @@ export class SettingsService {
             }
         });
 
+        let allowWitdComm = await this.prisma.setting.findFirst({
+            where: {
+                clientId,
+                option: `allow_withdrawal_commission`
+            }
+        });
+
+        let withDrawalComm = await this.prisma.setting.findFirst({
+            where: {
+                clientId,
+                option: `withdrawal_commission_percent`
+            }
+        });
+
 
         if (userId) {
             const userSettings = await this.prisma.userBettingParameter.findFirst({where: {
@@ -346,7 +360,9 @@ export class SettingsService {
             autoDisbursementMax: parseFloat(autoDisburseMax.value),
             autoDisbursementCount: parseInt(autoDisburseCount.value),
             maximumWithdrawal: parseFloat(maxWithdrawal.value),
-            minimumWithdrawal: parseFloat(minWithdrawal.value)
+            minimumWithdrawal: parseFloat(minWithdrawal.value),
+            allowWithdrawalComm: parseInt(allowWitdComm.value),
+            withdrawalComm: parseFloat(withDrawalComm.value)
         }
         
     }
@@ -373,7 +389,7 @@ export class SettingsService {
         }
     }
 
-    async getUserBettingParameters (payload): Promise<CommonResponse> {
+    async getUserBettingParameters (payload): Promise<CommonResponseObj> {
         try {
             const {userId, clientId} = payload;
 
@@ -395,7 +411,7 @@ export class SettingsService {
 
             const data = {settings, isNew}
 
-            return {success: true, status: HttpStatus.OK, message: 'successful', data: JSON.stringify(data)}
+            return {success: true, status: HttpStatus.OK, message: 'successful', data: data}
 
         } catch (e) {
             return {success: false, message: 'error fetching parameters: ' + e.message};
