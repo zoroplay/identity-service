@@ -3,7 +3,7 @@ import { LoginDto, UserDetailsDto } from './dto/create-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
 import { handleError, handleResponse } from 'src/common/helpers';
-import { AddToSegmentRequest, CommonResponse, CreateUserRequest, DeleteItemRequest, FetchPlayerSegmentRequest, GrantBonusRequest, SaveSegmentRequest, UploadPlayersToSegment } from 'src/proto/identity.pb';
+import { AddToSegmentRequest, CommonResponseArray, CreateUserRequest, DeleteItemRequest, FetchPlayerSegmentRequest, GrantBonusRequest, SaveSegmentRequest, UploadPlayersToSegment } from 'src/proto/identity.pb';
 import { PlayerSegment } from '@prisma/client';
 import { BonusService } from 'src/bonus/bonus.service';
 
@@ -283,7 +283,7 @@ export class UserService {
         status: HttpStatus.OK, 
         success: true, 
         message: 'Data saved', 
-        data: JSON.stringify(data) 
+        data: data 
       }
     } catch (err) {
       return {
@@ -295,7 +295,7 @@ export class UserService {
     }
   }
 
-  async fetchPlayerSegment (data: FetchPlayerSegmentRequest): Promise<CommonResponse> {
+  async fetchPlayerSegment (data: FetchPlayerSegmentRequest): Promise<CommonResponseArray> {
     try {
       const segments = await this.prisma.playerSegment.findMany({
         where: {clientId: data.clientId}
@@ -304,14 +304,15 @@ export class UserService {
         status: HttpStatus.OK, 
         success: true, 
         message: 'Data fetched', 
-        data: JSON.stringify(segments) 
+        data: segments
       }
     } catch (err) {
       return {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
         success: false, 
         message: 'An error occured', 
-        errors: err.message
+        errors: err.message,
+        data: []
       }
     }
   }
@@ -337,7 +338,7 @@ export class UserService {
           status: HttpStatus.OK, 
           success: true, 
           message: 'User added to segment', 
-          data: JSON.stringify(player) 
+          data: player
         }
       }
     } catch (err) {
@@ -385,7 +386,7 @@ export class UserService {
         status: HttpStatus.OK, 
         success: true, 
         message: 'User added to segment', 
-        data: JSON.stringify(data) 
+        data: data
       }
 
     } catch (e) {
@@ -453,7 +454,7 @@ export class UserService {
         status: HttpStatus.OK, 
         success: true, 
         message: 'Users fetched', 
-        data: JSON.stringify(players) 
+        data: players
       }
 
     } catch(err) {
@@ -490,7 +491,7 @@ export class UserService {
         status: HttpStatus.OK, 
         success: true, 
         message: 'Bonus granted', 
-        data: JSON.stringify([]) 
+        data: [] 
       }
 
     } catch(err) {

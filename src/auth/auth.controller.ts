@@ -78,11 +78,12 @@ export class AuthController {
     return this.authService.validateClient(payload);
   }
 
-  @GrpcMethod(IDENTITY_SERVICE_NAME, 'evoGameLogin')
-  evoGameLogin(data: XpressLoginRequest) {
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'ValidateAuthCode')
+  validateAuthCode(data: XpressLoginRequest) {
     // console.log('xpress login', data);
-    return this.authService.evoXpressLogin(data);
+    return this.authService.validateAuthCode(data);
   }
+
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'xpressGameLogin')
   xpressGameLogin(data: XpressLoginRequest) {
     // console.log('xpress login', data);

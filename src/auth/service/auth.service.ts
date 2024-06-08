@@ -8,7 +8,7 @@ import {
 } from '../auth.dto';
 import {
   ChangePasswordRequest,
-  CommonResponse,
+  CommonResponseObj,
   GetUserByUsernameRequest,
   GetUserByUsernameResponse,
   LoginResponse,
@@ -49,7 +49,7 @@ export class AuthService {
     promoCode,
     trackingToken,
   }: RegisterRequestDto): Promise<RegisterResponse> {
-    console.log(clientId, username);
+    // console.log(clientId, username);
     try {
       let user: any = await this.prisma.user.findFirst({
         where: { username, clientId },
@@ -601,57 +601,60 @@ export class AuthService {
       };
     }
   }
-  public async evoXpressLogin({
+
+  public async validateAuthCode({
     token,
     clientId,
-  }: XpressLoginRequest): Promise<XpressLoginResponse> {
-    try {
-      console.log('xpressLogin', token, clientId);
-      const user = await this.prisma.user.findFirst({
-        where: {
-          virtualToken: token,
-          clientId,
-        },
-        include: { role: true, client: true },
-      });
-
-      if (user) {
-        let group;
-        if (user.role.name === 'Player') {
-          group = `${user.client.groupName}_Online`;
-        } else {
-        }
-        //get user wallet
-        const balanceRes = await this.walletService.getWallet({
-          userId: user.id,
-          clientId,
+  }: XpressLoginRequest): Promise<CommonResponseObj> {
+      console.log('validate auth code', token, clientId);
+      try {
+        //
+        const user = await this.prisma.user.findFirst({
+          where: {
+            auth_code: token,
+            clientId,
+          },
+          include: {client: true}
         });
 
-        const data = {
-          playerId: `${group}.${user.id}`,
-          playerNickname: user.username,
-          sessionId: user.virtualToken,
-          balance: balanceRes.data.availableBalance,
-          group,
-          currency: user.client.currency,
-        };
-        return { status: true, code: HttpStatus.OK, message: 'success', data };
-      } else {
+        if (user) {
+            //get user wallet
+            const balanceRes = await this.walletService.getWallet({
+                userId: user.id,
+                clientId,
+            });
+
+            const data = {
+                playerId: user.id,
+                playerNickname: user.username,
+                sessionId: user.virtualToken,
+                balance: balanceRes.data.availableBalance,
+                group: null,
+                currency: user.client.currency,
+            };
+            
+            return {
+                success: true,
+                status: HttpStatus.OK,
+                message: 'Success',
+                data: data,
+            };
+        } else {
+          return {
+            success: false,
+            status: HttpStatus.NOT_FOUND,
+            message: 'Session Expired',
+            data: null,
+          };
+        }
+      } catch (e) {
         return {
-          status: false,
-          code: HttpStatus.NOT_FOUND,
-          message: 'Invalid token',
+          success: false,
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: 'Something went wrong',
           data: null,
         };
       }
-    } catch (e) {
-      return {
-        status: false,
-        code: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: 'Something went wrong',
-        data: null,
-      };
-    }
   }
 
   public async xpressLogout({
@@ -705,7 +708,7 @@ export class AuthService {
   public async validateXpressSession({
     sessionId,
     clientId,
-  }: SessionRequest): Promise<CommonResponse> {
+  }: SessionRequest): Promise<CommonResponseObj> {
     try {
       console.log('session area', sessionId);
       const user = await this.prisma.user.findFirst({
@@ -719,7 +722,7 @@ export class AuthService {
           success: true,
           status: HttpStatus.OK,
           message: 'Success',
-          data: JSON.stringify(user),
+          data: user,
         };
       } else {
         return {

@@ -96,7 +96,7 @@ export class RetailService {
           //   );
           // }
     
-          return handleResponse(JSON.stringify(user),'Shop User Created successfully',);
+          return handleResponse(user,'Shop User Created successfully',);
         } catch (error) {
           return handleError(error.message, error);
         }
@@ -136,7 +136,7 @@ export class RetailService {
               }
             }
              
-            return {success: true, status: HttpStatus.OK, message: 'Users retreived successfully', data: JSON.stringify(data)}
+            return {success: true, status: HttpStatus.OK, message: 'Users retreived successfully', data: data}
         } catch(e) {
             return {success: false, status: HttpStatus.INTERNAL_SERVER_ERROR, message: `Error fetching users: ${e.message}`};
         }
@@ -238,7 +238,7 @@ export class RetailService {
         
         const response = {data: agents, meta};
 
-        return {success: true, status: HttpStatus.OK, message: 'Users retreived successfully', data: JSON.stringify(response)};
+        return {success: true, status: HttpStatus.OK, message: 'Users retreived successfully', data: response};
 
       } catch (e) {
         return {success: false, status: HttpStatus.INTERNAL_SERVER_ERROR, message: `Error fetching agents: ${e.message}`};
