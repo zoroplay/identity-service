@@ -3,8 +3,23 @@ import { GrpcMethod, GrpcStreamMethod } from "@nestjs/microservices";
 import { wrappers } from "protobufjs";
 import { Observable } from "rxjs";
 import { Struct } from "./google/protobuf/struct.pb";
+import {
+  AssignUserCommissionProfile,
+  CommissionProfile,
+  CommissionProfileResponse,
+  CommissionProfilesResponse,
+  GetAgentUsersRequest,
+} from "./retail.pb";
 
 export const protobufPackage = "identity";
+
+export interface Empty {
+}
+
+export interface GetRiskSettingRequest {
+  clientId: number;
+  userId: number;
+}
 
 export interface GetAgentUserRequest {
   branchId: number;
@@ -13,15 +28,6 @@ export interface GetAgentUserRequest {
 
 export interface FindUserRequest {
   userId: number;
-}
-
-export interface GetAgentUsersRequest {
-  clientId: number;
-  userId?: number | undefined;
-  username?: string | undefined;
-  roleId?: number | undefined;
-  state?: number | undefined;
-  page?: number | undefined;
 }
 
 export interface GetUserIdNameRequest {
@@ -633,7 +639,7 @@ export interface PaginationResponse {
   nextPage: number;
   prevPage: number;
   lastPage: number;
-  data: string;
+  data: { [key: string]: any }[];
 }
 
 export interface Country {
@@ -728,8 +734,6 @@ export interface IdentityServiceClient {
 
   findUser(request: FindUserRequest): Observable<CommonResponseArray>;
 
-  getAgentUser(request: GetAgentUserRequest): Observable<CommonResponseArray>;
-
   saveRole(request: RoleRequest): Observable<SaveRoleResponse>;
 
   getRoles(request: EmptyRequest): Observable<GetRolesResponse>;
@@ -814,11 +818,23 @@ export interface IdentityServiceClient {
 
   getUserIdandName(request: GetUserIdNameRequest): Observable<GetUserIdNameResponse>;
 
+  getUserRiskSettings(request: GetRiskSettingRequest): Observable<CommonResponseObj>;
+
+  /** retail services */
+
   listAgentUsers(request: GetAgentUsersRequest): Observable<CommonResponseArray>;
 
   listAgents(request: GetAgentUsersRequest): Observable<CommonResponseObj>;
 
-  getUserRiskSettings(request: GetAgentUsersRequest): Observable<CommonResponseObj>;
+  getAgentUser(request: GetAgentUserRequest): Observable<CommonResponseArray>;
+
+  getCommissionProfiles(request: Empty): Observable<CommissionProfilesResponse>;
+
+  createCommissionProfile(request: CommissionProfile): Observable<CommissionProfileResponse>;
+
+  updateCommissionProfile(request: CommissionProfile): Observable<CommissionProfileResponse>;
+
+  assignUserCommissionProfile(request: AssignUserCommissionProfile): Observable<CommissionProfileResponse>;
 }
 
 export interface IdentityServiceController {
@@ -856,10 +872,6 @@ export interface IdentityServiceController {
 
   findUser(
     request: FindUserRequest,
-  ): Promise<CommonResponseArray> | Observable<CommonResponseArray> | CommonResponseArray;
-
-  getAgentUser(
-    request: GetAgentUserRequest,
   ): Promise<CommonResponseArray> | Observable<CommonResponseArray> | CommonResponseArray;
 
   saveRole(request: RoleRequest): Promise<SaveRoleResponse> | Observable<SaveRoleResponse> | SaveRoleResponse;
@@ -1014,6 +1026,12 @@ export interface IdentityServiceController {
     request: GetUserIdNameRequest,
   ): Promise<GetUserIdNameResponse> | Observable<GetUserIdNameResponse> | GetUserIdNameResponse;
 
+  getUserRiskSettings(
+    request: GetRiskSettingRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
+  /** retail services */
+
   listAgentUsers(
     request: GetAgentUsersRequest,
   ): Promise<CommonResponseArray> | Observable<CommonResponseArray> | CommonResponseArray;
@@ -1022,9 +1040,25 @@ export interface IdentityServiceController {
     request: GetAgentUsersRequest,
   ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
 
-  getUserRiskSettings(
-    request: GetAgentUsersRequest,
-  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+  getAgentUser(
+    request: GetAgentUserRequest,
+  ): Promise<CommonResponseArray> | Observable<CommonResponseArray> | CommonResponseArray;
+
+  getCommissionProfiles(
+    request: Empty,
+  ): Promise<CommissionProfilesResponse> | Observable<CommissionProfilesResponse> | CommissionProfilesResponse;
+
+  createCommissionProfile(
+    request: CommissionProfile,
+  ): Promise<CommissionProfileResponse> | Observable<CommissionProfileResponse> | CommissionProfileResponse;
+
+  updateCommissionProfile(
+    request: CommissionProfile,
+  ): Promise<CommissionProfileResponse> | Observable<CommissionProfileResponse> | CommissionProfileResponse;
+
+  assignUserCommissionProfile(
+    request: AssignUserCommissionProfile,
+  ): Promise<CommissionProfileResponse> | Observable<CommissionProfileResponse> | CommissionProfileResponse;
 }
 
 export function IdentityServiceControllerMethods() {
@@ -1041,7 +1075,6 @@ export function IdentityServiceControllerMethods() {
       "createClient",
       "createPermission",
       "findUser",
-      "getAgentUser",
       "saveRole",
       "getRoles",
       "getAgencyRoles",
@@ -1084,9 +1117,14 @@ export function IdentityServiceControllerMethods() {
       "validateBet",
       "getWithdrawalSettings",
       "getUserIdandName",
+      "getUserRiskSettings",
       "listAgentUsers",
       "listAgents",
-      "getUserRiskSettings",
+      "getAgentUser",
+      "getCommissionProfiles",
+      "createCommissionProfile",
+      "updateCommissionProfile",
+      "assignUserCommissionProfile",
     ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
