@@ -68,9 +68,10 @@ model UserDetails {
 model AgentUser {
   id            Int         @id @default(autoincrement())
   agent_id      Int
-  agent         User        @relation(fields: [agent_id], references: [id], name: "agent", onDelete: NoAction, onUpdate: NoAction)
+  agent         User        @relation(fields: [agent_id], references: [id], name: "agent", onDelete: Cascade, onUpdate: NoAction)
+  
   user_id       Int         @unique
-  agentUser     User        @relation(fields: [user_id], references: [id], name: "agentUser", onDelete: NoAction, onUpdate: NoAction)
+  agentUser     User        @relation(fields: [user_id], references: [id], name: "agentUser", onDelete: Cascade, onUpdate: NoAction)
 
   createdAt     DateTime    @default(now()) @map("created_at")
   updatedAt     DateTime    @updatedAt @map("updated_at")
