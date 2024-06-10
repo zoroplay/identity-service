@@ -3,7 +3,7 @@ import { JwtService } from 'src/auth/service/jwt.service';
 import { handleError, handleResponse, paginateResponse } from 'src/common/helpers';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserRequest, MetaData } from 'src/proto/identity.pb';
-import { GetAgentUsersRequest } from 'src/proto/retail/retail.pb';
+import { GetAgentUsersRequest } from 'src/proto/retail.pb';
 import { WalletService } from 'src/wallet/wallet.service';
 
 @Injectable()
