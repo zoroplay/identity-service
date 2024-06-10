@@ -6,7 +6,9 @@ import { JwtService } from 'src/auth/service/jwt.service';
 import { WalletModule } from 'src/wallet/wallet.module';
 
 @Module({
-  imports: [WalletModule],
+  imports: [
+    WalletModule
+  ],
   controllers: [RetailController],
   providers: [RetailService, PrismaService, JwtService]
 })

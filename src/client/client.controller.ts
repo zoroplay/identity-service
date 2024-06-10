@@ -3,7 +3,7 @@ import { GrpcMethod, Payload } from '@nestjs/microservices';
 import { ClientService } from './client.service';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
-import { GetAgentUsersRequest, GetClientRequest, GetSettingsRequest, GetUserIdNameRequest, GetWithdrawalSettingsRequest, IDENTITY_SERVICE_NAME, SettingsRequest, UserRiskSettingsRequest } from 'src/proto/identity.pb';
+import { GetAgentUserRequest, GetClientRequest, GetSettingsRequest, GetUserIdNameRequest, GetWithdrawalSettingsRequest, IDENTITY_SERVICE_NAME, SettingsRequest, UserRiskSettingsRequest } from 'src/proto/identity.pb';
 import { SettingsService } from './settings/settings.service';
 
 @Controller()
@@ -59,7 +59,7 @@ export class ClientController {
   }
 
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'GetUserRiskSettings')
-  getUserRiskSettings(payload: GetAgentUsersRequest) {
+  getUserRiskSettings(payload: GetAgentUserRequest) {
     return this.settingService.getUserBettingParameters(payload);
   }
 

@@ -1,7 +1,8 @@
 import { Controller } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
-import { CreateUserRequest, GetAgentUsersRequest, IDENTITY_SERVICE_NAME } from 'src/proto/identity.pb';
+import { CreateUserRequest, IDENTITY_SERVICE_NAME } from 'src/proto/identity.pb';
 import { RetailService } from './retail.service';
+import { GetAgentUsersRequest } from 'src/proto/retail.pb';
 
 @Controller('retail')
 export class RetailController {
