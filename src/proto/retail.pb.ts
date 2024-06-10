@@ -1,8 +1,6 @@
 /* eslint-disable */
 import { GrpcMethod, GrpcStreamMethod } from "@nestjs/microservices";
-import { wrappers } from "protobufjs";
 import { Observable } from "rxjs";
-import { Struct } from "./google/protobuf/struct.pb";
 
 export const protobufPackage = "retail";
 
@@ -45,22 +43,6 @@ export interface GetAgentUsersRequest {
   roleId?: number | undefined;
   state?: number | undefined;
   page?: number | undefined;
-}
-
-export interface CommonResponseArray {
-  status?: number | undefined;
-  success?: boolean | undefined;
-  message: string;
-  data: { [key: string]: any }[];
-  errors?: string | undefined;
-}
-
-export interface CommonResponseObj {
-  status?: number | undefined;
-  success?: boolean | undefined;
-  message: string;
-  data?: { [key: string]: any } | undefined;
-  errors?: string | undefined;
 }
 
 export interface Empty {
@@ -309,8 +291,6 @@ export interface CommissionTurnover {
 }
 
 export const RETAIL_PACKAGE_NAME = "retail";
-
-wrappers[".google.protobuf.Struct"] = { fromObject: Struct.wrap, toObject: Struct.unwrap } as any;
 
 export interface RetailServiceClient {
   onBetPlaced(request: BetData): Observable<Response>;
