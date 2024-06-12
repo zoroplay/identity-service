@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { Observable, firstValueFrom } from 'rxjs';
@@ -51,5 +52,15 @@ export class WalletService {
 
   public async getNeworkBalance(param) {
     return await firstValueFrom(this.svc.getNetworkBalance(param));
+  }
+  public async findAllBranchApprovedCashinWDate(param) {
+    return await firstValueFrom(
+      this.svc.findAllBranchApprovedCashinWDate(param),
+    );
+  }
+  public async findAllBranchPendingCashinWDate(param) {
+    return await firstValueFrom(
+      this.svc.findAllBranchPendingCashinWDate(param),
+    );
   }
 }

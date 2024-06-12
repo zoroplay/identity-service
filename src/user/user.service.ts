@@ -1,9 +1,21 @@
+/* eslint-disable prettier/prettier */
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { LoginDto, UserDetailsDto } from './dto/create-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
 import { handleError, handleResponse } from 'src/common/helpers';
-import { AddToSegmentRequest, CommonResponse, CreateUserRequest, DeleteItemRequest, FetchPlayerSegmentRequest, GrantBonusRequest, SaveSegmentRequest, UploadPlayersToSegment } from 'src/proto/identity.pb';
+import {
+  AddToSegmentRequest,
+  CommonResponseObj,
+  CreateUserRequest,
+  DeleteItemRequest,
+  FetchPlayerSegmentRequest,
+  FindUserRequest,
+  GetAgentUserRequest,
+  GrantBonusRequest,
+  SaveSegmentRequest,
+  UploadPlayersToSegment,
+} from 'src/proto/identity.pb';
 import { PlayerSegment } from '@prisma/client';
 import { BonusService } from 'src/bonus/bonus.service';
 
@@ -26,7 +38,7 @@ export class UserService {
         this.prisma.user.findFirst({
           where: {
             username: data.username,
-            clientId: data.clientId
+            clientId: data.clientId,
           },
         }),
       ]);
@@ -34,7 +46,7 @@ export class UserService {
 
       if (user)
         return handleError(`The Username specified already exists`, null);
-      
+
       const salt = 10;
       const hashedPassword = await bcrypt.hash(data.password, salt);
 
@@ -42,9 +54,9 @@ export class UserService {
         data: {
           username: data.username,
           password: hashedPassword,
-          // code: Math.floor(100000 + Math.random() * 900000).toString().substring(0, 6), // 6 digit random identifier for 
+          // code: Math.floor(100000 + Math.random() * 900000).toString().substring(0, 6), // 6 digit random identifier for
           roleId: data.roleId,
-          clientId: data.clientId
+          clientId: data.clientId,
         },
       });
 
@@ -65,9 +77,9 @@ export class UserService {
             address: data.address,
             user: {
               connect: {
-                id: user.id
-              }
-            }
+                id: user.id,
+              },
+            },
           },
         });
 
@@ -90,22 +102,17 @@ export class UserService {
     //         name: 'Player',
     //       },
     //     }),
-
     //     this.prisma.user.findUnique({
     //       where: {
     //         username: createUserDto.username,
     //       },
     //     }),
     //   ]);
-
     //   if (!role) return handleError('The role specified does not exist', null);
-      
     //   if (user)
     //     return handleError(`The User specified already exists, login`, null);
-     
     //   const salt = 10;
     //   const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
-      
     //   user = await this.prisma.user.create({
     //     data: {
     //       password: hashedPassword,
@@ -122,7 +129,6 @@ export class UserService {
     //       }
     //     },
     //   });
-
     //   // create user settings
     //   await this.prisma.userSetting.create({
     //     data: {
@@ -141,10 +147,8 @@ export class UserService {
     //   if (createUserDto.promoCode) {
     //     this.trackierService.createCustòmer(createUserDto, user);
     //   }
-      
     //   delete user.password;
     //   const token = this.jwtService.sign({id: user.id, username: user.username});
-
     //   return handleResponse({ ...user, token }, 'User created successfully');
     // } catch (error) {
     //   return handleError(error.message, error);
@@ -189,9 +193,9 @@ export class UserService {
             ...updateUserDto,
             user: {
               connect: {
-                id: user.id
-              }
-            }
+                id: user.id,
+              },
+            },
           },
         });
 
@@ -234,7 +238,7 @@ export class UserService {
     }
   }
 
-  async getAdminUsers({clientId}) {
+  async getAdminUsers({ clientId }) {
     try {
       // find admin roles
 
@@ -242,8 +246,8 @@ export class UserService {
         where: {
           clientId,
           // roleId: {in: [roles]}
-        }
-      })
+        },
+      });
     } catch (e) {
       return handleError('Something went wrong. ' + e.message, null);
     }
@@ -255,102 +259,110 @@ export class UserService {
 
   async savePlayerSegment(payload: SaveSegmentRequest) {
     try {
-      const {clientId, title, minOdd, minSelection, message, id} = payload;
+      const { clientId, title, minOdd, minSelection, message, id } = payload;
       let data: PlayerSegment;
       if (id) {
         data = await this.prisma.playerSegment.update({
-          where: {id},
+          where: { id },
           data: {
-            title, 
+            title,
             minOdd,
             minSelection,
-            message
-          }
-        })
+            message,
+          },
+        });
       } else {
         data = await this.prisma.playerSegment.create({
           data: {
             clientId,
-            title, 
+            title,
             minOdd,
             minSelection,
-            message
-          }
-        })
+            message,
+          },
+        });
       }
-      
+
       return {
-        status: HttpStatus.OK, 
-        success: true, 
-        message: 'Data saved', 
-        data: JSON.stringify(data) 
-      }
+        status: HttpStatus.OK,
+        success: true,
+        message: 'Data saved',
+        data: JSON.stringify(data),
+      };
     } catch (err) {
       return {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
-        success: false, 
-        message: 'An error occured', 
-        errors: err.message
-      }
+        success: false,
+        message: 'An error occured',
+        errors: err.message,
+      };
     }
   }
 
-  async fetchPlayerSegment (data: FetchPlayerSegmentRequest): Promise<CommonResponse> {
+  async fetchPlayerSegment(data: FetchPlayerSegmentRequest): Promise<any> {
     try {
       const segments = await this.prisma.playerSegment.findMany({
-        where: {clientId: data.clientId}
-      })
+        where: { clientId: data.clientId },
+      });
       return {
-        status: HttpStatus.OK, 
-        success: true, 
-        message: 'Data fetched', 
-        data: JSON.stringify(segments) 
-      }
+        status: HttpStatus.OK,
+        success: true,
+        message: 'Data fetched',
+        data: JSON.stringify(segments),
+      };
     } catch (err) {
       return {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
-        success: false, 
-        message: 'An error occured', 
-        errors: err.message
-      }
+        success: false,
+        message: 'An error occured',
+        errors: err.message,
+      };
     }
   }
 
-  async addToSegment (payload: AddToSegmentRequest) {
+  async addToSegment(payload: AddToSegmentRequest) {
     try {
-      const {clientId, playerId, segmentId} = payload;
+      const { clientId, playerId, segmentId } = payload;
       //check if user already added
       const isExist = await this.prisma.playerUserSegment.findFirst({
-        where: {userId: playerId, segmentId}
-      })
+        where: { userId: playerId, segmentId },
+      });
       if (isExist) {
-        return {status: HttpStatus.BAD_REQUEST, success: false, message: 'User already exist in this segment'}
+        return {
+          status: HttpStatus.BAD_REQUEST,
+          success: false,
+          message: 'User already exist in this segment',
+        };
       } else {
         const player = await this.prisma.playerUserSegment.create({
           data: {
             userId: playerId,
             segmentId,
-          }
+          },
         });
 
         return {
-          status: HttpStatus.OK, 
-          success: true, 
-          message: 'User added to segment', 
-          data: JSON.stringify(player) 
-        }
+          status: HttpStatus.OK,
+          success: true,
+          message: 'User added to segment',
+          data: JSON.stringify(player),
+        };
       }
     } catch (err) {
       return {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
-        success: false, 
-        message: 'An error occured', 
-        errors: err.message
-      }
+        success: false,
+        message: 'An error occured',
+        errors: err.message,
+      };
     }
   }
 
-  async uploadPlayersToSegment({players, segmentId, clientId}: UploadPlayersToSegment) {
+  async uploadPlayersToSegment({
+    players,
+    segmentId,
+    clientId,
+  }: UploadPlayersToSegment) {
     try {
       const data = [];
       for (const username of players) {
@@ -358,150 +370,203 @@ export class UserService {
         const user = await this.prisma.user.findFirst({
           where: {
             username,
-            clientId
-          }
-        })
+            clientId,
+          },
+        });
         if (user) {
           //check if user already added
           const isExist = await this.prisma.playerUserSegment.findFirst({
-            where: {userId: user.id, segmentId}
-          })
+            where: { userId: user.id, segmentId },
+          });
 
           if (!isExist) {
-            
             const player = await this.prisma.playerUserSegment.create({
               data: {
                 userId: user.id,
                 segmentId,
-              }
+              },
             });
 
-            data.push(player)
+            data.push(player);
           }
         }
       }
 
       return {
-        status: HttpStatus.OK, 
-        success: true, 
-        message: 'User added to segment', 
-        data: JSON.stringify(data) 
-      }
-
+        status: HttpStatus.OK,
+        success: true,
+        message: 'User added to segment',
+        data: JSON.stringify(data),
+      };
     } catch (e) {
       return {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
-        success: false, 
-        message: 'An error occured', 
-        errors: e.message
-      }
+        success: false,
+        message: 'An error occured',
+        errors: e.message,
+      };
     }
-  } 
+  }
 
-  async deletePlayerSegment (payload: DeleteItemRequest) {
+  async deletePlayerSegment(payload: DeleteItemRequest) {
     try {
-
       await this.prisma.playerSegment.delete({
-        where: {id: payload.id}
-      })
+        where: { id: payload.id },
+      });
 
       return {
-        status: HttpStatus.OK, 
-        success: true, 
-        message: 'Segment has been deleted', 
-      }
+        status: HttpStatus.OK,
+        success: true,
+        message: 'Segment has been deleted',
+      };
     } catch (err) {
       return {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
-        success: false, 
-        message: 'An error occured', 
-        errors: err.message
-      }
+        success: false,
+        message: 'An error occured',
+        errors: err.message,
+      };
     }
   }
 
-  async removePlayerFromSegment (payload: DeleteItemRequest) {
-    try { 
+  async removePlayerFromSegment(payload: DeleteItemRequest) {
+    try {
       await this.prisma.playerUserSegment.delete({
-        where: {id: payload.id}
-      })
-      
+        where: { id: payload.id },
+      });
+
       return {
-        status: HttpStatus.OK, 
-        success: true, 
-        message: 'Player has been removed from segment', 
-      }
+        status: HttpStatus.OK,
+        success: true,
+        message: 'Player has been removed from segment',
+      };
     } catch (err) {
       return {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
-        success: false, 
-        message: 'An error occured', 
-        errors: err.message
-      }
+        success: false,
+        message: 'An error occured',
+        errors: err.message,
+      };
     }
   }
-
 
   async getSegmentPlayers(segmentId) {
     try {
       const players = await this.prisma.playerUserSegment.findMany({
-        where: {segmentId},
-        include: {player: true}
+        where: { segmentId },
+        include: { player: true },
       });
 
       return {
-        status: HttpStatus.OK, 
-        success: true, 
-        message: 'Users fetched', 
-        data: JSON.stringify(players) 
-      }
-
-    } catch(err) {
+        status: HttpStatus.OK,
+        success: true,
+        message: 'Users fetched',
+        data: JSON.stringify(players),
+      };
+    } catch (err) {
       return {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
-        success: false, 
-        message: 'An error occured', 
-        errors: err.message
-      }
+        success: false,
+        message: 'An error occured',
+        errors: err.message,
+      };
     }
   }
 
-
   async grantBonus(payload: GrantBonusRequest) {
     try {
-      console.log(payload)
+      console.log(payload);
       const players = await this.prisma.playerUserSegment.findMany({
-        where: {segmentId: payload.segmentId},
-        include: {player: true}
+        where: { segmentId: payload.segmentId },
+        include: { player: true },
       });
 
       for (const player of players) {
-        
         await this.bonusService.awardBonus({
           userId: player.player.id.toString(),
           username: player.player.username,
           bonusId: payload.bonusId,
           clientId: payload.clientId,
           amount: payload.amount,
-        })
+        });
       }
 
       return {
-        status: HttpStatus.OK, 
-        success: true, 
-        message: 'Bonus granted', 
-        data: JSON.stringify([]) 
-      }
-
-    } catch(err) {
+        status: HttpStatus.OK,
+        success: true,
+        message: 'Bonus granted',
+        data: JSON.stringify([]),
+      };
+    } catch (err) {
       return {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
-        success: false, 
-        message: 'An error occured', 
-        errors: err.message
-      }
+        success: false,
+        message: 'An error occured',
+        errors: err.message,
+      };
     }
   }
 
-  
+  async getUser(payload: FindUserRequest) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: {
+          id: payload.userId,
+        },
+      });
+      console.log(user, 'usewr');
+      if (!user)
+        return {
+          status: HttpStatus.NOT_FOUND,
+          success: false,
+          message: `User ${payload.userId} does not exist`,
+          errors: null,
+        };
+      console.log(user, 'usewr');
+
+      return {
+        status: HttpStatus.OK,
+        success: true,
+        message: 'User fetched',
+        data: user,
+      };
+    } catch (error) {
+      return {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        success: false,
+        message: 'An error occured',
+        errors: error.message,
+      };
+    }
+  }
+  async getBranchDetails(payload: GetAgentUserRequest) {
+    try {
+      // const branch = await this.prisma.agentUser.findFirst({
+      //   where: {
+      //     agent_id: payload.branchId,
+      //     user_id: payload.cashierId,
+      //   },
+      // });
+      // if (!branch)
+      //   return {
+      //     status: HttpStatus.NOT_FOUND,
+      //     success: false,
+      //     message: `branch ${payload.branchId} does not exist`,
+      //     errors: null,
+      //   };
+      // return {
+      //   status: HttpStatus.OK,
+      //   success: true,
+      //   message: 'User fetched',
+      //   data: JSON.stringify(branch),
+      // };
+    } catch (error) {
+      return {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        success: false,
+        message: 'An error occured',
+        errors: error.message,
+      };
+    }
+  }
 }
