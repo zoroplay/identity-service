@@ -8,7 +8,7 @@ import {
 } from '../auth.dto';
 import {
   ChangePasswordRequest,
-  CommonResponse,
+  CommonResponseObj,
   GetUserByUsernameRequest,
   GetUserByUsernameResponse,
   LoginResponse,
@@ -193,6 +193,57 @@ export class AuthService {
           success: false,
           data: null,
         };
+      }
+      const role = await this.prisma.role.findUnique({
+        where: {
+          name: 'Shop',
+        },
+      });
+
+      if (role.id === user.roleId) {
+        const now = new Date();
+        const startOfDay = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+        );
+        const branchTransactions =
+          await this.prisma.dailyTransactions.findFirst({
+            where: {
+              userId: user.id,
+              createdAt: {
+                gte: startOfDay,
+              },
+            },
+          });
+
+        if (!branchTransactions) {
+          const twentyFourHoursAgo = new Date();
+          const startDate = this.getStartOfDay(twentyFourHoursAgo);
+          const endDate = this.getEndOfDay(twentyFourHoursAgo);
+          startDate.setHours(startDate.getHours() - 24);
+          endDate.setHours(endDate.getHours() - 24);
+          const lastbranchTransaction =
+            await this.prisma.dailyTransactions.findFirst({
+              where: {
+                userId: user.id,
+                createdAt: {
+                  gte: startDate,
+                  lte: endDate,
+                },
+              },
+            });
+
+          await this.prisma.dailyTransactions.create({
+            data: {
+              userId: user.id,
+              openingbalance:
+                lastbranchTransaction && lastbranchTransaction.closingbalance
+                  ? lastbranchTransaction.closingbalance
+                  : 0,
+            },
+          });
+        }
       }
 
       const isPasswordValid: boolean = this.jwtService.isPasswordValid(
@@ -606,7 +657,6 @@ export class AuthService {
     clientId,
   }: XpressLoginRequest): Promise<XpressLoginResponse> {
     try {
-      console.log('xpressLogin', token, clientId);
       const user = await this.prisma.user.findFirst({
         where: {
           virtualToken: token,
@@ -705,7 +755,7 @@ export class AuthService {
   public async validateXpressSession({
     sessionId,
     clientId,
-  }: SessionRequest): Promise<CommonResponse> {
+  }: SessionRequest): Promise<any> {
     try {
       console.log('session area', sessionId);
       const user = await this.prisma.user.findFirst({
@@ -737,5 +787,15 @@ export class AuthService {
         data: null,
       };
     }
+  }
+  private getStartOfDay(date: Date) {
+    const start = new Date(date);
+    start.setHours(0, 0, 0, 0); // Set hours, minutes, seconds, and milliseconds to zero
+    return start;
+  }
+  private getEndOfDay(date: Date) {
+    const end = new Date(date);
+    end.setHours(23, 59, 59, 999); // Set hours, minutes, seconds, and milliseconds to their maximum values
+    return end;
   }
 }

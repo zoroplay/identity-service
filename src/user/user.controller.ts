@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Controller } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
 import { UserService } from './user.service';
@@ -8,6 +9,8 @@ import {
   DeleteItemRequest,
   FetchPlayerFilterRequest,
   FetchPlayerSegmentRequest,
+  FindUserRequest,
+  GetAgentUserRequest,
   GetPlayerDataRequest,
   GetSegmentPlayerRequest,
   GetUserIdNameRequest,
@@ -51,6 +54,16 @@ export class UserController {
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'findAllUser')
   findAll() {
     // return this.userService.findAll();
+  }
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'GetAgentUser')
+  GetAgentUser(param: GetAgentUserRequest) {
+    return this.userService.getBranchDetails(param);
+  }
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'FindUser')
+  FindUser(param: FindUserRequest) {
+    return this.userService.getUser(param);
   }
 
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'SearchPlayers')
@@ -127,5 +140,4 @@ export class UserController {
   grantBonusToSegment(payload: GrantBonusRequest) {
     return this.userService.grantBonus(payload);
   }
-
 }
