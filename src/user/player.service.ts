@@ -289,7 +289,7 @@ export class PlayerService {
               firstName: player.userDetails?.firstName,
               lastName: player.userDetails?.lastName,
               phoneNumber: player.userDetails?.phone,
-              registered: player.createdAt,
+              registered: dayjs(player.createdAt).format('DD/MM/YYYY'),
               country: player.userDetails?.country,
               currency: player.userDetails?.currency,
               status: player.status,
