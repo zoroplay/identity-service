@@ -108,13 +108,12 @@ export class RetailService {
             const {userId, clientId} = payload;
             // get agent users query
             const agentUsers: any =  await this.prisma
-            .$queryRaw`SELECT u.clientId, u.id, u.username, u.code, u.role_id, CONCAT(ud.firstName, " ", ud.lastName, false) as name, ud.phone as phone_number, ud.email, r.name as rolename FROM agent_users a
+            .$queryRaw`SELECT u.clientId, u.id, u.username, u.code, u.role_id, ud.firstName, ud.lastName, ud.phone as phone_number, ud.email, r.name as rolename FROM agent_users a
             JOIN users u ON u.id = a.user_id LEFT JOIN roles r ON r.id = u.role_id LEFT JOIN user_details ud ON u.id = ud.user_id
             WHERE agent_id = ${userId} ORDER BY u.created_at DESC`;
             // get agent details query
-            const agent: any = await this.prisma.$queryRaw`SELECT u.clientId, u.id, u.username, u.code, u.role_id, CONCAT(ud.firstName, " ", ud.lastName, false) as name, ud.phone as phone_number, ud.email, r.name as rolename FROM users u
+            const agent: any = await this.prisma.$queryRaw`SELECT u.clientId, u.id, u.username, u.code, u.role_id, ud.firstName, ud.lastName, ud.phone as phone_number, ud.email, r.name as rolename FROM users u
             LEFT JOIN roles r ON r.id = u.role_id LEFT JOIN user_details ud ON u.id = ud.user_id WHERE u.id = ${userId}`;
-
 
             // merge arrays
             const users = [...agentUsers, ...agent];
