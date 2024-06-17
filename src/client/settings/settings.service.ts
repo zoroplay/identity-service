@@ -162,7 +162,7 @@ export class SettingsService {
         return {success: true, status: HttpStatus.OK, message: 'successful', data: settings}
     }
 
-    async getGlobalVariables({clientId, category}): Promise<CommonResponseArray> {
+    async getGlobalVariables({clientId, category}): Promise<CommonResponseObj> {
         const settings = await this.prisma.setting.findMany({
             where: {
                 clientId,
