@@ -171,118 +171,74 @@ export class SettingsService {
 
         const period = this.getBettingPeriod();
 
-        const data = [];
+        const data: any = {};
 
         for (const setting of settings) {
             if (setting.option === 'allow_registration') {
-                data.push({
-                    AllowRegistration: setting.value
-                })
+                data.AllowRegistration = setting.value;
             }
             if (setting.option === 'payment_day') {
-                data.push({
-                    PaymentDay: setting.value
-                })
+                data.PaymentDay = setting.value
             }
             if (setting.option === 'max_payout_' + period) {
-                data.push({
-                    MaxPayout: setting.value
-                })
+                data.MaxPayout = setting.value
             }
             if (setting.option === 'min_bonus_odd_' + period) {
-                data.push({
-                    MinBonusOdd: setting.value
-                })
+                data.MinBonusOdd = setting.value
             }
             if (setting.option === 'single_odd_length_' + period) {
-                data.push({
-                    SingleTicketLenght: setting.value
-                })
+                data.SingleTicketLenght = setting.value;
             }
             if (setting.option === 'combi_odd_length_' + period) {
-                data.push({
-                    MaxCombinationOddLength: setting.value
-                })
+                data.MaxCombinationOddLength = setting.value;
             }
             if (setting.option === 'combi_min_' + period) {
-                data.push({
-                    MinBetStake: setting.value
-                })
+                data.MinBetStake = setting.value;
             }
             if (setting.option === 'size_max_' + period) {
-                data.push({
-                    MaxNoOfSelection: setting.value
-                })
+                data.MaxNoOfSelection = setting.value;
             }
             if (setting.option === 'min_tipster_length_' + period) {
-                data.push({
-                    TipsterTicketLength: setting.value
-                })
+                data.TipsterTicketLength = setting.value;
             }
             if (setting.option === 'live_size_max_' + period) {
-                data.push({
-                    LiveTicketMax: setting.value
-                })
+                data.LiveTicketMax = setting.value;
             }
             if (setting.option === 'currency_symbol') {
-                data.push({
-                    Currency: setting.value
-                })
+                data.Currency = setting.value;
             }
             if (setting.option === 'currency_code') {
-                data.push({
-                    CurrencyCode: setting.value
-                })
+                data.CurrencyCode = setting.value;
             }
             if (setting.option === 'min_deposit') {
-                data.push({
-                    MinDeposit: setting.value
-                })
+                data.MinDeposit = setting.value;
             }
             if (setting.option === 'allow_system_bet_' + period) {
-                data.push({
-                    EnableSystemBet: setting.value
-                })
+                data.EnableSystemBet = setting.value;
             }
             if (setting.option === 'allow_split_bet_' + period) {
-                data.push({
-                    EnableSplitBet: setting.value
-                })
+                data.EnableSplitBet = setting.value;
             }
             if (setting.option === 'liability_threshold') {
-                data.push({
-                    LiabilityThreshold: setting.value
-                })
+                data.LiabilityThreshold = setting.value;
             }
             if (setting.option === 'logo') {
-                data.push({
-                    Logo: setting.value
-                })
+                data.Logo = setting.value;
             }
             if (setting.option === 'dial_code') {
-                data.push({
-                    DialCode: setting.value
-                })
+                data.DialCode = setting.value;
             }
             if (setting.option === 'power_bonus_start_day') {
-                data.push({
-                    PowerBonusStartDate: setting.value
-                })
+                data.PowerBonusStartDate = setting.value;
             }
             if (setting.option === 'enable_bank_account') {
-                data.push({
-                    EnableBankAcct: setting.value
-                })
+                data.EnableBankAcct = setting.value;
             }
             if (setting.option === 'min_withdrawal') {
-                data.push({
-                    MinWithdrawal: setting.value
-                })
+                data.MinWithdrawal = setting.value;
             }
             if (setting.option === 'min_deposit') {
-                data.push({
-                    MinDeposit: setting.value
-                })
+                data.MinDeposit = setting.value;
             }
         }
         
