@@ -58,6 +58,11 @@ export class ClientController {
     return this.settingService.getSettings(payload);
   }
 
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'getGlobalVariables')
+  GetGlobalVariables(payload: GetSettingsRequest) {
+    return this.settingService.getGlobalVariables(payload);
+  }
+
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'GetUserRiskSettings')
   getUserRiskSettings(payload: GetAgentUserRequest) {
     return this.settingService.getUserBettingParameters(payload);

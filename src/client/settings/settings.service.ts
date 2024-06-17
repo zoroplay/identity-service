@@ -162,6 +162,134 @@ export class SettingsService {
         return {success: true, status: HttpStatus.OK, message: 'successful', data: settings}
     }
 
+    async getGlobalVariables({clientId, category}): Promise<CommonResponseArray> {
+        const settings = await this.prisma.setting.findMany({
+            where: {
+                clientId,
+            }
+        })
+
+        const period = this.getBettingPeriod();
+
+        const data = [];
+
+        for (const setting of settings) {
+            if (setting.option === 'allow_registration') {
+                data.push({
+                    AllowRegistration: setting.value
+                })
+            }
+            if (setting.option === 'payment_day') {
+                data.push({
+                    PaymentDay: setting.value
+                })
+            }
+            if (setting.option === 'max_payout_' + period) {
+                data.push({
+                    MaxPayout: setting.value
+                })
+            }
+            if (setting.option === 'min_bonus_odd_' + period) {
+                data.push({
+                    MinBonusOdd: setting.value
+                })
+            }
+            if (setting.option === 'single_odd_length_' + period) {
+                data.push({
+                    SingleTicketLenght: setting.value
+                })
+            }
+            if (setting.option === 'combi_odd_length_' + period) {
+                data.push({
+                    MaxCombinationOddLength: setting.value
+                })
+            }
+            if (setting.option === 'combi_min_' + period) {
+                data.push({
+                    MinBetStake: setting.value
+                })
+            }
+            if (setting.option === 'size_max_' + period) {
+                data.push({
+                    MaxNoOfSelection: setting.value
+                })
+            }
+            if (setting.option === 'min_tipster_length_' + period) {
+                data.push({
+                    TipsterTicketLength: setting.value
+                })
+            }
+            if (setting.option === 'live_size_max_' + period) {
+                data.push({
+                    LiveTicketMax: setting.value
+                })
+            }
+            if (setting.option === 'currency_symbol') {
+                data.push({
+                    Currency: setting.value
+                })
+            }
+            if (setting.option === 'currency_code') {
+                data.push({
+                    CurrencyCode: setting.value
+                })
+            }
+            if (setting.option === 'min_deposit') {
+                data.push({
+                    MinDeposit: setting.value
+                })
+            }
+            if (setting.option === 'allow_system_bet_' + period) {
+                data.push({
+                    EnableSystemBet: setting.value
+                })
+            }
+            if (setting.option === 'allow_split_bet_' + period) {
+                data.push({
+                    EnableSplitBet: setting.value
+                })
+            }
+            if (setting.option === 'liability_threshold') {
+                data.push({
+                    LiabilityThreshold: setting.value
+                })
+            }
+            if (setting.option === 'logo') {
+                data.push({
+                    Logo: setting.value
+                })
+            }
+            if (setting.option === 'dial_code') {
+                data.push({
+                    DialCode: setting.value
+                })
+            }
+            if (setting.option === 'power_bonus_start_day') {
+                data.push({
+                    PowerBonusStartDate: setting.value
+                })
+            }
+            if (setting.option === 'enable_bank_account') {
+                data.push({
+                    EnableBankAcct: setting.value
+                })
+            }
+            if (setting.option === 'min_withdrawal') {
+                data.push({
+                    MinWithdrawal: setting.value
+                })
+            }
+            if (setting.option === 'min_deposit') {
+                data.push({
+                    MinDeposit: setting.value
+                })
+            }
+        }
+        
+
+        return {success: true, status: HttpStatus.OK, message: 'successful', data}
+    }
+
     async validateBet(data: PlaceBetRequest): Promise<CommonResponseObj> {
         // console.log(data);
         try {
