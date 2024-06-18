@@ -442,7 +442,6 @@ export class UserService {
     }
   }
 
-
   async getSegmentPlayers(segmentId) {
     try {
       const players = await this.prisma.playerUserSegment.findMany({
@@ -466,7 +465,6 @@ export class UserService {
       }
     }
   }
-
 
   async grantBonus(payload: GrantBonusRequest) {
     try {
@@ -503,6 +501,4 @@ export class UserService {
       }
     }
   }
-
-  
 }
