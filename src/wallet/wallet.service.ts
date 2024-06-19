@@ -52,4 +52,8 @@ export class WalletService {
   public async getNeworkBalance(param) {
     return await firstValueFrom(this.svc.getNetworkBalance(param));
   }
+
+  public async debitAgent(param) {
+    return await firstValueFrom(this.svc.debitAgentBalance(param));
+  }
 }

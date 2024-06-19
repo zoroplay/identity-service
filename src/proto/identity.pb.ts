@@ -156,8 +156,8 @@ export interface PayNormalRequest {
 /** Bonus */
 export interface BonusGroup {
   group: string;
-  maxSel: number;
-  minSel: number;
+  maxSelection: number;
+  minSelection: number;
   rate: number;
   rateIsLess: number;
   rateIsMore: number;
@@ -1069,6 +1069,10 @@ export interface IdentityServiceClient {
 
   assignUserCommissionProfile(request: AssignUserCommissionProfile): Observable<CommonResponseObj>;
 
+  getUserCommissionProfiles(request: SingleItemRequest): Observable<CommonResponseArray>;
+
+  removeUserCommissionProfile(request: AssignUserCommissionProfile): Observable<CommonResponseArray>;
+
   getCommissionProfile(request: SingleItemRequest): Observable<CommonResponseObj>;
 
   deleteCommissionProfile(request: SingleItemRequest): Observable<CommonResponseObj>;
@@ -1315,6 +1319,14 @@ export interface IdentityServiceController {
     request: AssignUserCommissionProfile,
   ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
 
+  getUserCommissionProfiles(
+    request: SingleItemRequest,
+  ): Promise<CommonResponseArray> | Observable<CommonResponseArray> | CommonResponseArray;
+
+  removeUserCommissionProfile(
+    request: AssignUserCommissionProfile,
+  ): Promise<CommonResponseArray> | Observable<CommonResponseArray> | CommonResponseArray;
+
   getCommissionProfile(
     request: SingleItemRequest,
   ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
@@ -1417,6 +1429,8 @@ export function IdentityServiceControllerMethods() {
       "createCommissionProfile",
       "updateCommissionProfile",
       "assignUserCommissionProfile",
+      "getUserCommissionProfiles",
+      "removeUserCommissionProfile",
       "getCommissionProfile",
       "deleteCommissionProfile",
       "getBonusGroups",

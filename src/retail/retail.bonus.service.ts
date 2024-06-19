@@ -45,11 +45,11 @@ export class RetailBonusService {
         let prevGB = null;
   
         for (const bg of data.bonusGroups) {
-          if (prevGB && Number(bg.minSel) <= Number(prevGB.maxSel)) {
-            console.log(`Min Sel: ${bg.minSel}, Max Sel: ${prevGB.maxSel}`);
+          if (prevGB && Number(bg.minSelection) <= Number(prevGB.maxSel)) {
+            console.log(`Min Sel: ${bg.minSelection}, Max Sel: ${prevGB.maxSel}`);
             return {
               success: false,
-              message: `Min Selection of ${Number(bg.minSel)} on group ${bg.group} cannot be Less or equal to Max Selection ${Number(prevGB.maxSel)} on group ${prevGB.group}`,
+              message: `Min Selection of ${Number(bg.minSelection)} on group ${bg.group} cannot be Less or equal to Max Selection ${Number(prevGB.maxSel)} on group ${prevGB.group}`,
               data: [],
             };
           }
@@ -72,8 +72,8 @@ export class RetailBonusService {
               data: {
                 clientId: data.clientId,
                 group: bg.group,
-                minSelection: bg.minSel,
-                maxSelection: bg.maxSel,
+                minSelection: bg.minSelection,
+                maxSelection: bg.maxSelection,
                 rateIsLess: bg.rateIsLess,
                 rateIsMore: bg.rateIsMore,
                 rate: bg.rate,

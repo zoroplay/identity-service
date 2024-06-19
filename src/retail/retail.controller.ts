@@ -82,11 +82,26 @@ export class RetailController {
 
   // Assign User Commission Profile
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'assignUserCommissionProfile')
-  assignUserCommissionProfile(
+  async assignUserCommissionProfile(
     data: AssignUserCommissionProfile,
-  ): CommonResponseObj | any {
-    console.log(data);
+  ): Promise<CommonResponseObj> {
     return this.commissionService.assignUserCommissionProfile(data);
+  }
+
+  // Get User Commission Profiles
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'getUserCommissionProfiles')
+  async getUserCommissionProfiles(
+    data: SingleItemRequest,
+  ): Promise<CommonResponseObj> {
+    return this.commissionService.getUserCommissionProfiles(data.itemId);
+  }
+
+  // Assign User Commission Profile
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'removeUserCommissionProfile')
+  async removeUserCommissionProfile(
+    data: AssignUserCommissionProfile,
+  ): Promise<CommonResponseObj> {
+    return this.commissionService.removeUserCommissionProfile(data);
   }
 
 
