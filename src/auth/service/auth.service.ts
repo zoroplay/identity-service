@@ -183,6 +183,11 @@ export class AuthService {
           userDetails: true,
           role: true,
           client: true,
+          agentUser: {
+            include: {
+              agent: true
+            }
+          }
         },
       });
 
@@ -223,6 +228,8 @@ export class AuthService {
       if (user.role.name === 'Player') {
         group = `${user.client.groupName}_Online`;
       } else {
+        group = `${user.client.groupName}_${user.agentUser.agent.username}`;
+
       }
 
       // update last login
@@ -297,6 +304,11 @@ export class AuthService {
           userDetails: true,
           role: true,
           client: true,
+          agentUser: {
+            include: {
+              agent: true
+            }
+          }
         },
       });
       if (user) {
@@ -310,6 +322,7 @@ export class AuthService {
         if (user.role.name === 'Player') {
           group = `${user.client.groupName}_Online`;
         } else {
+          group = `${user.client.groupName}_${user.agentUser.agent.username}`;
         }
 
         if (balanceRes.success) {
