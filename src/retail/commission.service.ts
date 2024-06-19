@@ -2,12 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { handleError, handleResponse } from 'src/common/helpers';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AssignUserCommissionProfile, CommissionProfile, CommonResponseArray, CommonResponseObj, CreateUserRequest, GetCommissionsRequest, MetaData, SingleItemRequest } from 'src/proto/identity.pb';
+import { WalletService } from 'src/wallet/wallet.service';
 
 
 @Injectable()
 export class CommissionService {
     constructor (
         private prisma: PrismaService,
+        private readonly walletService: WalletService
     ) {}
     
     async getCommissionProfiles({
@@ -137,7 +139,6 @@ export class CommissionService {
 
         // delete old turnovers
         await this.prisma.retailCommissionTurnover.deleteMany({where: {commissionId: data.id}})
-  
         
         //save new turnovers
         if (data.turnovers.length) {
@@ -173,6 +174,7 @@ export class CommissionService {
         return handleError(error.message, error);
       }
     }
+
   
     async assignUserCommissionProfile(
       data: AssignUserCommissionProfile,
@@ -217,7 +219,7 @@ export class CommissionService {
         }
   
         // Assign the profile to the user
-        const userCommissionProfile = this.prisma.retailUserCommissionProfile.create(
+        const userCommissionProfile = await this.prisma.retailUserCommissionProfile.create(
           {
             data: {
               userId,
@@ -233,12 +235,45 @@ export class CommissionService {
           data: userCommissionProfile,
         };
       } catch (error) {
+        console.log("error assigning user", error.message)
         return {
           success: false,
           message: error.message || 'Internal server error',
           data: null,
         };
       }
+    }
+
+    async getUserCommissionProfiles(userId): Promise<CommonResponseArray> {
+      
+      const profiles = await this.prisma.retailUserCommissionProfile.findMany({
+        where: {userId},
+        include: {profile: true}
+      })
+      return {
+        success: true,
+        message: 'Profile successfully retreived',
+        data: profiles,
+      };
+    }
+
+
+    async removeUserCommissionProfile({userId, profileId}: AssignUserCommissionProfile): Promise<CommonResponseArray> {
+      
+      await this.prisma.retailUserCommissionProfile.delete({
+        where: {
+          user_profile: {
+            userId, 
+            profileId
+          }
+        },
+      });
+
+      return {
+        success: true,
+        message: 'Profile successfully removed',
+        data: null,
+      };
     }
 
     async calculateCommissionOnTicket (shopId, betData, provider) {
@@ -255,6 +290,17 @@ export class CommissionService {
         if (commissionProfile) {
           const profile = commissionProfile.profile;
           // remove stake from shop balance
+          await this.walletService.debitAgent({
+            amount: ''+betData.stake,
+            userId: shopId,
+            clientId: betData.clientId,
+            username: '',
+            description: "",
+            source: '',
+            wallet: 'sport',
+            channel: 'Internal',
+            subject: 'Stake debit'
+          });
 
           if (profile.calculationType === 'flat') {
             commission = (betData.stake * profile.percentage) / 100
