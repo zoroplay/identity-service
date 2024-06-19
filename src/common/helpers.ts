@@ -27,6 +27,7 @@ export const handleResponse: SuccessResponseFn = (data, message) => {
 
 export const handleError: ErrorResponseFn = (message, errors) => {
   return {
+    success: false,
     status: false,
     message,
     errors,
