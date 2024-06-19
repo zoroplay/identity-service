@@ -3,9 +3,10 @@ import { User } from '@prisma/client';
 import { JwtService } from 'src/auth/service/jwt.service';
 import { handleError, handleResponse, paginateResponse } from 'src/common/helpers';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateUserRequest, MetaData } from 'src/proto/identity.pb';
+import { AssignUserCommissionProfile, CommissionProfile, CommonResponseArray, CommonResponseObj, CreateUserRequest, GetCommissionsRequest, MetaData, SingleItemRequest } from 'src/proto/identity.pb';
 import { GetAgentUsersRequest } from 'src/proto/retail.pb';
 import { WalletService } from 'src/wallet/wallet.service';
+import { CommissionService } from './commission.service';
 
 @Injectable()
 export class RetailService {
@@ -13,6 +14,7 @@ export class RetailService {
         private prisma: PrismaService,
         private jwtService: JwtService,
         private readonly walletService: WalletService,
+        private readonly commissionService: CommissionService
     ) {}
 
     async createShopUser(data: CreateUserRequest) {
@@ -93,6 +95,18 @@ export class RetailService {
           if (role.name === 'Shop') {// create 3 cashiers
             for (let i = 0; i < 3; i++) {
               await this.autoCreateShopCashier(data, user, i);
+            }
+          }
+
+          // assign commission profile if user not cashier
+          if (role.name !== 'Cashier') {
+            // get default profiles
+            const profiles = await this.prisma.retailCommissionProfile.findMany({where: {isDefault: true}})
+            for (const profile of profiles) {
+              await this.commissionService.assignUserCommissionProfile({
+                profileId: profile.id,
+                userId: user.id
+              })
             }
           }
     
@@ -313,4 +327,5 @@ export class RetailService {
         })
       }
     }
+    
 }

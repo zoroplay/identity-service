@@ -2,6 +2,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import * as dayjs from 'dayjs';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { WithdrawalSettingsResponse, PlaceBetRequest, SettingsRequest, GetWithdrawalSettingsRequest, CommonResponseObj, CommonResponseArray } from 'src/proto/identity.pb';
+import { CommissionService } from 'src/retail/commission.service';
 import { WalletService } from 'src/wallet/wallet.service';
 var customParseFormat = require('dayjs/plugin/customParseFormat')
 dayjs.extend(customParseFormat)
@@ -10,7 +11,8 @@ dayjs.extend(customParseFormat)
 export class SettingsService {
     constructor(
         private prisma: PrismaService,
-        private readonly walletService: WalletService
+        private readonly walletService: WalletService,
+        private readonly commissionService: CommissionService
     ) {}
 
     async saveSettings(params: SettingsRequest): Promise<CommonResponseObj> {
@@ -253,7 +255,13 @@ export class SettingsService {
             const period = this.getBettingPeriod();
             const totalSelections = selections.length;
 
-            const user              = await this.prisma.user.findFirst({where: {id: userId}});
+            const user              = await this.prisma.user.findFirst({
+                where: {id: userId},
+                include: {
+                    role: true,
+                    agentUser: true
+                }
+            });
             const maxSelections     = await this.getBettingParameter(userId, clientId, period, 'size_max');
             const minSelections     = await this.getBettingParameter(userId, clientId, period, 'size_min');
             
@@ -327,7 +335,14 @@ export class SettingsService {
                 }
             });
 
-            const params = {max_winning, currency: currency.value};
+            let commission = 0;
+            // check if it's cashier and calculate commission
+            if (user.agentUser) {
+                commission = await this.commissionService.calculateCommissionOnTicket(user.agentUser.agent_id, data, 'sports');
+            }
+
+
+            const params = {max_winning, currency: currency.value, commission};
 
 
             return {success: true, status: HttpStatus.OK, message: 'verified', data: params};
