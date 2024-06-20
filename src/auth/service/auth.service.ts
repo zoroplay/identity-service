@@ -694,13 +694,22 @@ export class AuthService {
       // get user
       const user = await this.prisma.user.findFirst({
         where: { id: parseInt(sessionId) },
-        include: { role: true, client: true },
+        include: { 
+          role: true, 
+          client: true,
+          agentUser: {
+            include: {
+              agent: true
+            }
+          }
+        },
       });
       //get balance
       let group;
       if (user.role.name === 'Player') {
         group = `${user.client.groupName}_Online`;
       } else {
+        group = `${user.client.groupName}_${user.agentUser.agent.username}`;
       }
       //get user wallet
       const balanceRes = await this.walletService.getWallet({
