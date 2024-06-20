@@ -337,7 +337,8 @@ export class SettingsService {
 
             let commission = 0;
             // check if it's cashier and calculate commission
-            if (user.agentUser) {
+            if (user && user.agentUser && data.isBooking !== 1) {
+                console.log(user.agentUser, 'agent user');
                 commission = await this.commissionService.calculateCommissionOnTicket(user.agentUser.agent_id, data, 'sports');
             }
 
