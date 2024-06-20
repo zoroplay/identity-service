@@ -565,7 +565,15 @@ export class AuthService {
           auth_code: token,
           clientId,
         },
-        include: { role: true, client: true },
+        include: { 
+          role: true, 
+          client: true,
+          agentUser: {
+            include: {
+              agent: true
+            }
+          }
+        },
       });
 
       if (user) {
@@ -573,6 +581,7 @@ export class AuthService {
         if (user.role.name === 'Player') {
           group = `${user.client.groupName}_Online`;
         } else {
+          group = `${user.client.groupName}_${user.agentUser.agent.username}`;
         }
         //get user wallet
         const balanceRes = await this.walletService.getWallet({
