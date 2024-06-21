@@ -227,7 +227,7 @@ export class AuthService {
       let group;
       if (user.role.name === 'Player') {
         group = `${user.client.groupName}_Online`;
-      } else {
+      } else if (user.role.name === 'Cashier') {
         group = `${user.client.groupName}_${user.agentUser.agent.username}`;
 
       }
@@ -321,7 +321,7 @@ export class AuthService {
         let group;
         if (user.role.name === 'Player') {
           group = `${user.client.groupName}_Online`;
-        } else {
+        } else if (user.role.name === 'Cashier') {
           group = `${user.client.groupName}_${user.agentUser.agent.username}`;
         }
 
@@ -580,7 +580,7 @@ export class AuthService {
         let group;
         if (user.role.name === 'Player') {
           group = `${user.client.groupName}_Online`;
-        } else {
+        } else if (user.role.name === 'Cashier') {
           group = `${user.client.groupName}_${user.agentUser.agent.username}`;
         }
         //get user wallet
