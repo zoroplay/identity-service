@@ -11,6 +11,8 @@ import {
   GetPlayerDataResponse,
   FetchPlayerFilterRequest,
   GetUserIdNameResponse,
+  CommonResponseObj,
+  FindUserRequest,
 } from 'src/proto/identity.pb';
 import { WalletService } from 'src/wallet/wallet.service';
 import * as dayjs from 'dayjs';
@@ -20,12 +22,16 @@ import {
   FetchDepositRangeRequest,
 } from 'src/proto/wallet.pb';
 import { paginateResponse } from 'src/common/helpers';
+import { BonusService } from 'src/bonus/bonus.service';
+import { BettingService } from 'src/betting/betting.service';
 
 @Injectable()
 export class PlayerService {
   constructor(
     private prisma: PrismaService,
     private readonly walletService: WalletService,
+    private readonly bonusService: BonusService,
+    private readonly bettingService: BettingService,
   ) {}
 
   fetchPlayerFilter(FetchPlayerFilterDto: FetchPlayerFilterRequest) {
@@ -744,5 +750,49 @@ export class PlayerService {
     }
 
     return { data };
+  }
+
+  async updatePlayerStatus(data: FindUserRequest): Promise<CommonResponseObj> {
+    try { 
+      console.log("update player statu", data)
+      const {userId, status} = data;
+
+      if (status === 3) {
+        await this.prisma.userDetails.deleteMany({where: {userId}});
+
+        await this.prisma.userBettingParameter.deleteMany({where: {userId}});
+        
+        await this.prisma.userSetting.deleteMany({where: {userId}});
+
+        await this.prisma.user.delete({where: {id: userId}});
+
+        try {
+          // delete player wallet data
+          this.walletService.deletePlayerData({id: userId});
+          // delete player betting data
+          this.bettingService.deletePlayerData({clientID: userId});
+          // delete player bonus data
+          this.bonusService.deletePlayerData({clientId: userId});
+        } catch(e) {
+          console.log("an error occuered while deleting other data", e.message);
+        }
+ 
+      } else {
+        await this.prisma.user.update(
+          {
+            where: { id: userId },
+            data: {
+              status,
+            },
+          }
+        )
+      }
+      // if stat = 3 - terminate account
+      return {success: true, message: "Successful", data: null}
+
+    } catch (e) {
+      console.log(e.message)
+      return {success: false, message: "Unable to complete request."}
+    }
   }
 }
