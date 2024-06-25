@@ -8,6 +8,7 @@ import {
   DeleteItemRequest,
   FetchPlayerFilterRequest,
   FetchPlayerSegmentRequest,
+  FindUserRequest,
   GetPlayerDataRequest,
   GetSegmentPlayerRequest,
   GetUserIdNameRequest,
@@ -126,6 +127,11 @@ export class UserController {
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'GrantBonusToSegment')
   grantBonusToSegment(payload: GrantBonusRequest) {
     return this.userService.grantBonus(payload);
+  }
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'UpdatePlayerStatus')
+  updatePlayerStatus(payload: FindUserRequest) {
+    return this.playerService.updatePlayerStatus(payload);
   }
 
 }

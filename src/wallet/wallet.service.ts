@@ -9,6 +9,7 @@ import {
   FetchDepositRangeRequest,
   FetchPlayerDepositRequest,
   GetBalanceRequest,
+  IdRequest,
   WALLET_SERVICE_NAME,
   WalletServiceClient,
   protobufPackage,
@@ -56,4 +57,8 @@ export class WalletService {
   public async debitAgent(param) {
     return await firstValueFrom(this.svc.debitAgentBalance(param));
   }
+
+  public deletePlayerData(data: IdRequest) {
+    return  firstValueFrom(this.svc.deletePlayerData(data));
+}
 }

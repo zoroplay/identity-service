@@ -8,6 +8,7 @@ import { WalletModule } from 'src/wallet/wallet.module';
 import { PlayerService } from './player.service';
 import { BonusModule } from 'src/bonus/bonus.module';
 import { JwtService } from 'src/auth/service/jwt.service';
+import { BettingModule } from 'src/betting/betting.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { JwtService } from 'src/auth/service/jwt.service';
       secret: process.env.JWT_TOKEN,
       signOptions: { expiresIn: '24h' },
     }),
+    BettingModule,
     BonusModule,
     WalletModule
   ],

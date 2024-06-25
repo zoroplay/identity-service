@@ -363,6 +363,8 @@ export interface BonusServiceClient {
   redeemCampaignBonus(request: RedeemCampaignBonusDto): Observable<CreateBonusResponse>;
 
   getCampaignBonus(request: GetBonusByClientID): Observable<AllCampaignBonus>;
+
+  deletePlayerData(request: GetBonusRequest): Observable<EmptyResponse>;
 }
 
 export interface BonusServiceController {
@@ -429,6 +431,8 @@ export interface BonusServiceController {
   getCampaignBonus(
     request: GetBonusByClientID,
   ): Promise<AllCampaignBonus> | Observable<AllCampaignBonus> | AllCampaignBonus;
+
+  deletePlayerData(request: GetBonusRequest): Promise<EmptyResponse> | Observable<EmptyResponse> | EmptyResponse;
 }
 
 export function BonusServiceControllerMethods() {
@@ -452,6 +456,7 @@ export function BonusServiceControllerMethods() {
       "deleteCampaignBonus",
       "redeemCampaignBonus",
       "getCampaignBonus",
+      "deletePlayerData",
     ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);

@@ -12,12 +12,14 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { WalletModule } from './wallet/wallet.module';
 import { JwtService } from './auth/service/jwt.service';
 import { RetailModule } from './retail/retail.module';
+import { BettingModule } from './betting/betting.module';
 
 @Global()
 @Module({
   imports: [
     AppModule,
     AuthModule,
+    BettingModule,
     RolesModule,
     PermissionModule,
     ClientModule,
