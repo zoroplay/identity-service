@@ -71,14 +71,19 @@ export class CommissionService {
             calculationType: payload.calculationType,
             commissionType: payload.commissionType,
             providerGroup: payload.providerGroup,
-            isDefault: payload.isDefault,
-            turnovers: {
-              createMany: {
-                data: payload.turnovers
-              }
-            }
+            isDefault: payload.isDefault || false,
           },
         });
+
+         //save new turnovers if exist
+         if (payload.turnovers) {
+          // add commission id to the turnonvers
+          const turnovers = payload.turnovers.map(turnover => ({...turnover, commissionId: profile.id}));
+          //save turnovers
+          await this.prisma.retailCommissionTurnover.createMany({
+            data: turnovers
+          })
+        }
 
         const response: CommonResponseObj = {
           success: true,
