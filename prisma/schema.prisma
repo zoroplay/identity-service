@@ -289,7 +289,7 @@ model RetailCommissionProfile {
   createdAt         DateTime    @default(now()) @map("created_at")
   updatedAt         DateTime    @updatedAt @map("updated_at")
   
-  @@unique([isDefault, providerGroup], name: "default_group")
+  // @@unique([isDefault, providerGroup], name: "default_group")
 
   @@map("retail_commission_profiles")
 }

@@ -85,6 +85,25 @@ export class CommissionService {
           })
         }
 
+        if (payload.isDefault) {
+
+          const profile = await this.prisma.retailCommissionProfile.findFirst({
+            where: {
+              isDefault: true,
+              providerGroup: payload.providerGroup
+            }
+          });
+
+          if (profile) {
+            await this.prisma.retailCommissionProfile.update({
+              where: {
+                id: profile.id
+              }, 
+              data: {isDefault: false}
+            })
+          }
+        }
+
         const response: CommonResponseObj = {
           success: true,
           message: 'Commission Profiles Saved Successfully',
@@ -116,15 +135,22 @@ export class CommissionService {
 
         // reset default profile, if this is set as default
         if(data.isDefault) {
-          await this.prisma.retailCommissionProfile.update({
+
+          const profile = await this.prisma.retailCommissionProfile.findFirst({
             where: {
-              default_group: {
-                isDefault: true,
-                providerGroup: data.providerGroup
-              }
-            }, 
-            data: {isDefault: false}
-          })
+              isDefault: true,
+              providerGroup: data.providerGroup
+            }
+          });
+
+          if (profile) {
+            await this.prisma.retailCommissionProfile.update({
+              where: {
+                id: profile.id
+              }, 
+              data: {isDefault: false}
+            })
+          }
         }
         // update profile data
         await this.prisma.retailCommissionProfile.update({
