@@ -1,7 +1,8 @@
+/* eslint-disable prettier/prettier */
 import { Controller } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
 import { UserService } from './user.service';
-import { UserDetailsDto, LoginDto } from './dto/create-user.dto';
+import { UserDetailsDto } from './dto/create-user.dto';
 import {
   AddToSegmentRequest,
   CreateUserRequest,
@@ -13,6 +14,8 @@ import {
   GetSegmentPlayerRequest,
   GetUserIdNameRequest,
   GrantBonusRequest,
+  HandlePinRequest,
+  HandleTransferRequest,
   IDENTITY_SERVICE_NAME,
   OnlinePlayersRequest,
   RegistrationReportRequest,
@@ -28,6 +31,17 @@ export class UserController {
     private readonly userService: UserService,
     private readonly playerService: PlayerService,
   ) {}
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'HandleTransfer')
+  HandleTransfer(HandlePinDto: HandleTransferRequest) {
+    return this.userService.handleTransfer(HandlePinDto);
+  }
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'HandlePin')
+  HandlePin(HandlePinDto: HandlePinRequest) {
+    console.log('HandlePin');
+    return this.userService.handlePin(HandlePinDto);
+  }
 
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'FetchPlayerFilters')
   FetchPlayerFilters(FetchPlayerFilterDto: FetchPlayerFilterRequest) {
@@ -133,5 +147,4 @@ export class UserController {
   updatePlayerStatus(payload: FindUserRequest) {
     return this.playerService.updatePlayerStatus(payload);
   }
-
 }

@@ -12,6 +12,7 @@ import {
   IdRequest,
   WALLET_SERVICE_NAME,
   WalletServiceClient,
+  WalletTransferRequest,
   protobufPackage,
 } from 'src/proto/wallet.pb';
 
@@ -59,6 +60,11 @@ export class WalletService {
   }
 
   public deletePlayerData(data: IdRequest) {
-    return  firstValueFrom(this.svc.deletePlayerData(data));
-}
+    return firstValueFrom(this.svc.deletePlayerData(data));
+  }
+
+  public walletTransfer(data: WalletTransferRequest) {
+    console.log(38108931, data);
+    return firstValueFrom(this.svc.walletTransfer(data));
+  }
 }
