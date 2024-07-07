@@ -576,7 +576,6 @@ export interface TransactionData {
   transactionDate: string;
   channel: string;
   status: number;
-  wallet: string;
 }
 
 export interface UpdateWithdrawalRequest {

@@ -13,7 +13,6 @@ import { WalletModule } from './wallet/wallet.module';
 import { JwtService } from './auth/service/jwt.service';
 import { RetailModule } from './retail/retail.module';
 import { BettingModule } from './betting/betting.module';
-import { NotificationsModule } from './notifications/notifications.module';
 
 @Global()
 @Module({
@@ -26,7 +25,6 @@ import { NotificationsModule } from './notifications/notifications.module';
     ClientModule,
     UserModule,
     WalletModule,
-    NotificationsModule,
     ScheduleModule.forRoot(),
     RetailModule,
   ],
