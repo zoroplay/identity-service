@@ -371,7 +371,7 @@ export class CommissionService {
     async getCommissionProfilesByProvider ({provider, clientId}: GetCommissionsRequest) {
       try {
 
-        const profile = await this.prisma.retailCommissionProfile.findFirst({
+        const profiles = await this.prisma.retailCommissionProfile.findMany({
           where: {
             providerGroup: provider,
             clientId
@@ -391,17 +391,19 @@ export class CommissionService {
 
         const data = [];
 
-        if (profile) {
-          if(profile.users.length > 0) {
-            for (const user of profile.users) {
-              const agentUsers: any =  await this.prisma.$queryRaw`SELECT user_id FROM agent_users a WHERE agent_id = ${user.userId}`;
-              data.push({
-                username: user.user.username,
-                userId: user.userId,
-                users: agentUsers.map(item => item.user_id),
-                commissionName: profile.name,
-                commissionId: profile.id
-              })
+        if (profiles.length) {
+          for (const profile of profiles) {
+            if(profile.users.length > 0) {
+              for (const user of profile.users) {
+                const agentUsers: any =  await this.prisma.$queryRaw`SELECT user_id FROM agent_users a WHERE agent_id = ${user.userId}`;
+                data.push({
+                  username: user.user.username,
+                  userId: user.userId,
+                  users: agentUsers.map(item => item.user_id),
+                  commissionName: profile.name,
+                  commissionId: profile.id
+                })
+              }
             }
           }
         } 
