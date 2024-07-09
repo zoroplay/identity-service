@@ -288,7 +288,6 @@ export class CommissionService {
       };
     }
 
-
     async removeUserCommissionProfile({userId, profileId}: AssignUserCommissionProfile): Promise<CommonResponseArray> {
       
       await this.prisma.retailUserCommissionProfile.delete({
@@ -368,4 +367,49 @@ export class CommissionService {
         return commission;
       }
     }
+
+    async getCommissionProfilesByProvider ({provider, clientId}: GetCommissionsRequest) {
+      try {
+
+        const profile = await this.prisma.retailCommissionProfile.findFirst({
+          where: {
+            providerGroup: provider,
+            clientId
+          },
+          include: {
+            users: {
+              include: {
+                user: {
+                  select: {
+                    username: true
+                  }
+                },
+              }
+            }
+          }
+        });
+
+        const data = [];
+
+        if (profile) {
+          if(profile.users.length > 0) {
+            for (const user of profile.users) {
+              const agentUsers: any =  await this.prisma.$queryRaw`SELECT user_id FROM agent_users a WHERE agent_id = ${user.userId}`;
+              data.push({
+                username: user.user.username,
+                userId: user.userId,
+                users: agentUsers.map(item => item.user_id),
+                commissionName: profile.name,
+                commissionId: profile.id
+              })
+            }
+          }
+        } 
+
+        return {success: true, message: 'Profile retrieved successfully', data};
+      } catch (e) {
+        console.log(e.message)
+        return {success: false, message: 'Error fetching commission', data: null};
+      }
+    } 
 }

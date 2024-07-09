@@ -275,8 +275,8 @@ model RetailCommissionProfile {
   name              String
   isDefault         Boolean
   description       String?
-  providerGroup     String
-  period            CommissionGroup   @map("provider_group")
+  providerGroup     String            @map("provider_group")
+  period            CommissionPeriod  @default(WEEKLY) 
   calculationType   String            @default("flat")
   percentage        Float?              
   commissionType    Int?              
@@ -313,7 +313,7 @@ model RetailCommissionTurnover {
 model RetailUserCommissionProfile {
   id          Int               @id @default(autoincrement())
 
-  provider    String      @default("sports")
+  provider    String            @default("sports")
 
   userId      Int
   user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -426,7 +426,7 @@ enum CountryRegion {
   South_America @map("South America")
 }
 
-enum CommissionGroup {
+enum CommissionPeriod {
   WEEKLY @map("weekly")
   MONTHLY @map("monthly")
 }
