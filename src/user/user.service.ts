@@ -45,11 +45,17 @@ export class UserService {
           },
         }),
       ]);
-      if (!fromUser && !toUser)
+      if (!fromUser || !toUser)
         return {
           success: false,
           status: HttpStatus.BAD_REQUEST,
           message: 'User Details incorrect',
+        };
+      if (fromUser.id === toUser.id)
+        return {
+          success: false,
+          status: HttpStatus.BAD_REQUEST,
+          message: 'Cannot Transfer to yourself',
         };
       if (fromUser.pin !== handleTransferDto.pin)
         return {
@@ -76,9 +82,8 @@ export class UserService {
         };
       await this.notificationService.handleNotifications({
         userId: toUser.id,
-        description: `${fromUser.username} has deposited ${handleTransferDto.amount} to your account`,
+        description: `You have received ${handleTransferDto.amount} from ${fromUser.username}`,
         title: 'Transfer',
-        status: 0,
       });
       return {
         success: true,

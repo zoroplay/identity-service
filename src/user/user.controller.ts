@@ -39,7 +39,6 @@ export class UserController {
 
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'HandlePin')
   HandlePin(HandlePinDto: HandlePinRequest) {
-    console.log('HandlePin');
     return this.userService.handlePin(HandlePinDto);
   }
 
