@@ -754,7 +754,6 @@ export class PlayerService {
 
   async updatePlayerStatus(data: FindUserRequest): Promise<CommonResponseObj> {
     try { 
-      console.log("update player statu", data)
       const {userId, status} = data;
 
       if (status === 3) {
