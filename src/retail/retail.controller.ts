@@ -96,7 +96,7 @@ export class RetailController {
     return this.commissionService.getUserCommissionProfiles(data.itemId);
   }
 
-  // Assign User Commission Profile
+  // Remove User Commission Profile
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'removeUserCommissionProfile')
   async removeUserCommissionProfile(
     data: AssignUserCommissionProfile,
@@ -104,6 +104,13 @@ export class RetailController {
     return this.commissionService.removeUserCommissionProfile(data);
   }
 
+  // Get USers of a Commission Profiles
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'getCommissionProfileUsers')
+  async getCommissionProfileUsers(
+    data: GetCommissionsRequest,
+  ): Promise<CommonResponseArray> {
+    return this.commissionService.getCommissionProfilesByProvider(data);
+  }
 
   // Get Bonus Groups
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'getBonusGroups')
