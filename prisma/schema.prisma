@@ -313,7 +313,7 @@ model RetailCommissionTurnover {
 model RetailUserCommissionProfile {
   id Int @id @default(autoincrement())
 
-  provider String @default("sports")
+  provider    String            @default("sports")
 
   userId Int
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -429,7 +429,7 @@ enum CountryRegion {
   South_America @map("South America")
 }
 
-enum CommissionGroup {
-  WEEKLY  @map("weekly")
+enum CommissionPeriod {
+  WEEKLY @map("weekly")
   MONTHLY @map("monthly")
 }

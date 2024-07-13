@@ -211,6 +211,7 @@ export interface GetAgentUsersRequest {
 
 export interface GetCommissionsRequest {
   clientId: number;
+  provider?: string | undefined;
 }
 
 /** Commission Profile */
@@ -1101,6 +1102,8 @@ export interface IdentityServiceClient {
 
   deleteCommissionProfile(request: SingleItemRequest): Observable<CommonResponseObj>;
 
+  getCommissionProfileUsers(request: GetCommissionsRequest): Observable<CommonResponseArray>;
+
   getBonusGroups(request: SingleItemRequest): Observable<BonusGroupResponse>;
 
   createBonusGroups(request: BonusGroups): Observable<BonusGroupResponse>;
@@ -1369,6 +1372,10 @@ export interface IdentityServiceController {
     request: SingleItemRequest,
   ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
 
+  getCommissionProfileUsers(
+    request: GetCommissionsRequest,
+  ): Promise<CommonResponseArray> | Observable<CommonResponseArray> | CommonResponseArray;
+
   getBonusGroups(
     request: SingleItemRequest,
   ): Promise<BonusGroupResponse> | Observable<BonusGroupResponse> | BonusGroupResponse;
@@ -1470,6 +1477,7 @@ export function IdentityServiceControllerMethods() {
       "removeUserCommissionProfile",
       "getCommissionProfile",
       "deleteCommissionProfile",
+      "getCommissionProfileUsers",
       "getBonusGroups",
       "createBonusGroups",
       "createPowerBonus",
