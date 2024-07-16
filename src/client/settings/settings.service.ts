@@ -1,16 +1,16 @@
 /* eslint-disable prettier/prettier */
-import { HttpStatus, Injectable } from '@nestjs/common';
-import * as dayjs from 'dayjs';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { HttpStatus, Injectable } from "@nestjs/common";
+import * as dayjs from "dayjs";
+import { PrismaService } from "src/prisma/prisma.service";
 import {
   WithdrawalSettingsResponse,
   CommonResponseObj,
   PlaceBetRequest,
   SettingsRequest,
   GetWithdrawalSettingsRequest,
-} from 'src/proto/identity.pb';
-import { WalletService } from 'src/wallet/wallet.service';
-var customParseFormat = require('dayjs/plugin/customParseFormat');
+} from "src/proto/identity.pb";
+import { WalletService } from "src/wallet/wallet.service";
+var customParseFormat = require("dayjs/plugin/customParseFormat");
 dayjs.extend(customParseFormat);
 
 @Injectable()
@@ -18,6 +18,7 @@ export class SettingsService {
   constructor(
     private prisma: PrismaService,
     private readonly walletService: WalletService,
+    private readonly commissionService: CommissionService
   ) {}
 
   async saveSettings(params: SettingsRequest): Promise<CommonResponseObj> {
@@ -28,13 +29,13 @@ export class SettingsService {
       for (const [key, value] of Object.entries(data)) {
         console.log(`Key: ${key}, Value: ${value}`);
         const val: any = value;
-        if (key !== 'logo' && key !== 'print_logo') {
+        if (key !== "logo" && key !== "print_logo") {
           await this.prisma.setting.upsert({
             where: {
               client_option_category: {
                 clientId,
                 option: key,
-                category: 'general',
+                category: "general",
               },
             },
             // update existing
@@ -46,7 +47,7 @@ export class SettingsService {
               clientId,
               option: key,
               value: val,
-              category: 'general',
+              category: "general",
             },
           });
         }
@@ -54,7 +55,7 @@ export class SettingsService {
       return {
         success: true,
         status: HttpStatus.OK,
-        message: 'Saved successfully',
+        message: "Saved successfully",
       };
     } catch (e) {
       return {
@@ -75,9 +76,9 @@ export class SettingsService {
       for (const [key, value] of Object.entries(data)) {
         // console.log(`Key: ${key}, Value: ${value}`);
 
-        if (key !== 'period' && key !== 'category') {
+        if (key !== "period" && key !== "category") {
           // const option = `${key}_${period}`
-          const val: any = value === null ? '' : value;
+          const val: any = value === null ? "" : value;
           // console.log('value', val);
           await this.prisma.setting.upsert({
             where: {
@@ -105,7 +106,7 @@ export class SettingsService {
       return {
         success: true,
         status: HttpStatus.OK,
-        message: 'Saved successfully',
+        message: "Saved successfully",
       };
     } catch (e) {
       console.log(e.message);
@@ -167,7 +168,7 @@ export class SettingsService {
       return {
         success: true,
         status: HttpStatus.OK,
-        message: 'Saved successfully',
+        message: "Saved successfully",
       };
     } catch (e) {
       console.log(e.message);
@@ -179,19 +180,91 @@ export class SettingsService {
     }
   }
 
-  async getSettings({ clientId, category }): Promise<CommonResponseObj> {
+  async getGlobalVariables({ clientId, category }): Promise<CommonResponseObj> {
     const settings = await this.prisma.setting.findMany({
       where: {
         clientId,
-        category,
       },
     });
+
+    const period = this.getBettingPeriod();
+
+    const data: any = {};
+
+    for (const setting of settings) {
+      if (setting.option === "allow_registration") {
+        data.AllowRegistration = setting.value;
+      }
+      if (setting.option === "payment_day") {
+        data.PaymentDay = setting.value;
+      }
+      if (setting.option === "max_payout_" + period) {
+        data.MaxPayout = setting.value;
+      }
+      if (setting.option === "min_bonus_odd_" + period) {
+        data.MinBonusOdd = setting.value;
+      }
+      if (setting.option === "single_odd_length_" + period) {
+        data.SingleTicketLenght = setting.value;
+      }
+      if (setting.option === "combi_odd_length_" + period) {
+        data.MaxCombinationOddLength = setting.value;
+      }
+      if (setting.option === "combi_min_" + period) {
+        data.MinBetStake = setting.value;
+      }
+      if (setting.option === "size_max_" + period) {
+        data.MaxNoOfSelection = setting.value;
+      }
+      if (setting.option === "min_tipster_length_" + period) {
+        data.TipsterTicketLength = setting.value;
+      }
+      if (setting.option === "live_size_max_" + period) {
+        data.LiveTicketMax = setting.value;
+      }
+      if (setting.option === "currency_symbol") {
+        data.Currency = setting.value;
+      }
+      if (setting.option === "currency_code") {
+        data.CurrencyCode = setting.value;
+      }
+      if (setting.option === "min_deposit") {
+        data.MinDeposit = setting.value;
+      }
+      if (setting.option === "allow_system_bet_" + period) {
+        data.EnableSystemBet = setting.value;
+      }
+      if (setting.option === "allow_split_bet_" + period) {
+        data.EnableSplitBet = setting.value;
+      }
+      if (setting.option === "liability_threshold") {
+        data.LiabilityThreshold = setting.value;
+      }
+      if (setting.option === "logo") {
+        data.Logo = setting.value;
+      }
+      if (setting.option === "dial_code") {
+        data.DialCode = setting.value;
+      }
+      if (setting.option === "power_bonus_start_day") {
+        data.PowerBonusStartDate = setting.value;
+      }
+      if (setting.option === "enable_bank_account") {
+        data.EnableBankAcct = setting.value;
+      }
+      if (setting.option === "min_withdrawal") {
+        data.MinWithdrawal = setting.value;
+      }
+      if (setting.option === "min_deposit") {
+        data.MinDeposit = setting.value;
+      }
+    }
 
     return {
       success: true,
       status: HttpStatus.OK,
-      message: 'successful',
-      data: settings,
+      message: "successful",
+      data,
     };
   }
 
@@ -208,13 +281,13 @@ export class SettingsService {
         userId,
         clientId,
         period,
-        'size_max',
+        "size_max"
       );
       const minSelections = await this.getBettingParameter(
         userId,
         clientId,
         period,
-        'size_min',
+        "size_min"
       );
 
       // console.log(user);
@@ -222,42 +295,42 @@ export class SettingsService {
       if (!user && isBooking === 0)
         return {
           status: HttpStatus.NOT_FOUND,
-          message: 'please login to procceed',
+          message: "please login to procceed",
           success: false,
         };
 
       if (isBooking === 0 && user.status !== 1)
         return {
           status: 401,
-          message: 'Your account has been disabled',
+          message: "Your account has been disabled",
           success: false,
         };
 
-      if (data.type === 'live') {
+      if (data.type === "live") {
         const acceptLive = await this.getBettingParameter(
           userId,
           clientId,
           period,
-          'accept_live_bets',
+          "accept_live_bets"
         );
         if (acceptLive == 0)
           return {
             success: false,
             status: HttpStatus.NOT_ACCEPTABLE,
-            message: 'We are unable to accept live bets at the moment',
+            message: "We are unable to accept live bets at the moment",
           };
       } else {
         const acceptLive = await this.getBettingParameter(
           userId,
           clientId,
           period,
-          'accept_prematch_bets',
+          "accept_prematch_bets"
         );
         if (acceptLive == 0)
           return {
             success: false,
             status: HttpStatus.NOT_ACCEPTABLE,
-            message: 'We are unable to accept bets at the moment',
+            message: "We are unable to accept bets at the moment",
           };
       }
       // get user wallet
@@ -272,7 +345,7 @@ export class SettingsService {
         // if not bonus bet, use real balance
         return {
           status: 400,
-          message: 'Insufficient balance ',
+          message: "Insufficient balance ",
           success: false,
         };
       // check bonus wallet balance for bonus bet
@@ -284,7 +357,7 @@ export class SettingsService {
         // if bonus bet, use bonus balance
         return {
           status: 400,
-          message: 'Insufficient balance ',
+          message: "Insufficient balance ",
           success: false,
         };
 
@@ -302,24 +375,24 @@ export class SettingsService {
           message: `Minimum number of selection is ${minSelections} games`,
         };
 
-      if (data.betType === 'Single') {
+      if (data.betType === "Single") {
         const singleOddLength = await this.getBettingParameter(
           userId,
           clientId,
           period,
-          'single_odd_length',
+          "single_odd_length"
         );
         const singleMinStake = await this.getBettingParameter(
           userId,
           clientId,
           period,
-          'single_min',
+          "single_min"
         );
         const singleMaxStake = await this.getBettingParameter(
           userId,
           clientId,
           period,
-          'single_max',
+          "single_max"
         );
 
         if (parseInt(singleOddLength) < totalOdds)
@@ -347,19 +420,19 @@ export class SettingsService {
           userId,
           clientId,
           period,
-          'combi_odd_length',
+          "combi_odd_length"
         );
         const combiMinStake = await this.getBettingParameter(
           userId,
           clientId,
           period,
-          'combi_min',
+          "combi_min"
         );
         const combiMaxStake = await this.getBettingParameter(
           userId,
           clientId,
           period,
-          'combi_max',
+          "combi_max"
         );
 
         if (parseInt(combiOddLength) < totalOdds)
@@ -388,7 +461,7 @@ export class SettingsService {
         userId,
         clientId,
         period,
-        'max_payout',
+        "max_payout"
       );
 
       let currency = await this.prisma.setting.findFirst({
@@ -403,12 +476,12 @@ export class SettingsService {
       return {
         success: true,
         status: HttpStatus.OK,
-        message: 'verified',
+        message: "verified",
         data: params,
       };
     } catch (e) {
       console.log(e.message);
-      return { success: false, message: 'error validating bet: ' + e.message };
+      return { success: false, message: "error validating bet: " + e.message };
     }
   }
 
@@ -440,7 +513,7 @@ export class SettingsService {
   }
 
   async getWithdrawalSettings(
-    data: GetWithdrawalSettingsRequest,
+    data: GetWithdrawalSettingsRequest
   ): Promise<WithdrawalSettingsResponse> {
     const { clientId, userId } = data;
 
@@ -515,23 +588,23 @@ export class SettingsService {
 
   getBettingPeriod() {
     const now = dayjs();
-    const today = dayjs().format('YYYY-MM-DD');
-    const startOfDay = dayjs().startOf('D');
+    const today = dayjs().format("YYYY-MM-DD");
+    const startOfDay = dayjs().startOf("D");
     const dayStart = dayjs(`${today} 06:00`);
     const dayEnd = dayjs(`${today} 20:59`);
 
     let nightStart = dayjs(`${today} 21:00`);
 
-    if (now.isAfter(startOfDay)) nightStart = nightStart.subtract(1, 'day');
+    if (now.isAfter(startOfDay)) nightStart = nightStart.subtract(1, "day");
 
     const nightEnd = dayjs(`${today} 05:59`);
 
     if (now.isAfter(dayStart) && now.isBefore(dayEnd)) {
-      return 'day';
+      return "day";
     } else if (now.isAfter(nightStart) && now.isBefore(nightEnd)) {
-      return 'night';
+      return "night";
     } else {
-      return 'day';
+      return "day";
     }
   }
 
@@ -551,7 +624,7 @@ export class SettingsService {
         settings = await this.prisma.setting.findMany({
           where: {
             clientId,
-            category: 'online',
+            category: "online",
           },
         });
         isNew = true;
@@ -562,13 +635,13 @@ export class SettingsService {
       return {
         success: true,
         status: HttpStatus.OK,
-        message: 'successful',
+        message: "successful",
         data: data,
       };
     } catch (e) {
       return {
         success: false,
-        message: 'error fetching parameters: ' + e.message,
+        message: "error fetching parameters: " + e.message,
       };
     }
   }

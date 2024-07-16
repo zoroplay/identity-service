@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
-import { Inject, Injectable } from '@nestjs/common';
-import { ClientGrpc } from '@nestjs/microservices';
-import { Observable, firstValueFrom } from 'rxjs';
+import { Inject, Injectable } from "@nestjs/common";
+import { ClientGrpc } from "@nestjs/microservices";
+import { Observable, firstValueFrom } from "rxjs";
 
 import {
   CreateWalletRequest,
@@ -10,10 +10,12 @@ import {
   FetchDepositRangeRequest,
   FetchPlayerDepositRequest,
   GetBalanceRequest,
+  IdRequest,
   WALLET_SERVICE_NAME,
   WalletServiceClient,
+  WalletTransferRequest,
   protobufPackage,
-} from 'src/proto/wallet.pb';
+} from "src/proto/wallet.pb";
 
 @Injectable()
 export class WalletService {
@@ -53,14 +55,16 @@ export class WalletService {
   public async getNeworkBalance(param) {
     return await firstValueFrom(this.svc.getNetworkBalance(param));
   }
-  public async findAllBranchApprovedCashinWDate(param) {
-    return await firstValueFrom(
-      this.svc.findAllBranchApprovedCashinWDate(param),
-    );
+  public async debitAgent(param) {
+    return await firstValueFrom(this.svc.debitAgentBalance(param));
   }
-  public async findAllBranchPendingCashinWDate(param) {
-    return await firstValueFrom(
-      this.svc.findAllBranchPendingCashinWDate(param),
-    );
+
+  public deletePlayerData(data: IdRequest) {
+    return firstValueFrom(this.svc.deletePlayerData(data));
+  }
+
+  public walletTransfer(data: WalletTransferRequest) {
+    console.log(38108931, data);
+    return firstValueFrom(this.svc.walletTransfer(data));
   }
 }

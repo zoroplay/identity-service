@@ -205,8 +205,7 @@ export interface HasBonusBetResponse {
 }
 
 export interface BonusStatusRequest {
-  clientId: number;
-  bonusType: string;
+  bonusId: number;
   status: number;
 }
 
@@ -226,10 +225,11 @@ export interface UpdateCampaignBonusDto {
   name: string;
   bonusCode: string;
   bonusId: number;
-  expiryDate: string;
+  startDate: string;
   id: number;
   affiliateIds?: string | undefined;
   trackierCampaignId?: string | undefined;
+  endDate: string;
 }
 
 export interface RedeemCampaignBonusDto {
@@ -244,7 +244,8 @@ export interface CampaignBonusData {
   name: string;
   bonusCode: string;
   bonus: CreateBonusRequest | undefined;
-  expiryDate: string;
+  startDate: string;
+  endDate: string;
 }
 
 export interface AllCampaignBonus {
@@ -283,6 +284,7 @@ export interface FetchReportRequest {
   bonusType: string;
   from: string;
   to: string;
+  clientId: number;
 }
 
 export interface PlayerBonusData {
@@ -313,6 +315,16 @@ export interface FetchReportResponse {
   data: PlayerBonusData[];
 }
 
+export interface SettleBetRequest {
+  clientId: number;
+  betId: number;
+  status: number;
+  amount?: number | undefined;
+}
+
+export interface EmptyResponse {
+}
+
 export const BONUS_PACKAGE_NAME = "bonus";
 
 export interface BonusServiceClient {
@@ -327,6 +339,8 @@ export interface BonusServiceClient {
   validateBetSelections(request: UserBet): Observable<ValidateBetResponse>;
 
   checkDepositBonus(request: CheckDepositBonusRequest): Observable<CheckDepositBonusResponse>;
+
+  settleBet(request: SettleBetRequest): Observable<EmptyResponse>;
 
   getBonus(request: GetBonusRequest): Observable<GetBonusResponse>;
 
@@ -349,6 +363,8 @@ export interface BonusServiceClient {
   redeemCampaignBonus(request: RedeemCampaignBonusDto): Observable<CreateBonusResponse>;
 
   getCampaignBonus(request: GetBonusByClientID): Observable<AllCampaignBonus>;
+
+  deletePlayerData(request: GetBonusRequest): Observable<EmptyResponse>;
 }
 
 export interface BonusServiceController {
@@ -375,6 +391,8 @@ export interface BonusServiceController {
   checkDepositBonus(
     request: CheckDepositBonusRequest,
   ): Promise<CheckDepositBonusResponse> | Observable<CheckDepositBonusResponse> | CheckDepositBonusResponse;
+
+  settleBet(request: SettleBetRequest): Promise<EmptyResponse> | Observable<EmptyResponse> | EmptyResponse;
 
   getBonus(request: GetBonusRequest): Promise<GetBonusResponse> | Observable<GetBonusResponse> | GetBonusResponse;
 
@@ -413,6 +431,8 @@ export interface BonusServiceController {
   getCampaignBonus(
     request: GetBonusByClientID,
   ): Promise<AllCampaignBonus> | Observable<AllCampaignBonus> | AllCampaignBonus;
+
+  deletePlayerData(request: GetBonusRequest): Promise<EmptyResponse> | Observable<EmptyResponse> | EmptyResponse;
 }
 
 export function BonusServiceControllerMethods() {
@@ -424,6 +444,7 @@ export function BonusServiceControllerMethods() {
       "getCampaign",
       "validateBetSelections",
       "checkDepositBonus",
+      "settleBet",
       "getBonus",
       "deleteBonus",
       "getUserBonus",
@@ -435,6 +456,7 @@ export function BonusServiceControllerMethods() {
       "deleteCampaignBonus",
       "redeemCampaignBonus",
       "getCampaignBonus",
+      "deletePlayerData",
     ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
