@@ -1,11 +1,11 @@
 /* eslint-disable prettier/prettier */
-import { HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { JwtService } from './jwt.service';
+import { HttpStatus, Inject, Injectable } from "@nestjs/common";
+import { JwtService } from "./jwt.service";
 import {
   RegisterRequestDto,
   LoginRequestDto,
   ValidateRequestDto,
-} from '../auth.dto';
+} from "../auth.dto";
 import {
   ChangePasswordRequest,
   CommonResponseObj,
@@ -21,14 +21,14 @@ import {
   ValidateResponse,
   XpressLoginRequest,
   XpressLoginResponse,
-} from 'src/proto/identity.pb';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { Client, User } from '@prisma/client';
-import { WalletService } from 'src/wallet/wallet.service';
-import { BonusService } from 'src/bonus/bonus.service';
-import { TrackierService } from 'src/user/trackier/trackier.service';
-import * as dayjs from 'dayjs';
-import { generateString } from 'src/common/helpers';
+} from "src/proto/identity.pb";
+import { PrismaService } from "src/prisma/prisma.service";
+import { Client, User } from "@prisma/client";
+import { WalletService } from "src/wallet/wallet.service";
+import { BonusService } from "src/bonus/bonus.service";
+import { TrackierService } from "src/user/trackier/trackier.service";
+import * as dayjs from "dayjs";
+import { generateString } from "src/common/helpers";
 
 @Injectable()
 export class AuthService {
@@ -38,7 +38,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly walletService: WalletService,
     private readonly bonusService: BonusService,
-    private trackierService: TrackierService,
+    private trackierService: TrackierService
   ) {}
 
   public async register({
@@ -49,7 +49,7 @@ export class AuthService {
     promoCode,
     trackingToken,
   }: RegisterRequestDto): Promise<RegisterResponse> {
-    console.log(clientId, username);
+    // console.log(clientId, username);
     try {
       let user: any = await this.prisma.user.findFirst({
         where: { username, clientId },
@@ -58,7 +58,7 @@ export class AuthService {
       if (user) {
         return {
           status: HttpStatus.CONFLICT,
-          error: 'Username/Phone number already exists',
+          error: "Username/Phone number already exists",
           data: null,
           success: true,
         };
@@ -66,7 +66,7 @@ export class AuthService {
 
       // find player role
       const role = await this.prisma.role.findFirst({
-        where: { name: 'Player' },
+        where: { name: "Player" },
       });
 
       user = await this.prisma.$transaction(async (prisma) => {
@@ -99,7 +99,7 @@ export class AuthService {
         });
 
         //check if promo code is provided and activate bonus
-        if (promoCode && promoCode !== '') {
+        if (promoCode && promoCode !== "") {
           const campaignRes = await this.bonusService.getBonusCampaign({
             promoCode,
             clientId,
@@ -116,7 +116,7 @@ export class AuthService {
               promoCode,
             });
           }
-        } else if (trackingToken && trackingToken !== '') {
+        } else if (trackingToken && trackingToken !== "") {
           await this.trackierService.createCustomer({
             customerId: newUser.username,
             customerName: newUser.username,
@@ -143,9 +143,9 @@ export class AuthService {
         }
 
         auth.token = this.jwtService.generateToken(auth);
-        auth.firstName = '';
-        auth.lastName = '';
-        auth.email = '';
+        auth.firstName = "";
+        auth.lastName = "";
+        auth.email = "";
         auth.phone = phoneNumber;
         auth.role = role.name;
         auth.roleId = role.id;
@@ -183,20 +183,25 @@ export class AuthService {
           userDetails: true,
           role: true,
           client: true,
+          agentUser: {
+            include: {
+              agent: true,
+            },
+          },
         },
       });
 
       if (!user) {
         return {
           status: HttpStatus.NOT_FOUND,
-          error: 'Username/Phone number not found',
+          error: "Username/Phone number not found",
           success: false,
           data: null,
         };
       }
       const role = await this.prisma.role.findUnique({
         where: {
-          name: 'Shop',
+          name: "Shop",
         },
       });
 
@@ -205,7 +210,7 @@ export class AuthService {
         const startOfDay = new Date(
           now.getFullYear(),
           now.getMonth(),
-          now.getDate(),
+          now.getDate()
         );
         const branchTransactions =
           await this.prisma.dailyTransactions.findFirst({
@@ -248,13 +253,13 @@ export class AuthService {
 
       const isPasswordValid: boolean = this.jwtService.isPasswordValid(
         password,
-        user.password,
+        user.password
       );
 
       if (!isPasswordValid) {
         return {
           status: HttpStatus.NOT_FOUND,
-          error: 'Invalid password',
+          error: "Invalid password",
           success: false,
           data: null,
         };
@@ -263,7 +268,7 @@ export class AuthService {
       if (user.status !== 1)
         return {
           status: HttpStatus.NOT_FOUND,
-          error: 'Your account is not active.',
+          error: "Your account is not active.",
           success: false,
           data: null,
         };
@@ -271,15 +276,16 @@ export class AuthService {
       const auth: any = { ...user };
       const auth_code = generateString(40);
       let group;
-      if (user.role.name === 'Player') {
+      if (user.role.name === "Player") {
         group = `${user.client.groupName}_Online`;
-      } else {
+      } else if (user.role.name === "Cashier") {
+        group = `${user.client.groupName}_${user.agentUser.agent.username}`;
       }
 
       // update last login
       await this.prisma.user.update({
         data: {
-          lastLogin: dayjs().format('YYYY-MM-DD'),
+          lastLogin: dayjs().format("YYYY-MM-DD"),
           auth_code,
         },
         where: {
@@ -333,7 +339,7 @@ export class AuthService {
     } catch (err) {
       return {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
-        error: 'Something went wrong: ' + err.message,
+        error: "Something went wrong: " + err.message,
         success: false,
         data: null,
       };
@@ -348,6 +354,11 @@ export class AuthService {
           userDetails: true,
           role: true,
           client: true,
+          agentUser: {
+            include: {
+              agent: true,
+            },
+          },
         },
       });
       if (user) {
@@ -358,9 +369,10 @@ export class AuthService {
 
         const auth: any = { ...user };
         let group;
-        if (user.role.name === 'Player') {
+        if (user.role.name === "Player") {
           group = `${user.client.groupName}_Online`;
-        } else {
+        } else if (user.role.name === "Cashier") {
+          group = `${user.client.groupName}_${user.agentUser.agent.username}`;
         }
 
         if (balanceRes.success) {
@@ -403,31 +415,31 @@ export class AuthService {
         return {
           success: true,
           status: HttpStatus.OK,
-          message: 'User found',
+          message: "User found",
           data: auth,
         };
       } else {
-        console.log('user not found returned');
+        console.log("user not found returned");
         return {
           success: false,
           status: HttpStatus.NOT_FOUND,
-          message: 'User not found',
+          message: "User not found",
           data: null,
         };
       }
     } catch (e) {
-      console.log('error occured');
+      console.log("error occured");
       return {
         success: false,
         status: 501,
-        message: 'Internal error ' + e.message,
+        message: "Internal error " + e.message,
         data: null,
       };
     }
   }
 
   async updateUserDetails(
-    param: UpdateUserRequest,
+    param: UpdateUserRequest
   ): Promise<UpdateUserResponse> {
     try {
       await this.prisma.userDetails.update({
@@ -447,32 +459,32 @@ export class AuthService {
           currency: param.currency,
         },
       });
-      return { success: true, message: 'Details updated successfully' };
+      return { success: true, message: "Details updated successfully" };
     } catch (err) {
       return {
         success: false,
-        message: 'Error updating details ' + err.message,
+        message: "Error updating details " + err.message,
       };
     }
   }
 
   async updateUserPassword(
-    param: ChangePasswordRequest,
+    param: ChangePasswordRequest
   ): Promise<UpdateUserResponse> {
     try {
       //get user and compare password
       const user = await this.prisma.user.findUnique({
         where: { id: param.userId },
       });
-      if (!user) return { success: false, message: 'User does not exist' };
+      if (!user) return { success: false, message: "User does not exist" };
 
       const isPasswordValid: boolean = this.jwtService.isPasswordValid(
         param.oldPassword,
-        user.password,
+        user.password
       );
 
       if (!isPasswordValid) {
-        return { message: 'Incorrect old password', success: false };
+        return { message: "Incorrect old password", success: false };
       }
 
       await this.prisma.user.update({
@@ -481,14 +493,14 @@ export class AuthService {
           password: this.jwtService.encodePassword(param.password),
         },
       });
-      return { success: true, message: 'Password changed successfully' };
+      return { success: true, message: "Password changed successfully" };
     } catch (e) {
-      return { success: false, message: 'Something went wrong' };
+      return { success: false, message: "Something went wrong" };
     }
   }
 
   async resetPassword(
-    param: ResetPasswordRequest,
+    param: ResetPasswordRequest
   ): Promise<UpdateUserResponse> {
     try {
       //get user and compare password
@@ -498,7 +510,7 @@ export class AuthService {
           clientId: param.clientId,
         },
       });
-      if (!user) return { success: false, message: 'User does not exist' };
+      if (!user) return { success: false, message: "User does not exist" };
 
       await this.prisma.user.update({
         where: { id: user.id },
@@ -506,9 +518,9 @@ export class AuthService {
           password: this.jwtService.encodePassword(param.password),
         },
       });
-      return { success: true, message: 'Password changed successfully' };
+      return { success: true, message: "Password changed successfully" };
     } catch (e) {
-      return { success: false, message: 'Something went wrong' };
+      return { success: false, message: "Something went wrong" };
     }
   }
 
@@ -526,23 +538,23 @@ export class AuthService {
 
     if (user) {
       const name = user.userDetails.firstname
-        ? user.userDetails.firstName + ' ' + user.userDetails.lastName
+        ? user.userDetails.firstName + " " + user.userDetails.lastName
         : user.username;
       return {
-        responseCode: '00000',
-        responseMessage: 'SUCCESSFUL',
+        responseCode: "00000",
+        responseMessage: "SUCCESSFUL",
         data: {
           referenceID: user.username,
           CustomerName:
-            user.userDetails.firstName + ' ' + user.userDetails.lastName,
-          Phoneno: user.userDetails.phone || '',
-          Status: '00',
+            user.userDetails.firstName + " " + user.userDetails.lastName,
+          Phoneno: user.userDetails.phone || "",
+          Status: "00",
         },
       };
     } else {
       return {
-        responseCode: '10967',
-        responseMessage: 'Invalid User',
+        responseCode: "10967",
+        responseMessage: "Invalid User",
         data: {},
       };
     }
@@ -556,7 +568,7 @@ export class AuthService {
     if (!decoded) {
       return {
         status: HttpStatus.FORBIDDEN,
-        error: 'Token is invalid',
+        error: "Token is invalid",
         user: null,
       };
     }
@@ -566,7 +578,7 @@ export class AuthService {
     if (!auth) {
       return {
         status: HttpStatus.CONFLICT,
-        error: 'User not found',
+        error: "User not found",
         user: null,
       };
     }
@@ -584,7 +596,7 @@ export class AuthService {
     if (!client) {
       return {
         status: HttpStatus.FORBIDDEN,
-        error: 'Token is invalid',
+        error: "Token is invalid",
         clientId: null,
       };
     }
@@ -597,20 +609,29 @@ export class AuthService {
     clientId,
   }: XpressLoginRequest): Promise<XpressLoginResponse> {
     try {
-      console.log('xpressLogin', token, clientId);
+      console.log("xpressLogin", token, clientId);
       const user = await this.prisma.user.findFirst({
         where: {
           auth_code: token,
           clientId,
         },
-        include: { role: true, client: true },
+        include: {
+          role: true,
+          client: true,
+          agentUser: {
+            include: {
+              agent: true,
+            },
+          },
+        },
       });
 
       if (user) {
         let group;
-        if (user.role.name === 'Player') {
+        if (user.role.name === "Player") {
           group = `${user.client.groupName}_Online`;
-        } else {
+        } else if (user.role.name === "Cashier") {
+          group = `${user.client.groupName}_${user.agentUser.agent.username}`;
         }
         //get user wallet
         const balanceRes = await this.walletService.getWallet({
@@ -634,12 +655,12 @@ export class AuthService {
           group,
           currency: user.client.currency,
         };
-        return { status: true, code: HttpStatus.OK, message: 'success', data };
+        return { status: true, code: HttpStatus.OK, message: "success", data };
       } else {
         return {
           status: false,
           code: HttpStatus.NOT_FOUND,
-          message: 'Invalid token',
+          message: "Invalid token",
           data: null,
         };
       }
@@ -647,30 +668,28 @@ export class AuthService {
       return {
         status: false,
         code: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: 'Something went wrong',
+        message: "Something went wrong",
         data: null,
       };
     }
   }
-  public async evoXpressLogin({
+
+  public async validateAuthCode({
     token,
     clientId,
-  }: XpressLoginRequest): Promise<XpressLoginResponse> {
+  }: XpressLoginRequest): Promise<CommonResponseObj> {
+    console.log("validate auth code", token, clientId);
     try {
+      //
       const user = await this.prisma.user.findFirst({
         where: {
-          virtualToken: token,
+          auth_code: token,
           clientId,
         },
-        include: { role: true, client: true },
+        include: { client: true },
       });
 
       if (user) {
-        let group;
-        if (user.role.name === 'Player') {
-          group = `${user.client.groupName}_Online`;
-        } else {
-        }
         //get user wallet
         const balanceRes = await this.walletService.getWallet({
           userId: user.id,
@@ -678,27 +697,33 @@ export class AuthService {
         });
 
         const data = {
-          playerId: `${group}.${user.id}`,
+          playerId: user.id,
           playerNickname: user.username,
           sessionId: user.virtualToken,
           balance: balanceRes.data.availableBalance,
-          group,
+          group: null,
           currency: user.client.currency,
         };
-        return { status: true, code: HttpStatus.OK, message: 'success', data };
+
+        return {
+          success: true,
+          status: HttpStatus.OK,
+          message: "Success",
+          data: data,
+        };
       } else {
         return {
-          status: false,
-          code: HttpStatus.NOT_FOUND,
-          message: 'Invalid token',
+          success: false,
+          status: HttpStatus.NOT_FOUND,
+          message: "Session Expired",
           data: null,
         };
       }
     } catch (e) {
       return {
-        status: false,
-        code: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: 'Something went wrong',
+        success: false,
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: "Something went wrong",
         data: null,
       };
     }
@@ -719,13 +744,22 @@ export class AuthService {
       // get user
       const user = await this.prisma.user.findFirst({
         where: { id: parseInt(sessionId) },
-        include: { role: true, client: true },
+        include: {
+          role: true,
+          client: true,
+          agentUser: {
+            include: {
+              agent: true,
+            },
+          },
+        },
       });
       //get balance
       let group;
-      if (user.role.name === 'Player') {
+      if (user.role.name === "Player") {
         group = `${user.client.groupName}_Online`;
       } else {
+        group = `${user.client.groupName}_${user.agentUser.agent.username}`;
       }
       //get user wallet
       const balanceRes = await this.walletService.getWallet({
@@ -736,17 +770,17 @@ export class AuthService {
       const data = {
         playerId: `${group}.${user.id}`,
         playerNickname: user.username,
-        sessionId: '',
+        sessionId: "",
         balance: balanceRes.data.availableBalance,
         group,
         currency: user.client.currency,
       };
-      return { status: true, code: HttpStatus.OK, message: 'success', data };
+      return { status: true, code: HttpStatus.OK, message: "success", data };
     } catch (e) {
       return {
         status: false,
         code: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: 'Something went wrong',
+        message: "Something went wrong",
         data: null,
       };
     }
@@ -755,9 +789,9 @@ export class AuthService {
   public async validateXpressSession({
     sessionId,
     clientId,
-  }: SessionRequest): Promise<any> {
+  }: SessionRequest): Promise<CommonResponseObj> {
     try {
-      console.log('session area', sessionId);
+      console.log("session area", sessionId);
       const user = await this.prisma.user.findFirst({
         where: {
           virtualToken: sessionId,
@@ -768,14 +802,14 @@ export class AuthService {
         return {
           success: true,
           status: HttpStatus.OK,
-          message: 'Success',
-          data: JSON.stringify(user),
+          message: "Success",
+          data: user,
         };
       } else {
         return {
           success: false,
           status: HttpStatus.NOT_FOUND,
-          message: 'Session Expired',
+          message: "Session Expired",
           data: null,
         };
       }
@@ -783,7 +817,7 @@ export class AuthService {
       return {
         success: false,
         status: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: 'Something went wrong',
+        message: "Something went wrong",
         data: null,
       };
     }

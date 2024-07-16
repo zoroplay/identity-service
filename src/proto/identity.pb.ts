@@ -6,6 +6,195 @@ import { Struct } from "./google/protobuf/struct.pb";
 
 export const protobufPackage = "identity";
 
+/** HandlePin */
+export interface HandlePinRequest {
+  pin: number;
+  confirmPin?: number | undefined;
+  userId: number;
+  type: string;
+}
+
+/** HandleTransfer */
+export interface HandleTransferRequest {
+  pin: number;
+  clientId: number;
+  fromUserId: number;
+  toUsername: string;
+  amount: number;
+}
+
+/** Power Bonus */
+export interface PowerRequest {
+  agentIds: number[];
+  clientId: number;
+  fromDate: string;
+  toDate: string;
+}
+
+export interface BetData {
+  id?: number | undefined;
+  betId: number;
+  userId: number;
+  clientId: number;
+  selectionCount: number;
+  cancelledDate?: string | undefined;
+  settledDate?: string | undefined;
+  stake: number;
+  commission: number;
+  winnings: number;
+  weightedStake: number;
+  odds: number;
+  createdAt?: string | undefined;
+  updatedAt?: string | undefined;
+}
+
+export interface Response {
+  success: boolean;
+  message: string;
+}
+
+export interface CurrentWeekData {
+  totalWeeks: number;
+  currentWeek: number;
+  noOfTickets: number;
+  played: number;
+  won: number;
+  net: number;
+  commission: number;
+}
+
+export interface CurrentMonth {
+  month: string;
+}
+
+export interface Meta {
+  total?: number | undefined;
+  totalPages?: number | undefined;
+  currentPage: number;
+  itemsPerPage: number;
+}
+
+export interface NormalResponse {
+  success?: boolean | undefined;
+  message?: string | undefined;
+  data: NormalPayout[];
+  meta?: Meta | undefined;
+}
+
+export interface PayNormalResponse {
+  success: boolean;
+  message: string;
+  data: number;
+}
+
+export interface NormalPayout {
+  id?: number | undefined;
+  betId: number;
+  selectionsCount: number;
+  totalOdds: number;
+  stake: number;
+  cashierId: number;
+  profileId: number;
+  profileGroup: string;
+  commission: number;
+  isPaid: boolean;
+  createdAt?: string | undefined;
+  updatedAt?: string | undefined;
+}
+
+export interface PowerBonusData {
+  id?: number | undefined;
+  totalStake: number;
+  totalTickets: number;
+  totalWeightedStake: number;
+  averageNoOfSelections: number;
+  grossProfit: number;
+  ggrPercent: number;
+  rateIsLess: number;
+  rateIsMore: number;
+  rate: number;
+  turnoverCommission: number;
+  monthlyBonus: number;
+  totalWinnings: number;
+  bets: BetData[];
+  createdAt?: string | undefined;
+  updatedAt?: string | undefined;
+}
+
+export interface PayPowerRequest {
+  clientId: number;
+  agentIds: number[];
+  fromDate: string;
+  toDate: string;
+  provider: string;
+}
+
+export interface PowerCountData {
+  paidUsers: string[];
+  unPaidUsers: string[];
+  errors: string[];
+}
+
+export interface PowerResponse {
+  success: boolean;
+  message: string;
+  data: PowerCountData | undefined;
+}
+
+export interface PowerBonusResponse {
+  success: boolean;
+  message: string;
+  data: PowerBonusData | undefined;
+}
+
+/** Normal Bonus */
+export interface GetNormalRequest {
+  clientId: number;
+  fromDate: string;
+  toDate: string;
+  provider: string;
+  meta?: Meta | undefined;
+}
+
+export interface PayNormalRequest {
+  id?: number | undefined;
+  betId: number;
+  selectionsCount: number;
+  totalOdds: number;
+  stake: number;
+  clientId: number;
+  cashierId: number;
+  profileId?: number | undefined;
+  commission?: number | undefined;
+  profileGroup: string;
+  isPaid?: boolean | undefined;
+}
+
+/** Bonus */
+export interface BonusGroup {
+  group: string;
+  maxSelection: number;
+  minSelection: number;
+  rate: number;
+  rateIsLess: number;
+  rateIsMore: number;
+  targetCoupon: number;
+  targetStake: number;
+  createdAt?: string | undefined;
+  updatedAt?: string | undefined;
+}
+
+export interface BonusGroups {
+  clientId: number;
+  bonusGroups: BonusGroup[];
+}
+
+export interface BonusGroupResponse {
+  success: boolean;
+  message: string;
+  data: BonusGroup[];
+}
+
 export interface GetAgentUserRequest {
   clientId: number;
   userId: number;
@@ -20,18 +209,21 @@ export interface GetAgentUsersRequest {
   page?: number | undefined;
 }
 
-export interface Empty {
+export interface GetCommissionsRequest {
+  clientId: number;
+  provider?: string | undefined;
 }
 
 /** Commission Profile */
 export interface CommissionProfile {
+  clientId: number;
   id?: number | undefined;
   name: string;
-  default: boolean;
+  isDefault?: boolean | undefined;
   description: string;
   providerGroup: string;
   period: string;
-  type: string;
+  calculationType: string;
   percentage: number;
   commissionType: number;
   turnovers: CommissionTurnover[];
@@ -39,16 +231,8 @@ export interface CommissionProfile {
   updatedAt?: string | undefined;
 }
 
-export interface CommissionProfileResponse {
-  success: boolean;
-  message: string;
-  data: CommissionProfile | undefined;
-}
-
-export interface CommissionProfilesResponse {
-  success: boolean;
-  message: string;
-  data: CommissionProfile[];
+export interface SingleItemRequest {
+  itemId: number;
 }
 
 export interface AssignUserCommissionProfile {
@@ -56,15 +240,6 @@ export interface AssignUserCommissionProfile {
   userId: number;
   createdAt?: string | undefined;
   updatedAt?: string | undefined;
-}
-
-/** Commission Reequest */
-export interface CommissionRequest {
-  provider: string;
-}
-
-export interface ArrayCommissionResponse {
-  commissions: Commission[];
 }
 
 export interface Commission {
@@ -102,6 +277,7 @@ export interface GetRiskSettingRequest {
 
 export interface FindUserRequest {
   userId: number;
+  status?: number | undefined;
 }
 
 export interface GetUserIdNameRequest {
@@ -690,8 +866,7 @@ export interface PlayerWalletData {
   noOfWithdrawals: number;
 }
 
-export interface PlayerBonusData {
-}
+export interface PlayerBonusData {}
 
 export interface ChangePasswordRequest {
   clientId: number;
@@ -769,8 +944,7 @@ export interface XpressLoginResponse_XpressData {
   currency: string;
 }
 
-export interface EmptyRequest {
-}
+export interface EmptyRequest {}
 
 export interface MetaData {
   page: number;
@@ -783,9 +957,16 @@ export interface MetaData {
 
 export const IDENTITY_PACKAGE_NAME = "identity";
 
-wrappers[".google.protobuf.Struct"] = { fromObject: Struct.wrap, toObject: Struct.unwrap } as any;
+wrappers[".google.protobuf.Struct"] = {
+  fromObject: Struct.wrap,
+  toObject: Struct.unwrap,
+} as any;
 
 export interface IdentityServiceClient {
+  handlePin(request: HandlePinRequest): Observable<CommonResponseObj>;
+
+  handleTransfer(request: HandleTransferRequest): Observable<CommonResponseObj>;
+
   register(request: CreateUserRequest): Observable<RegisterResponse>;
 
   login(request: LoginRequest): Observable<LoginResponse>;
@@ -800,7 +981,9 @@ export interface IdentityServiceClient {
 
   validateClient(request: ValidateRequest): Observable<ValidateClientResponse>;
 
-  getUserDetails(request: GetUserDetailsRequest): Observable<GetUserDetailsResponse>;
+  getUserDetails(
+    request: GetUserDetailsRequest
+  ): Observable<GetUserDetailsResponse>;
 
   createClient(request: ClientRequest): Observable<CommonResponseObj>;
 
@@ -822,7 +1005,9 @@ export interface IdentityServiceClient {
 
   removeClient(request: RemoveClientRequest): Observable<CommonResponseObj>;
 
-  removePermission(request: RemovePermissionRequest): Observable<CommonResponseObj>;
+  removePermission(
+    request: RemovePermissionRequest
+  ): Observable<CommonResponseObj>;
 
   updateDetails(request: User): Observable<CommonResponseObj>;
 
@@ -834,47 +1019,79 @@ export interface IdentityServiceClient {
 
   getClient(request: GetClientRequest): Observable<GetClientResponse>;
 
-  getPaymentData(request: GetPaymentDataRequest): Observable<GetPaymentDataResponse>;
+  getPaymentData(
+    request: GetPaymentDataRequest
+  ): Observable<GetPaymentDataResponse>;
 
   searchPlayers(request: SearchPlayerRequest): Observable<SearchPlayerResponse>;
 
   updateUserDetails(request: UpdateUserRequest): Observable<UpdateUserResponse>;
 
-  getUserByUsername(request: GetUserByUsernameRequest): Observable<GetUserByUsernameResponse>;
+  getUserByUsername(
+    request: GetUserByUsernameRequest
+  ): Observable<GetUserByUsernameResponse>;
 
-  onlinePlayersReport(request: OnlinePlayersRequest): Observable<PlayersListResponse>;
+  onlinePlayersReport(
+    request: OnlinePlayersRequest
+  ): Observable<PlayersListResponse>;
 
-  registrationReport(request: RegistrationReportRequest): Observable<PlayersListResponse>;
+  registrationReport(
+    request: RegistrationReportRequest
+  ): Observable<PlayersListResponse>;
 
-  fetchPlayerFilters(request: FetchPlayerFilterRequest): Observable<PaginationResponse>;
+  fetchPlayerFilters(
+    request: FetchPlayerFilterRequest
+  ): Observable<PaginationResponse>;
 
-  getPlayerData(request: GetPlayerDataRequest): Observable<GetPlayerDataResponse>;
+  getPlayerData(
+    request: GetPlayerDataRequest
+  ): Observable<GetPlayerDataResponse>;
 
-  updatePlayerData(request: UpdatePlayerDataRequest): Observable<UpdateUserResponse>;
+  updatePlayerData(
+    request: UpdatePlayerDataRequest
+  ): Observable<UpdateUserResponse>;
 
-  changePassword(request: ChangePasswordRequest): Observable<UpdateUserResponse>;
+  updatePlayerStatus(request: FindUserRequest): Observable<CommonResponseObj>;
+
+  changePassword(
+    request: ChangePasswordRequest
+  ): Observable<UpdateUserResponse>;
 
   resetPassword(request: ResetPasswordRequest): Observable<UpdateUserResponse>;
 
   savePlayerSegment(request: SaveSegmentRequest): Observable<CommonResponseObj>;
 
-  fetchPlayerSegment(request: FetchPlayerSegmentRequest): Observable<CommonResponseArray>;
+  fetchPlayerSegment(
+    request: FetchPlayerSegmentRequest
+  ): Observable<CommonResponseArray>;
 
   addToSegment(request: AddToSegmentRequest): Observable<CommonResponseObj>;
 
-  uploadToSegment(request: UploadPlayersToSegment): Observable<CommonResponseObj>;
+  uploadToSegment(
+    request: UploadPlayersToSegment
+  ): Observable<CommonResponseObj>;
 
-  deletePlayerSegment(request: DeleteItemRequest): Observable<CommonResponseObj>;
+  deletePlayerSegment(
+    request: DeleteItemRequest
+  ): Observable<CommonResponseObj>;
 
-  removePlayerFromSegment(request: DeleteItemRequest): Observable<CommonResponseObj>;
+  removePlayerFromSegment(
+    request: DeleteItemRequest
+  ): Observable<CommonResponseObj>;
 
-  getSegmentPlayers(request: GetSegmentPlayerRequest): Observable<CommonResponseArray>;
+  getSegmentPlayers(
+    request: GetSegmentPlayerRequest
+  ): Observable<CommonResponseArray>;
 
-  grantBonusToSegment(request: GrantBonusRequest): Observable<CommonResponseObj>;
+  grantBonusToSegment(
+    request: GrantBonusRequest
+  ): Observable<CommonResponseObj>;
 
   getCountries(request: EmptyRequest): Observable<CommonResponseArray>;
 
-  getStatesByCoutnry(request: GetStatesRequest): Observable<CommonResponseArray>;
+  getStatesByCoutnry(
+    request: GetStatesRequest
+  ): Observable<CommonResponseArray>;
 
   validateXpressSession(request: SessionRequest): Observable<CommonResponseObj>;
 
@@ -882,260 +1099,638 @@ export interface IdentityServiceClient {
 
   saveRiskSettings(request: SettingsRequest): Observable<CommonResponseObj>;
 
-  saveUserRiskSettings(request: UserRiskSettingsRequest): Observable<CommonResponseObj>;
+  saveUserRiskSettings(
+    request: UserRiskSettingsRequest
+  ): Observable<CommonResponseObj>;
 
   getSettings(request: GetSettingsRequest): Observable<CommonResponseArray>;
 
+  getGlobalVariables(
+    request: GetSettingsRequest
+  ): Observable<CommonResponseObj>;
+
   validateBet(request: PlaceBetRequest): Observable<CommonResponseObj>;
 
-  getWithdrawalSettings(request: GetWithdrawalSettingsRequest): Observable<WithdrawalSettingsResponse>;
+  getWithdrawalSettings(
+    request: GetWithdrawalSettingsRequest
+  ): Observable<WithdrawalSettingsResponse>;
 
-  getUserIdandName(request: GetUserIdNameRequest): Observable<GetUserIdNameResponse>;
+  getUserIdandName(
+    request: GetUserIdNameRequest
+  ): Observable<GetUserIdNameResponse>;
 
-  getUserRiskSettings(request: GetRiskSettingRequest): Observable<CommonResponseObj>;
+  getUserRiskSettings(
+    request: GetRiskSettingRequest
+  ): Observable<CommonResponseObj>;
 
   /** retail services */
 
-  listAgentUsers(request: GetAgentUsersRequest): Observable<CommonResponseArray>;
+  listAgentUsers(
+    request: GetAgentUsersRequest
+  ): Observable<CommonResponseArray>;
 
   listAgents(request: GetAgentUsersRequest): Observable<CommonResponseObj>;
 
   getAgentUser(request: GetAgentUserRequest): Observable<CommonResponseArray>;
 
-  getCommissionProfiles(request: Empty): Observable<CommissionProfilesResponse>;
+  getCommissionProfiles(
+    request: GetCommissionsRequest
+  ): Observable<CommonResponseArray>;
 
-  createCommissionProfile(request: CommissionProfile): Observable<CommissionProfileResponse>;
+  createCommissionProfile(
+    request: CommissionProfile
+  ): Observable<CommonResponseObj>;
 
-  updateCommissionProfile(request: CommissionProfile): Observable<CommissionProfileResponse>;
+  updateCommissionProfile(
+    request: CommissionProfile
+  ): Observable<CommonResponseObj>;
 
-  assignUserCommissionProfile(request: AssignUserCommissionProfile): Observable<CommissionProfileResponse>;
+  assignUserCommissionProfile(
+    request: AssignUserCommissionProfile
+  ): Observable<CommonResponseObj>;
+
+  getUserCommissionProfiles(
+    request: SingleItemRequest
+  ): Observable<CommonResponseArray>;
+
+  removeUserCommissionProfile(
+    request: AssignUserCommissionProfile
+  ): Observable<CommonResponseArray>;
+
+  getCommissionProfile(
+    request: SingleItemRequest
+  ): Observable<CommonResponseObj>;
+
+  deleteCommissionProfile(
+    request: SingleItemRequest
+  ): Observable<CommonResponseObj>;
+
+  getCommissionProfileUsers(
+    request: GetCommissionsRequest
+  ): Observable<CommonResponseArray>;
+
+  getBonusGroups(request: SingleItemRequest): Observable<BonusGroupResponse>;
+
+  createBonusGroups(request: BonusGroups): Observable<BonusGroupResponse>;
+
+  createPowerBonus(request: PowerRequest): Observable<PowerBonusResponse>;
+
+  getPowerBonus(request: PowerRequest): Observable<PowerBonusResponse>;
+
+  payOutPowerBonus(request: PayPowerRequest): Observable<PowerResponse>;
+
+  getNormalBonus(request: GetNormalRequest): Observable<NormalResponse>;
+
+  calculateNormalBonus(
+    request: PayNormalRequest
+  ): Observable<PayNormalResponse>;
+
+  payOutNormalBonus(request: PayNormalRequest): Observable<PayNormalResponse>;
 }
 
 export interface IdentityServiceController {
-  register(request: CreateUserRequest): Promise<RegisterResponse> | Observable<RegisterResponse> | RegisterResponse;
+  handlePin(
+    request: HandlePinRequest
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
 
-  login(request: LoginRequest): Promise<LoginResponse> | Observable<LoginResponse> | LoginResponse;
+  handleTransfer(
+    request: HandleTransferRequest
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
+
+  register(
+    request: CreateUserRequest
+  ):
+    | Promise<RegisterResponse>
+    | Observable<RegisterResponse>
+    | RegisterResponse;
+
+  login(
+    request: LoginRequest
+  ): Promise<LoginResponse> | Observable<LoginResponse> | LoginResponse;
 
   xpressGameLogin(
-    request: XpressLoginRequest,
-  ): Promise<XpressLoginResponse> | Observable<XpressLoginResponse> | XpressLoginResponse;
+    request: XpressLoginRequest
+  ):
+    | Promise<XpressLoginResponse>
+    | Observable<XpressLoginResponse>
+    | XpressLoginResponse;
 
   validateAuthCode(
-    request: XpressLoginRequest,
-  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+    request: XpressLoginRequest
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
 
   xpressGameLogout(
-    request: SessionRequest,
-  ): Promise<XpressLoginResponse> | Observable<XpressLoginResponse> | XpressLoginResponse;
+    request: SessionRequest
+  ):
+    | Promise<XpressLoginResponse>
+    | Observable<XpressLoginResponse>
+    | XpressLoginResponse;
 
-  validate(request: ValidateRequest): Promise<ValidateResponse> | Observable<ValidateResponse> | ValidateResponse;
+  validate(
+    request: ValidateRequest
+  ):
+    | Promise<ValidateResponse>
+    | Observable<ValidateResponse>
+    | ValidateResponse;
 
   validateClient(
-    request: ValidateRequest,
-  ): Promise<ValidateClientResponse> | Observable<ValidateClientResponse> | ValidateClientResponse;
+    request: ValidateRequest
+  ):
+    | Promise<ValidateClientResponse>
+    | Observable<ValidateClientResponse>
+    | ValidateClientResponse;
 
   getUserDetails(
-    request: GetUserDetailsRequest,
-  ): Promise<GetUserDetailsResponse> | Observable<GetUserDetailsResponse> | GetUserDetailsResponse;
+    request: GetUserDetailsRequest
+  ):
+    | Promise<GetUserDetailsResponse>
+    | Observable<GetUserDetailsResponse>
+    | GetUserDetailsResponse;
 
-  createClient(request: ClientRequest): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+  createClient(
+    request: ClientRequest
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
 
   createPermission(
-    request: PermissionRequest,
-  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+    request: PermissionRequest
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
 
-  findUser(request: FindUserRequest): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+  findUser(
+    request: FindUserRequest
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
 
-  saveRole(request: RoleRequest): Promise<SaveRoleResponse> | Observable<SaveRoleResponse> | SaveRoleResponse;
+  saveRole(
+    request: RoleRequest
+  ):
+    | Promise<SaveRoleResponse>
+    | Observable<SaveRoleResponse>
+    | SaveRoleResponse;
 
-  getRoles(request: EmptyRequest): Promise<GetRolesResponse> | Observable<GetRolesResponse> | GetRolesResponse;
+  getRoles(
+    request: EmptyRequest
+  ):
+    | Promise<GetRolesResponse>
+    | Observable<GetRolesResponse>
+    | GetRolesResponse;
 
-  getAgencyRoles(request: EmptyRequest): Promise<GetRolesResponse> | Observable<GetRolesResponse> | GetRolesResponse;
+  getAgencyRoles(
+    request: EmptyRequest
+  ):
+    | Promise<GetRolesResponse>
+    | Observable<GetRolesResponse>
+    | GetRolesResponse;
 
-  removeRole(request: RemoveRoleRequest): Promise<DeleteResponse> | Observable<DeleteResponse> | DeleteResponse;
+  removeRole(
+    request: RemoveRoleRequest
+  ): Promise<DeleteResponse> | Observable<DeleteResponse> | DeleteResponse;
 
   findAllPermissions(
-    request: EmptyRequest,
-  ): Promise<CommonResponseArray> | Observable<CommonResponseArray> | CommonResponseArray;
+    request: EmptyRequest
+  ):
+    | Promise<CommonResponseArray>
+    | Observable<CommonResponseArray>
+    | CommonResponseArray;
 
   findAllClients(
-    request: EmptyRequest,
-  ): Promise<CommonResponseArray> | Observable<CommonResponseArray> | CommonResponseArray;
+    request: EmptyRequest
+  ):
+    | Promise<CommonResponseArray>
+    | Observable<CommonResponseArray>
+    | CommonResponseArray;
 
   removeClient(
-    request: RemoveClientRequest,
-  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+    request: RemoveClientRequest
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
 
   removePermission(
-    request: RemovePermissionRequest,
-  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+    request: RemovePermissionRequest
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
 
-  updateDetails(request: User): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+  updateDetails(
+    request: User
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
 
   createRetailUser(
-    request: CreateUserRequest,
-  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+    request: CreateUserRequest
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
 
   createAdminUser(
-    request: CreateUserRequest,
-  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+    request: CreateUserRequest
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
 
-  getAdminUsers(request: EmptyRequest): Promise<GetUsersResponse> | Observable<GetUsersResponse> | GetUsersResponse;
+  getAdminUsers(
+    request: EmptyRequest
+  ):
+    | Promise<GetUsersResponse>
+    | Observable<GetUsersResponse>
+    | GetUsersResponse;
 
-  getClient(request: GetClientRequest): Promise<GetClientResponse> | Observable<GetClientResponse> | GetClientResponse;
+  getClient(
+    request: GetClientRequest
+  ):
+    | Promise<GetClientResponse>
+    | Observable<GetClientResponse>
+    | GetClientResponse;
 
   getPaymentData(
-    request: GetPaymentDataRequest,
-  ): Promise<GetPaymentDataResponse> | Observable<GetPaymentDataResponse> | GetPaymentDataResponse;
+    request: GetPaymentDataRequest
+  ):
+    | Promise<GetPaymentDataResponse>
+    | Observable<GetPaymentDataResponse>
+    | GetPaymentDataResponse;
 
   searchPlayers(
-    request: SearchPlayerRequest,
-  ): Promise<SearchPlayerResponse> | Observable<SearchPlayerResponse> | SearchPlayerResponse;
+    request: SearchPlayerRequest
+  ):
+    | Promise<SearchPlayerResponse>
+    | Observable<SearchPlayerResponse>
+    | SearchPlayerResponse;
 
   updateUserDetails(
-    request: UpdateUserRequest,
-  ): Promise<UpdateUserResponse> | Observable<UpdateUserResponse> | UpdateUserResponse;
+    request: UpdateUserRequest
+  ):
+    | Promise<UpdateUserResponse>
+    | Observable<UpdateUserResponse>
+    | UpdateUserResponse;
 
   getUserByUsername(
-    request: GetUserByUsernameRequest,
-  ): Promise<GetUserByUsernameResponse> | Observable<GetUserByUsernameResponse> | GetUserByUsernameResponse;
+    request: GetUserByUsernameRequest
+  ):
+    | Promise<GetUserByUsernameResponse>
+    | Observable<GetUserByUsernameResponse>
+    | GetUserByUsernameResponse;
 
   onlinePlayersReport(
-    request: OnlinePlayersRequest,
-  ): Promise<PlayersListResponse> | Observable<PlayersListResponse> | PlayersListResponse;
+    request: OnlinePlayersRequest
+  ):
+    | Promise<PlayersListResponse>
+    | Observable<PlayersListResponse>
+    | PlayersListResponse;
 
   registrationReport(
-    request: RegistrationReportRequest,
-  ): Promise<PlayersListResponse> | Observable<PlayersListResponse> | PlayersListResponse;
+    request: RegistrationReportRequest
+  ):
+    | Promise<PlayersListResponse>
+    | Observable<PlayersListResponse>
+    | PlayersListResponse;
 
   fetchPlayerFilters(
-    request: FetchPlayerFilterRequest,
-  ): Promise<PaginationResponse> | Observable<PaginationResponse> | PaginationResponse;
+    request: FetchPlayerFilterRequest
+  ):
+    | Promise<PaginationResponse>
+    | Observable<PaginationResponse>
+    | PaginationResponse;
 
   getPlayerData(
-    request: GetPlayerDataRequest,
-  ): Promise<GetPlayerDataResponse> | Observable<GetPlayerDataResponse> | GetPlayerDataResponse;
+    request: GetPlayerDataRequest
+  ):
+    | Promise<GetPlayerDataResponse>
+    | Observable<GetPlayerDataResponse>
+    | GetPlayerDataResponse;
 
   updatePlayerData(
-    request: UpdatePlayerDataRequest,
-  ): Promise<UpdateUserResponse> | Observable<UpdateUserResponse> | UpdateUserResponse;
+    request: UpdatePlayerDataRequest
+  ):
+    | Promise<UpdateUserResponse>
+    | Observable<UpdateUserResponse>
+    | UpdateUserResponse;
+
+  updatePlayerStatus(
+    request: FindUserRequest
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
 
   changePassword(
-    request: ChangePasswordRequest,
-  ): Promise<UpdateUserResponse> | Observable<UpdateUserResponse> | UpdateUserResponse;
+    request: ChangePasswordRequest
+  ):
+    | Promise<UpdateUserResponse>
+    | Observable<UpdateUserResponse>
+    | UpdateUserResponse;
 
   resetPassword(
-    request: ResetPasswordRequest,
-  ): Promise<UpdateUserResponse> | Observable<UpdateUserResponse> | UpdateUserResponse;
+    request: ResetPasswordRequest
+  ):
+    | Promise<UpdateUserResponse>
+    | Observable<UpdateUserResponse>
+    | UpdateUserResponse;
 
   savePlayerSegment(
-    request: SaveSegmentRequest,
-  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+    request: SaveSegmentRequest
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
 
   fetchPlayerSegment(
-    request: FetchPlayerSegmentRequest,
-  ): Promise<CommonResponseArray> | Observable<CommonResponseArray> | CommonResponseArray;
+    request: FetchPlayerSegmentRequest
+  ):
+    | Promise<CommonResponseArray>
+    | Observable<CommonResponseArray>
+    | CommonResponseArray;
 
   addToSegment(
-    request: AddToSegmentRequest,
-  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+    request: AddToSegmentRequest
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
 
   uploadToSegment(
-    request: UploadPlayersToSegment,
-  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+    request: UploadPlayersToSegment
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
 
   deletePlayerSegment(
-    request: DeleteItemRequest,
-  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+    request: DeleteItemRequest
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
 
   removePlayerFromSegment(
-    request: DeleteItemRequest,
-  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+    request: DeleteItemRequest
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
 
   getSegmentPlayers(
-    request: GetSegmentPlayerRequest,
-  ): Promise<CommonResponseArray> | Observable<CommonResponseArray> | CommonResponseArray;
+    request: GetSegmentPlayerRequest
+  ):
+    | Promise<CommonResponseArray>
+    | Observable<CommonResponseArray>
+    | CommonResponseArray;
 
   grantBonusToSegment(
-    request: GrantBonusRequest,
-  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+    request: GrantBonusRequest
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
 
   getCountries(
-    request: EmptyRequest,
-  ): Promise<CommonResponseArray> | Observable<CommonResponseArray> | CommonResponseArray;
+    request: EmptyRequest
+  ):
+    | Promise<CommonResponseArray>
+    | Observable<CommonResponseArray>
+    | CommonResponseArray;
 
   getStatesByCoutnry(
-    request: GetStatesRequest,
-  ): Promise<CommonResponseArray> | Observable<CommonResponseArray> | CommonResponseArray;
+    request: GetStatesRequest
+  ):
+    | Promise<CommonResponseArray>
+    | Observable<CommonResponseArray>
+    | CommonResponseArray;
 
   validateXpressSession(
-    request: SessionRequest,
-  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+    request: SessionRequest
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
 
   saveSettings(
-    request: SettingsRequest,
-  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+    request: SettingsRequest
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
 
   saveRiskSettings(
-    request: SettingsRequest,
-  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+    request: SettingsRequest
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
 
   saveUserRiskSettings(
-    request: UserRiskSettingsRequest,
-  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+    request: UserRiskSettingsRequest
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
 
   getSettings(
-    request: GetSettingsRequest,
-  ): Promise<CommonResponseArray> | Observable<CommonResponseArray> | CommonResponseArray;
+    request: GetSettingsRequest
+  ):
+    | Promise<CommonResponseArray>
+    | Observable<CommonResponseArray>
+    | CommonResponseArray;
 
-  validateBet(request: PlaceBetRequest): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+  getGlobalVariables(
+    request: GetSettingsRequest
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
+
+  validateBet(
+    request: PlaceBetRequest
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
 
   getWithdrawalSettings(
-    request: GetWithdrawalSettingsRequest,
-  ): Promise<WithdrawalSettingsResponse> | Observable<WithdrawalSettingsResponse> | WithdrawalSettingsResponse;
+    request: GetWithdrawalSettingsRequest
+  ):
+    | Promise<WithdrawalSettingsResponse>
+    | Observable<WithdrawalSettingsResponse>
+    | WithdrawalSettingsResponse;
 
   getUserIdandName(
-    request: GetUserIdNameRequest,
-  ): Promise<GetUserIdNameResponse> | Observable<GetUserIdNameResponse> | GetUserIdNameResponse;
+    request: GetUserIdNameRequest
+  ):
+    | Promise<GetUserIdNameResponse>
+    | Observable<GetUserIdNameResponse>
+    | GetUserIdNameResponse;
 
   getUserRiskSettings(
-    request: GetRiskSettingRequest,
-  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+    request: GetRiskSettingRequest
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
 
   /** retail services */
 
   listAgentUsers(
-    request: GetAgentUsersRequest,
-  ): Promise<CommonResponseArray> | Observable<CommonResponseArray> | CommonResponseArray;
+    request: GetAgentUsersRequest
+  ):
+    | Promise<CommonResponseArray>
+    | Observable<CommonResponseArray>
+    | CommonResponseArray;
 
   listAgents(
-    request: GetAgentUsersRequest,
-  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+    request: GetAgentUsersRequest
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
 
   getAgentUser(
-    request: GetAgentUserRequest,
-  ): Promise<CommonResponseArray> | Observable<CommonResponseArray> | CommonResponseArray;
+    request: GetAgentUserRequest
+  ):
+    | Promise<CommonResponseArray>
+    | Observable<CommonResponseArray>
+    | CommonResponseArray;
 
   getCommissionProfiles(
-    request: Empty,
-  ): Promise<CommissionProfilesResponse> | Observable<CommissionProfilesResponse> | CommissionProfilesResponse;
+    request: GetCommissionsRequest
+  ):
+    | Promise<CommonResponseArray>
+    | Observable<CommonResponseArray>
+    | CommonResponseArray;
 
   createCommissionProfile(
-    request: CommissionProfile,
-  ): Promise<CommissionProfileResponse> | Observable<CommissionProfileResponse> | CommissionProfileResponse;
+    request: CommissionProfile
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
 
   updateCommissionProfile(
-    request: CommissionProfile,
-  ): Promise<CommissionProfileResponse> | Observable<CommissionProfileResponse> | CommissionProfileResponse;
+    request: CommissionProfile
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
 
   assignUserCommissionProfile(
-    request: AssignUserCommissionProfile,
-  ): Promise<CommissionProfileResponse> | Observable<CommissionProfileResponse> | CommissionProfileResponse;
+    request: AssignUserCommissionProfile
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
+
+  getUserCommissionProfiles(
+    request: SingleItemRequest
+  ):
+    | Promise<CommonResponseArray>
+    | Observable<CommonResponseArray>
+    | CommonResponseArray;
+
+  removeUserCommissionProfile(
+    request: AssignUserCommissionProfile
+  ):
+    | Promise<CommonResponseArray>
+    | Observable<CommonResponseArray>
+    | CommonResponseArray;
+
+  getCommissionProfile(
+    request: SingleItemRequest
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
+
+  deleteCommissionProfile(
+    request: SingleItemRequest
+  ):
+    | Promise<CommonResponseObj>
+    | Observable<CommonResponseObj>
+    | CommonResponseObj;
+
+  getCommissionProfileUsers(
+    request: GetCommissionsRequest
+  ):
+    | Promise<CommonResponseArray>
+    | Observable<CommonResponseArray>
+    | CommonResponseArray;
+
+  getBonusGroups(
+    request: SingleItemRequest
+  ):
+    | Promise<BonusGroupResponse>
+    | Observable<BonusGroupResponse>
+    | BonusGroupResponse;
+
+  createBonusGroups(
+    request: BonusGroups
+  ):
+    | Promise<BonusGroupResponse>
+    | Observable<BonusGroupResponse>
+    | BonusGroupResponse;
+
+  createPowerBonus(
+    request: PowerRequest
+  ):
+    | Promise<PowerBonusResponse>
+    | Observable<PowerBonusResponse>
+    | PowerBonusResponse;
+
+  getPowerBonus(
+    request: PowerRequest
+  ):
+    | Promise<PowerBonusResponse>
+    | Observable<PowerBonusResponse>
+    | PowerBonusResponse;
+
+  payOutPowerBonus(
+    request: PayPowerRequest
+  ): Promise<PowerResponse> | Observable<PowerResponse> | PowerResponse;
+
+  getNormalBonus(
+    request: GetNormalRequest
+  ): Promise<NormalResponse> | Observable<NormalResponse> | NormalResponse;
+
+  calculateNormalBonus(
+    request: PayNormalRequest
+  ):
+    | Promise<PayNormalResponse>
+    | Observable<PayNormalResponse>
+    | PayNormalResponse;
+
+  payOutNormalBonus(
+    request: PayNormalRequest
+  ):
+    | Promise<PayNormalResponse>
+    | Observable<PayNormalResponse>
+    | PayNormalResponse;
 }
 
 export function IdentityServiceControllerMethods() {
   return function (constructor: Function) {
     const grpcMethods: string[] = [
+      "handlePin",
+      "handleTransfer",
       "register",
       "login",
       "xpressGameLogin",
@@ -1169,6 +1764,7 @@ export function IdentityServiceControllerMethods() {
       "fetchPlayerFilters",
       "getPlayerData",
       "updatePlayerData",
+      "updatePlayerStatus",
       "changePassword",
       "resetPassword",
       "savePlayerSegment",
@@ -1186,6 +1782,7 @@ export function IdentityServiceControllerMethods() {
       "saveRiskSettings",
       "saveUserRiskSettings",
       "getSettings",
+      "getGlobalVariables",
       "validateBet",
       "getWithdrawalSettings",
       "getUserIdandName",
@@ -1197,15 +1794,42 @@ export function IdentityServiceControllerMethods() {
       "createCommissionProfile",
       "updateCommissionProfile",
       "assignUserCommissionProfile",
+      "getUserCommissionProfiles",
+      "removeUserCommissionProfile",
+      "getCommissionProfile",
+      "deleteCommissionProfile",
+      "getCommissionProfileUsers",
+      "getBonusGroups",
+      "createBonusGroups",
+      "createPowerBonus",
+      "getPowerBonus",
+      "payOutPowerBonus",
+      "getNormalBonus",
+      "calculateNormalBonus",
+      "payOutNormalBonus",
     ];
     for (const method of grpcMethods) {
-      const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
-      GrpcMethod("IdentityService", method)(constructor.prototype[method], method, descriptor);
+      const descriptor: any = Reflect.getOwnPropertyDescriptor(
+        constructor.prototype,
+        method
+      );
+      GrpcMethod("IdentityService", method)(
+        constructor.prototype[method],
+        method,
+        descriptor
+      );
     }
     const grpcStreamMethods: string[] = [];
     for (const method of grpcStreamMethods) {
-      const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
-      GrpcStreamMethod("IdentityService", method)(constructor.prototype[method], method, descriptor);
+      const descriptor: any = Reflect.getOwnPropertyDescriptor(
+        constructor.prototype,
+        method
+      );
+      GrpcStreamMethod("IdentityService", method)(
+        constructor.prototype[method],
+        method,
+        descriptor
+      );
     }
   };
 }

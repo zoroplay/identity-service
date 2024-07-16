@@ -1,9 +1,12 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
+import { User } from '@prisma/client';
 import { JwtService } from 'src/auth/service/jwt.service';
 import { handleError, handleResponse, paginateResponse } from 'src/common/helpers';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateUserRequest, GetAgentUsersRequest, MetaData } from 'src/proto/identity.pb';
+import { AssignUserCommissionProfile, CommissionProfile, CommonResponseArray, CommonResponseObj, CreateUserRequest, GetCommissionsRequest, MetaData, SingleItemRequest } from 'src/proto/identity.pb';
+import { GetAgentUsersRequest } from 'src/proto/retail.pb';
 import { WalletService } from 'src/wallet/wallet.service';
+import { CommissionService } from './commission.service';
 
 @Injectable()
 export class RetailService {
@@ -11,6 +14,7 @@ export class RetailService {
         private prisma: PrismaService,
         private jwtService: JwtService,
         private readonly walletService: WalletService,
+        private readonly commissionService: CommissionService
     ) {}
 
     async createShopUser(data: CreateUserRequest) {
@@ -86,7 +90,25 @@ export class RetailService {
                 user_id: user.id
               }
             })
-        }
+          }
+
+          if (role.name === 'Shop') {// create 3 cashiers
+            for (let i = 0; i < 3; i++) {
+              await this.autoCreateShopCashier(data, user, i);
+            }
+          }
+
+          // assign commission profile if user not cashier
+          if (role.name !== 'Cashier') {
+            // get default profiles
+            const profiles = await this.prisma.retailCommissionProfile.findMany({where: {isDefault: true}})
+            for (const profile of profiles) {
+              await this.commissionService.assignUserCommissionProfile({
+                profileId: profile.id,
+                userId: user.id
+              })
+            }
+          }
     
           // if (role.name === 'Web Affiliate') {
           //   await this.trackierService.registerAffiliate(
@@ -96,7 +118,7 @@ export class RetailService {
           //   );
           // }
     
-          return handleResponse(JSON.stringify(user),'Shop User Created successfully',);
+          return handleResponse(user,'Shop User Created successfully',);
         } catch (error) {
           return handleError(error.message, error);
         }
@@ -107,13 +129,12 @@ export class RetailService {
             const {userId, clientId} = payload;
             // get agent users query
             const agentUsers: any =  await this.prisma
-            .$queryRaw`SELECT u.clientId, u.id, u.username, u.code, u.role_id, CONCAT(ud.firstName, " ", ud.lastName) as name, ud.phone as phone_number, ud.email, r.name as rolename FROM agent_users a
+            .$queryRaw`SELECT u.clientId, u.id, u.username, u.code, u.role_id, ud.firstName, ud.lastName, ud.phone as phone_number, ud.email, r.name as rolename FROM agent_users a
             JOIN users u ON u.id = a.user_id LEFT JOIN roles r ON r.id = u.role_id LEFT JOIN user_details ud ON u.id = ud.user_id
             WHERE agent_id = ${userId} ORDER BY u.created_at DESC`;
             // get agent details query
-            const agent: any = await this.prisma.$queryRaw`SELECT u.clientId, u.id, u.username, u.code, u.role_id, CONCAT(ud.firstName, " ", ud.lastName) as name, ud.phone as phone_number, ud.email, r.name as rolename FROM users u
+            const agent: any = await this.prisma.$queryRaw`SELECT u.clientId, u.id, u.username, u.code, u.role_id, ud.firstName, ud.lastName, ud.phone as phone_number, ud.email, r.name as rolename FROM users u
             LEFT JOIN roles r ON r.id = u.role_id LEFT JOIN user_details ud ON u.id = ud.user_id WHERE u.id = ${userId}`;
-
 
             // merge arrays
             const users = [...agentUsers, ...agent];
@@ -136,7 +157,7 @@ export class RetailService {
               }
             }
              
-            return {success: true, status: HttpStatus.OK, message: 'Users retreived successfully', data: JSON.stringify(data)}
+            return {success: true, status: HttpStatus.OK, message: 'Users retreived successfully', data: data}
         } catch(e) {
             return {success: false, status: HttpStatus.INTERNAL_SERVER_ERROR, message: `Error fetching users: ${e.message}`};
         }
@@ -238,10 +259,73 @@ export class RetailService {
         
         const response = {data: agents, meta};
 
-        return {success: true, status: HttpStatus.OK, message: 'Users retreived successfully', data: JSON.stringify(response)};
+        return {success: true, status: HttpStatus.OK, message: 'Users retreived successfully', data: response};
 
       } catch (e) {
         return {success: false, status: HttpStatus.INTERNAL_SERVER_ERROR, message: `Error fetching agents: ${e.message}`};
       }
     }
+
+    async autoCreateShopCashier(data: CreateUserRequest, shop: User, count: number) {
+      const role = await this.prisma.role.findFirst({where: {name: 'Cashier'}});
+      if (role) {
+        console.log('creating cashier')
+        await this.prisma.$transaction(async (prisma) => {
+          const code = Math.floor(100000 + Math.random() * 900000).toString().substring(0, 6);
+          const newUser = await prisma.user.create({
+              data: {
+                  username: `cashier-${shop.code}-${count}`,
+                  clientId: shop.clientId,
+                  code, // 6 digit random identifier for 
+                  password: this.jwtService.encodePassword(`cashier${count}`),
+                  roleId: role.id,
+                  userDetails: {
+                      create: {
+                        firstName: 'Cashier',
+                        lastName: code,
+                        email: `cashier-${shop.code}-${count}@sbe.com`,
+                        city: data.city,
+                        country: data.country,
+                        state: data.state,
+                        gender: data.gender,
+                        currency: data.currency,
+                        phone: data.phoneNumber,
+                        address: data.address,
+                        date_of_birth: data.dateOfBirth
+                      }
+                  },
+                  agentUser: {
+                    create: {
+                      agent_id: shop.id
+                    }
+                  }
+              },
+          })
+
+          // make a copy of user object
+          const auth: any = {...newUser};
+          let bonus = 0;
+
+          //create user wallet
+          await this.walletService.createWallet({
+            userId: newUser.id,
+            username: newUser.username,
+            clientId: shop.clientId,
+            amount: 0,
+            bonus,
+          })
+
+          // await this.prisma.agentUser.create({
+          //   data: {
+          //     agent_id: shop.id,
+          //     user_id: auth.id
+          //   }
+          // })
+
+          return auth
+
+        })
+      }
+    }
+    
 }

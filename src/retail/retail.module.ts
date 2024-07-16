@@ -4,10 +4,15 @@ import { RetailService } from './retail.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { JwtService } from 'src/auth/service/jwt.service';
 import { WalletModule } from 'src/wallet/wallet.module';
+import { CommissionService } from './commission.service';
+import { RetailBonusService } from './retail.bonus.service';
 
 @Module({
-  imports: [WalletModule],
+  imports: [
+    WalletModule
+  ],
   controllers: [RetailController],
-  providers: [RetailService, PrismaService, JwtService]
+  providers: [CommissionService, RetailBonusService, RetailService, PrismaService, JwtService],
+  exports: [CommissionService]
 })
 export class RetailModule {}

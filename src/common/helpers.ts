@@ -27,6 +27,7 @@ export const handleResponse: SuccessResponseFn = (data, message) => {
 
 export const handleError: ErrorResponseFn = (message, errors) => {
   return {
+    success: false,
     status: false,
     message,
     errors,
@@ -40,7 +41,7 @@ export const paginateResponse = (data: any,page: number,limit: number, message =
   const prevPage=page-1 < 1 ? 0 :page-1;
   return {
     message,
-    data: JSON.stringify([...result]),
+    data: [...result],
     count: total,
     currentPage: page,
     nextPage: nextPage,

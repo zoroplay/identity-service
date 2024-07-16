@@ -1,31 +1,161 @@
 /* eslint-disable prettier/prettier */
-import { HttpStatus, Injectable } from '@nestjs/common';
-import { LoginDto, UserDetailsDto } from './dto/create-user.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
-import * as bcrypt from 'bcryptjs';
-import { handleError, handleResponse } from 'src/common/helpers';
+import { HttpStatus, Injectable } from "@nestjs/common";
+import { LoginDto, UserDetailsDto } from "./dto/create-user.dto";
+import { PrismaService } from "src/prisma/prisma.service";
+import * as bcrypt from "bcryptjs";
+import { handleError, handleResponse } from "src/common/helpers";
 import {
   AddToSegmentRequest,
-  CommonResponseObj,
+  CommonResponseArray,
   CreateUserRequest,
   DeleteItemRequest,
   FetchPlayerSegmentRequest,
-  FindUserRequest,
-  GetAgentUserRequest,
   GrantBonusRequest,
+  HandlePinRequest,
+  HandleTransferRequest,
   SaveSegmentRequest,
   UploadPlayersToSegment,
-} from 'src/proto/identity.pb';
-import { PlayerSegment } from '@prisma/client';
-import { BonusService } from 'src/bonus/bonus.service';
+} from "src/proto/identity.pb";
+import { PlayerSegment } from "@prisma/client";
+import { BonusService } from "src/bonus/bonus.service";
+import { WalletService } from "src/wallet/wallet.service";
+import { NotificationsService } from "src/notifications/notifications.service";
 
 @Injectable()
 export class UserService {
   constructor(
     private prisma: PrismaService,
     private bonusService: BonusService,
+    private walletService: WalletService,
+    private notificationService: NotificationsService
   ) {}
 
+  async handleTransfer(handleTransferDto: HandleTransferRequest) {
+    try {
+      const [fromUser, toUser] = await Promise.all([
+        this.prisma.user.findUnique({
+          where: {
+            id: handleTransferDto.fromUserId,
+          },
+        }),
+        this.prisma.user.findFirst({
+          where: {
+            username: handleTransferDto.toUsername,
+            clientId: handleTransferDto.clientId,
+          },
+        }),
+      ]);
+      if (!fromUser || !toUser)
+        return {
+          success: false,
+          status: HttpStatus.BAD_REQUEST,
+          message: "User Details incorrect",
+        };
+      if (fromUser.id === toUser.id)
+        return {
+          success: false,
+          status: HttpStatus.BAD_REQUEST,
+          message: "Cannot Transfer to yourself",
+        };
+      if (fromUser.pin !== handleTransferDto.pin)
+        return {
+          success: false,
+          status: HttpStatus.BAD_REQUEST,
+          message: "Incorrect Pin",
+        };
+
+      const user_wallets = await this.walletService.walletTransfer({
+        clientId: fromUser.clientId,
+        fromUserId: fromUser.id,
+        fromUsername: fromUser.username,
+        toUserId: toUser.id,
+        toUsername: toUser.username,
+        amount: handleTransferDto.amount,
+        action: "deposit",
+        description: `Transfer of ${handleTransferDto.amount}  from ${fromUser.username} to ${toUser.username}`,
+      });
+      if (!user_wallets.success)
+        return {
+          success: false,
+          status: HttpStatus.BAD_REQUEST,
+          message: user_wallets.message,
+        };
+      await this.notificationService.handleNotifications({
+        userId: toUser.id,
+        description: `You have received ${handleTransferDto.amount} from ${fromUser.username}`,
+        title: "Transfer",
+      });
+      return {
+        success: true,
+        status: HttpStatus.OK,
+        message: `Transfer of ${handleTransferDto.amount} to ${fromUser.username} successful`,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: error.message,
+      };
+    }
+  }
+
+  async handlePin(createPinDto: HandlePinRequest) {
+    try {
+      let user = await this.prisma.user.findUnique({
+        where: {
+          id: createPinDto.userId,
+        },
+      });
+      if (!user) {
+        return {
+          success: false,
+          status: HttpStatus.BAD_REQUEST,
+          message: "User does not exist",
+        };
+      }
+      switch (createPinDto.type) {
+        case "create":
+          if (createPinDto.pin !== createPinDto.confirmPin) {
+            return {
+              success: false,
+              status: HttpStatus.BAD_REQUEST,
+              message: "Cannot create Pin: Pin and confirmPin does not match",
+            };
+          }
+          user = await this.prisma.user.update({
+            where: {
+              id: createPinDto.userId,
+            },
+            data: {
+              pin: createPinDto.pin,
+            },
+          });
+          return handleResponse(user, "User Pin Created successfully");
+        case "update":
+          user = await this.prisma.user.update({
+            where: {
+              id: createPinDto.userId,
+            },
+            data: {
+              pin: createPinDto.pin,
+            },
+          });
+          return handleResponse(user, "User Pin updated successfully");
+        default:
+          return {
+            success: false,
+            status: HttpStatus.BAD_REQUEST,
+            message: `type ${createPinDto.type} not permitted`,
+          };
+      }
+    } catch (error) {
+      return {
+        success: false,
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: error.message,
+      };
+    }
+  }
   async saveAdminUser(data: CreateUserRequest) {
     try {
       let [role, user] = await Promise.all([
@@ -42,7 +172,7 @@ export class UserService {
           },
         }),
       ]);
-      if (!role) return handleError('The role specified does not exist', null);
+      if (!role) return handleError("The role specified does not exist", null);
 
       if (user)
         return handleError(`The Username specified already exists`, null);
@@ -87,7 +217,7 @@ export class UserService {
       // const token = this.jwtService.sign(user.id);
       return handleResponse(
         { ...user, ...user_details, user_detailsID },
-        'User Created successfully',
+        "User Created successfully"
       );
     } catch (error) {
       return handleError(error.message, error);
@@ -172,11 +302,11 @@ export class UserService {
       ]);
 
       if (!role)
-        return handleError('The role ID specified does not exist', null);
+        return handleError("The role ID specified does not exist", null);
       if (!user)
         return handleError(
           `The User ID specified doesn't exist, register`,
-          null,
+          null
         );
       // const salt = 10;
       // const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
@@ -201,7 +331,7 @@ export class UserService {
 
         return handleResponse(
           user_details,
-          'User details updated successfully',
+          "User details updated successfully"
         );
       }
 
@@ -232,7 +362,7 @@ export class UserService {
         },
       });
 
-      return handleResponse(user_details, 'User details updates successfully');
+      return handleResponse(user_details, "User details updates successfully");
     } catch (error) {
       return handleError(error.message, error);
     }
@@ -249,7 +379,7 @@ export class UserService {
         },
       });
     } catch (e) {
-      return handleError('Something went wrong. ' + e.message, null);
+      return handleError("Something went wrong. " + e.message, null);
     }
   }
 
@@ -286,20 +416,23 @@ export class UserService {
       return {
         status: HttpStatus.OK,
         success: true,
-        message: 'Data saved',
-        data: JSON.stringify(data),
+        message: "Data saved",
+
+        data: data,
       };
     } catch (err) {
       return {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
         success: false,
-        message: 'An error occured',
+        message: "An error occured",
         errors: err.message,
       };
     }
   }
 
-  async fetchPlayerSegment(data: FetchPlayerSegmentRequest): Promise<any> {
+  async fetchPlayerSegment(
+    data: FetchPlayerSegmentRequest
+  ): Promise<CommonResponseArray> {
     try {
       const segments = await this.prisma.playerSegment.findMany({
         where: { clientId: data.clientId },
@@ -307,15 +440,18 @@ export class UserService {
       return {
         status: HttpStatus.OK,
         success: true,
-        message: 'Data fetched',
-        data: JSON.stringify(segments),
+        message: "Data fetched",
+
+        data: segments,
       };
     } catch (err) {
       return {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
         success: false,
-        message: 'An error occured',
+        message: "An error occured",
         errors: err.message,
+
+        data: [],
       };
     }
   }
@@ -331,7 +467,7 @@ export class UserService {
         return {
           status: HttpStatus.BAD_REQUEST,
           success: false,
-          message: 'User already exist in this segment',
+          message: "User already exist in this segment",
         };
       } else {
         const player = await this.prisma.playerUserSegment.create({
@@ -344,15 +480,15 @@ export class UserService {
         return {
           status: HttpStatus.OK,
           success: true,
-          message: 'User added to segment',
-          data: JSON.stringify(player),
+          message: "User added to segment",
+          data: player,
         };
       }
     } catch (err) {
       return {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
         success: false,
-        message: 'An error occured',
+        message: "An error occured",
         errors: err.message,
       };
     }
@@ -364,7 +500,7 @@ export class UserService {
     clientId,
   }: UploadPlayersToSegment) {
     try {
-      const data = [];
+      const data: any = [];
       for (const username of players) {
         //  find player
         const user = await this.prisma.user.findFirst({
@@ -380,7 +516,7 @@ export class UserService {
           });
 
           if (!isExist) {
-            const player = await this.prisma.playerUserSegment.create({
+            const player: any = await this.prisma.playerUserSegment.create({
               data: {
                 userId: user.id,
                 segmentId,
@@ -395,14 +531,14 @@ export class UserService {
       return {
         status: HttpStatus.OK,
         success: true,
-        message: 'User added to segment',
-        data: JSON.stringify(data),
+        message: "User added to segment",
+        data: data,
       };
     } catch (e) {
       return {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
         success: false,
-        message: 'An error occured',
+        message: "An error occured",
         errors: e.message,
       };
     }
@@ -417,13 +553,13 @@ export class UserService {
       return {
         status: HttpStatus.OK,
         success: true,
-        message: 'Segment has been deleted',
+        message: "Segment has been deleted",
       };
     } catch (err) {
       return {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
         success: false,
-        message: 'An error occured',
+        message: "An error occured",
         errors: err.message,
       };
     }
@@ -438,13 +574,13 @@ export class UserService {
       return {
         status: HttpStatus.OK,
         success: true,
-        message: 'Player has been removed from segment',
+        message: "Player has been removed from segment",
       };
     } catch (err) {
       return {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
         success: false,
-        message: 'An error occured',
+        message: "An error occured",
         errors: err.message,
       };
     }
@@ -460,14 +596,15 @@ export class UserService {
       return {
         status: HttpStatus.OK,
         success: true,
-        message: 'Users fetched',
-        data: JSON.stringify(players),
+        message: "Users fetched",
+
+        data: players,
       };
     } catch (err) {
       return {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
         success: false,
-        message: 'An error occured',
+        message: "An error occured",
         errors: err.message,
       };
     }
@@ -494,78 +631,15 @@ export class UserService {
       return {
         status: HttpStatus.OK,
         success: true,
-        message: 'Bonus granted',
-        data: JSON.stringify([]),
+        message: "Bonus granted",
+        data: [],
       };
     } catch (err) {
       return {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
         success: false,
-        message: 'An error occured',
+        message: "An error occured",
         errors: err.message,
-      };
-    }
-  }
-
-  async getUser(payload: FindUserRequest) {
-    try {
-      const user = await this.prisma.user.findUnique({
-        where: {
-          id: payload.userId,
-        },
-      });
-      console.log(user, 'usewr');
-      if (!user)
-        return {
-          status: HttpStatus.NOT_FOUND,
-          success: false,
-          message: `User ${payload.userId} does not exist`,
-          errors: null,
-        };
-      console.log(user, 'usewr');
-
-      return {
-        status: HttpStatus.OK,
-        success: true,
-        message: 'User fetched',
-        data: user,
-      };
-    } catch (error) {
-      return {
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        success: false,
-        message: 'An error occured',
-        errors: error.message,
-      };
-    }
-  }
-  async getBranchDetails(payload: GetAgentUserRequest) {
-    try {
-      // const branch = await this.prisma.agentUser.findFirst({
-      //   where: {
-      //     agent_id: payload.branchId,
-      //     user_id: payload.cashierId,
-      //   },
-      // });
-      // if (!branch)
-      //   return {
-      //     status: HttpStatus.NOT_FOUND,
-      //     success: false,
-      //     message: `branch ${payload.branchId} does not exist`,
-      //     errors: null,
-      //   };
-      // return {
-      //   status: HttpStatus.OK,
-      //   success: true,
-      //   message: 'User fetched',
-      //   data: JSON.stringify(branch),
-      // };
-    } catch (error) {
-      return {
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        success: false,
-        message: 'An error occured',
-        errors: error.message,
       };
     }
   }

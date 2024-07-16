@@ -35,33 +35,30 @@ model DailyTransactions {
 }
 
 model User {
-  id                 Int     @id @default(autoincrement())
+  id                 Int                           @id @default(autoincrement())
   username           String
   password           String
   code               String?
-  roleId             Int?    @map("role_id")
-  role               Role?   @relation(fields: [roleId], references: [id])
+  roleId             Int?                          @map("role_id")
+  role               Role?                         @relation(fields: [roleId], references: [id])
   auth_code          String?
-  virtualToken       String? @map("virutal_token")
-  registrationSource String? @map("registration_source")
-  trackierToken      String? @map("trakier_token")
-  lastLogin          String? @map("last_login")
-  status             Int     @default(1)
-  verified           Int     @default(1)
-
-  createdAt      DateTime               @default(now()) @map("created_at")
-  updatedAt      DateTime               @updatedAt @map("updated_at")
-  userDetails    UserDetails?
-  bettingParams  UserBettingParameter[]
-  userSetting    UserSetting?
-  segmentCreator PlayerSegment[]
-  segments       PlayerUserSegment[]
-
-  agentUser               AgentUser?          @relation("agentUser")
-  agentUsers              AgentUser[]         @relation("agent")
-  verifydailyTransactions DailyTransactions[] @relation("verified_daily_transactions")
-  dailyTransactions       DailyTransactions[] @relation("daily_transactions")
-
+  virtualToken       String?                       @map("virutal_token")
+  registrationSource String?                       @map("registration_source")
+  trackierToken      String?                       @map("trakier_token")
+  lastLogin          String?                       @map("last_login")
+  status             Int                           @default(1)
+  verified           Int                           @default(1)
+  pin                Int?
+  createdAt          DateTime                      @default(now()) @map("created_at")
+  updatedAt          DateTime                      @updatedAt @map("updated_at")
+  userDetails        UserDetails?
+  bettingParams      UserBettingParameter[]
+  userSetting        UserSetting?
+  segmentCreator     PlayerSegment[]
+  segments           PlayerUserSegment[]
+  commissionProfiles RetailUserCommissionProfile[]
+  agentUser  AgentUser?  @relation("agentUser")
+  agentUsers AgentUser[] @relation("agent")
   client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
   clientId Int
 
@@ -92,12 +89,11 @@ model UserDetails {
 }
 
 model AgentUser {
-  id        Int  @id @default(autoincrement())
-  agent_id  Int
-  agent     User @relation(fields: [agent_id], references: [id], name: "agent", onDelete: NoAction, onUpdate: NoAction)
+  id       Int  @id @default(autoincrement())
+  agent_id Int
+  agent    User @relation(fields: [agent_id], references: [id], name: "agent", onDelete: Cascade, onUpdate: NoAction)
   user_id   Int  @unique
-  agentUser User @relation(fields: [user_id], references: [id], name: "agentUser", onDelete: NoAction, onUpdate: NoAction)
-
+  agentUser User @relation(fields: [user_id], references: [id], name: "agentUser", onDelete: Cascade, onUpdate: NoAction)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -119,10 +115,10 @@ model Client {
   oAuthToken    String?
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
-
-  users    User[]
-  segments PlayerSegment[]
-  settings Setting[]
+  users              User[]
+  segments           PlayerSegment[]
+  settings           Setting[]
+  commissionProfiles RetailCommissionProfile[]
 
   @@map("clients")
 }
@@ -292,6 +288,156 @@ model State {
   @@map("states")
 }
 
+model RetailCommissionProfile {
+  id              Int               @id @default(autoincrement())
+  name            String
+  isDefault       Boolean
+  description     String?
+  providerGroup   String            @map("provider_group")
+  period          CommissionPeriod  @default(WEEKLY) 
+  calculationType String            @default("flat")
+  percentage      Float?
+  commissionType  Int?
+  client          Client            @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId        Int
+
+  turnovers RetailCommissionTurnover[]
+  users     RetailUserCommissionProfile[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // @@unique([isDefault, providerGroup], name: "default_group")
+
+  @@map("retail_commission_profiles")
+}
+
+model RetailCommissionTurnover {
+  id         Int     @id @default(autoincrement())
+  event      Int
+  maxOdd     Float   @map("max_odd")
+  minOdd     Float   @map("min_odd")
+  percentage Float
+  oddSet     Boolean @map("odd_set")
+
+  commissionId      Int
+  commissionProfile RetailCommissionProfile @relation(fields: [commissionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("retail_commission_turnovers")
+}
+
+model RetailUserCommissionProfile {
+  id Int @id @default(autoincrement())
+
+  provider    String            @default("sports")
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  profileId Int
+  profile   RetailCommissionProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  commissions RetailCommission[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, profileId], name: "user_profile")
+  @@map("retail_user_commission_profiles")
+}
+
+model RetailCommission {
+  id              Int                         @id @default(autoincrement())
+  clientId        Int                         @map("client_id")
+  userCommssionId Int
+  userCommission  RetailUserCommissionProfile @relation(fields: [userCommssionId], references: [id], onDelete: Cascade)
+
+  totalTickets Int?    @map("total_tickets")
+  totalStake   Float?  @map("total_stake")
+  totalWon     Float?  @map("total_won")
+  net          Float?
+  commission   Float?
+  profit       Float?
+  startDate    String  @map("start_date")
+  endDate      String  @map("end_date")
+  isPaid       Boolean @default(false) @map("is_paid")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("retail_commissions")
+}
+
+model RetailCommissionBonusGroup {
+  id           Int    @id @default(autoincrement())
+  clientId     Int    @map("client_id")
+  group        String
+  minSelection Float  @map("min_selection")
+  maxSelection Float  @map("max_selection")
+  rateIsLess   Float  @map("rate_is_less")
+  rateIsMore   Float  @map("rate_is_more")
+  rate         Float  @map("rate")
+  targetStake  Float  @map("target_stake")
+  targetCoupon Int    @map("target_coupon")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("retail_commission_bonus_groups")
+}
+
+model RetailNormalPayout {
+  id Int @id @default(autoincrement())
+
+  betId          Int     @map("bet_id")
+  selectionCount Int     @map("selection_count")
+  totalOdds      Float   @map("total_odds")
+  stake          Float
+  userId         Int     @map("user_id")
+  clientId       Int     @map("client_id")
+  profileId      Int     @map("profile_id")
+  profileGroup   String?
+  commission     Float
+  isPaid         Boolean @map("is_paid")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("retail_normal_payout")
+}
+
+model RetailPowerPayout {
+  id       Int @id @default(autoincrement())
+  userId   Int @map("user_id")
+  clientId Int @map("client_id")
+
+  totalTickets          Int     @map("total_tickets")
+  totalStake            Float   @map("total_stake")
+  totalWeightedStake    Float   @map("total_weighted_stake")
+  averageNoOfSelections Float   @map("average_no_of_selections")
+  grossProfit           Float   @map("gross_profit")
+  ggrPercent            Float   @map("ggr_percent")
+  rateIsLess            Float   @map("rate_is_less")
+  rateIsMore            Float   @map("rate_is_more")
+  rate                  Float   @map("rate")
+  turnoverCommission    Float   @map("turnover_commission")
+  monthlyBonus          Float   @map("monthly_bonus")
+  totalWinnings         Float   @map("total_winnings")
+  status                Boolean
+  message               String?
+  isPaid                Boolean @map("is_paid")
+  startDate             String  @map("start_date")
+  endDate               String  @map("end_date")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("retail_power_payout")
+}
+
 enum CountryRegion {
   Africa
   Antarctica
@@ -300,4 +446,8 @@ enum CountryRegion {
   North_America @map("North America")
   Oceania
   South_America @map("South America")
+}
+enum CommissionPeriod {
+  WEEKLY @map("weekly")
+  MONTHLY @map("monthly")
 }
