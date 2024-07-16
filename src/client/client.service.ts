@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
@@ -13,14 +14,13 @@ export class ClientService {
     try {
       if (data.clientID) {
         const client = await this.prisma.client.update({
-          where: {id: data.clientID},
+          where: { id: data.clientID },
           data,
         });
         return handleResponse(client, 'Client updated successfully');
-
       } else {
         delete data.clientID;
-        const newData: any = {...data};
+        const newData: any = { ...data };
         newData.oAuthToken = uuidv4();
         const client = await this.prisma.client.create({
           data,
@@ -43,9 +43,9 @@ export class ClientService {
 
   async refreshToken(clientId) {
     const client = await this.prisma.client.update({
-      where: {id: clientId},
+      where: { id: clientId },
       data: {
-        oAuthToken: uuidv4()
+        oAuthToken: uuidv4(),
       },
     });
     return handleResponse(client, 'Client updated successfully');
@@ -53,8 +53,8 @@ export class ClientService {
 
   async findOne(id: number) {
     try {
-      const client = await this.prisma.client.findUnique({where: {id}});
-      if (client){
+      const client = await this.prisma.client.findUnique({ where: { id } });
+      if (client) {
         return handleResponse(client, 'Client created successfully');
       } else {
         return handleError('Client not found', 'error');
@@ -81,7 +81,5 @@ export class ClientService {
     }
   }
 
-  async saveSettings(data) {
-    
-  }
+  async saveSettings(data) {}
 }
