@@ -1,7 +1,6 @@
-/* eslint-disable prettier/prettier */
-import { Inject, Injectable } from "@nestjs/common";
-import { ClientGrpc } from "@nestjs/microservices";
-import { Observable, firstValueFrom } from "rxjs";
+import { Inject, Injectable } from '@nestjs/common';
+import { ClientGrpc } from '@nestjs/microservices';
+import { Observable, firstValueFrom } from 'rxjs';
 
 import {
   CreateWalletRequest,
@@ -15,7 +14,7 @@ import {
   WalletServiceClient,
   WalletTransferRequest,
   protobufPackage,
-} from "src/proto/wallet.pb";
+} from 'src/proto/wallet.pb';
 
 @Injectable()
 export class WalletService {
@@ -55,6 +54,7 @@ export class WalletService {
   public async getNeworkBalance(param) {
     return await firstValueFrom(this.svc.getNetworkBalance(param));
   }
+
   public async debitAgent(param) {
     return await firstValueFrom(this.svc.debitAgentBalance(param));
   }

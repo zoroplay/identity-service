@@ -10,30 +10,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model DailyTransactions {
-  id             Int      @id @default(autoincrement())
-  userId         Int?
-  user           User?    @relation(fields: [userId], references: [id], name: "daily_transactions", onDelete: NoAction, onUpdate: NoAction)
-  verifiedById   Int?
-  verifiedBy     User?    @relation(fields: [verifiedById], references: [id], name: "verified_daily_transactions", onDelete: NoAction, onUpdate: NoAction)
-  verified       Boolean? @default(false)
-  openingbalance Int?     @default(0)
-  closingbalance Int?     @default(0)
-  normalSales    Int?     @default(0)
-  virtualSales   Int?     @default(0)
-  normalPayout   Int?     @default(0)
-  onlineSales    Int?     @default(0)
-  onlinePayout   Int?     @default(0)
-  vurtualPayout  Int?     @default(0)
-  cashIn         Int?     @default(0)
-  cashOut        Int?     @default(0)
-  expenses       Int?     @default(0)
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
-
-  @@map("daily_transactions")
-}
-
 model User {
   id                 Int                           @id @default(autoincrement())
   username           String
@@ -57,8 +33,10 @@ model User {
   segmentCreator     PlayerSegment[]
   segments           PlayerUserSegment[]
   commissionProfiles RetailUserCommissionProfile[]
+
   agentUser  AgentUser?  @relation("agentUser")
   agentUsers AgentUser[] @relation("agent")
+
   client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
   clientId Int
 
@@ -92,8 +70,10 @@ model AgentUser {
   id       Int  @id @default(autoincrement())
   agent_id Int
   agent    User @relation(fields: [agent_id], references: [id], name: "agent", onDelete: Cascade, onUpdate: NoAction)
+
   user_id   Int  @unique
   agentUser User @relation(fields: [user_id], references: [id], name: "agentUser", onDelete: Cascade, onUpdate: NoAction)
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -115,6 +95,7 @@ model Client {
   oAuthToken    String?
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
+
   users              User[]
   segments           PlayerSegment[]
   settings           Setting[]
@@ -447,6 +428,7 @@ enum CountryRegion {
   Oceania
   South_America @map("South America")
 }
+
 enum CommissionPeriod {
   WEEKLY @map("weekly")
   MONTHLY @map("monthly")
