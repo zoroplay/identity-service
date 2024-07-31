@@ -10,35 +10,34 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
 model User {
-  id                 Int                           @id @default(autoincrement())
-  username           String
-  password           String
-  code               String?
-  roleId             Int?                          @map("role_id")
-  role               Role?                         @relation(fields: [roleId], references: [id])
-  auth_code          String?
-  virtualToken       String?                       @map("virutal_token")
-  registrationSource String?                       @map("registration_source")
-  trackierToken      String?                       @map("trakier_token")
-  lastLogin          String?                       @map("last_login")
-  status             Int                           @default(1)
-  verified           Int                           @default(1)
-  pin                Int?
-  createdAt          DateTime                      @default(now()) @map("created_at")
-  updatedAt          DateTime                      @updatedAt @map("updated_at")
-  userDetails        UserDetails?
-  bettingParams      UserBettingParameter[]
-  userSetting        UserSetting?
-  segmentCreator     PlayerSegment[]
-  segments           PlayerUserSegment[]
-  commissionProfiles RetailUserCommissionProfile[]
-
-  agentUser  AgentUser?  @relation("agentUser")
-  agentUsers AgentUser[] @relation("agent")
-
-  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  clientId Int
+  id                      Int                           @id @default(autoincrement())
+  username                String
+  password                String
+  code                    String?
+  roleId                  Int?                          @map("role_id")
+  role                    Role?                         @relation(fields: [roleId], references: [id])
+  auth_code               String?
+  virtualToken            String?                       @map("virutal_token")
+  registrationSource      String?                       @map("registration_source")
+  trackierToken           String?                       @map("trakier_token")
+  lastLogin               String?                       @map("last_login")
+  status                  Int                           @default(1)
+  verified                Int                           @default(1)
+  pin                     Int?
+  createdAt               DateTime                      @default(now()) @map("created_at")
+  updatedAt               DateTime                      @updatedAt @map("updated_at")
+  userDetails             UserDetails?
+  bettingParams           UserBettingParameter[]
+  userSetting             UserSetting?
+  segmentCreator          PlayerSegment[]
+  segments                PlayerUserSegment[]
+  commissionProfiles      RetailUserCommissionProfile[]
+  agentUser               AgentUser?                    @relation("agentUser")
+  agentUsers              AgentUser[]                   @relation("agent")
+  client                  Client                        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId                Int
 
   @@map("users")
 }
@@ -67,13 +66,11 @@ model UserDetails {
 }
 
 model AgentUser {
-  id       Int  @id @default(autoincrement())
-  agent_id Int
-  agent    User @relation(fields: [agent_id], references: [id], name: "agent", onDelete: Cascade, onUpdate: NoAction)
-
-  user_id   Int  @unique
-  agentUser User @relation(fields: [user_id], references: [id], name: "agentUser", onDelete: Cascade, onUpdate: NoAction)
-
+  id        Int      @id @default(autoincrement())
+  agent_id  Int
+  agent     User     @relation(fields: [agent_id], references: [id], name: "agent", onDelete: Cascade, onUpdate: NoAction)
+  user_id   Int      @unique
+  agentUser User     @relation(fields: [user_id], references: [id], name: "agentUser", onDelete: Cascade, onUpdate: NoAction)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -81,21 +78,20 @@ model AgentUser {
 }
 
 model Client {
-  id            Int      @id @default(autoincrement())
-  name          String
-  country       String
-  currency      String
-  groupName     String?
-  apiUrl        String?
-  contactNumber String?
-  contactEmail  String
-  webUrl        String?
-  mobileUrl     String?
-  shopUrl       String?
-  oAuthToken    String?
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-
+  id                 Int                       @id @default(autoincrement())
+  name               String
+  country            String
+  currency           String
+  groupName          String?
+  apiUrl             String?
+  contactNumber      String?
+  contactEmail       String
+  webUrl             String?
+  mobileUrl          String?
+  shopUrl            String?
+  oAuthToken         String?
+  createdAt          DateTime                  @default(now()) @map("created_at")
+  updatedAt          DateTime                  @updatedAt @map("updated_at")
   users              User[]
   segments           PlayerSegment[]
   settings           Setting[]
@@ -270,16 +266,16 @@ model State {
 }
 
 model RetailCommissionProfile {
-  id              Int               @id @default(autoincrement())
+  id              Int              @id @default(autoincrement())
   name            String
   isDefault       Boolean
   description     String?
-  providerGroup   String            @map("provider_group")
-  period          CommissionPeriod  @default(WEEKLY) 
-  calculationType String            @default("flat")
+  providerGroup   String           @map("provider_group")
+  period          CommissionPeriod @default(WEEKLY)
+  calculationType String           @default("flat")
   percentage      Float?
   commissionType  Int?
-  client          Client            @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  client          Client           @relation(fields: [clientId], references: [id], onDelete: Cascade)
   clientId        Int
 
   turnovers RetailCommissionTurnover[]
@@ -313,7 +309,7 @@ model RetailCommissionTurnover {
 model RetailUserCommissionProfile {
   id Int @id @default(autoincrement())
 
-  provider    String            @default("sports")
+  provider String @default("sports")
 
   userId Int
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -430,6 +426,6 @@ enum CountryRegion {
 }
 
 enum CommissionPeriod {
-  WEEKLY @map("weekly")
+  WEEKLY  @map("weekly")
   MONTHLY @map("monthly")
 }

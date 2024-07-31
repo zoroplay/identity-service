@@ -185,9 +185,9 @@ export class AuthService {
           client: true,
           agentUser: {
             include: {
-              agent: true
-            }
-          }
+              agent: true,
+            },
+          },
         },
       });
 
@@ -229,7 +229,6 @@ export class AuthService {
         group = `${user.client.groupName}_Online`;
       } else if (user.role.name === 'Cashier') {
         group = `${user.client.groupName}_${user.agentUser.agent.username}`;
-
       }
 
       // update last login
@@ -306,9 +305,9 @@ export class AuthService {
           client: true,
           agentUser: {
             include: {
-              agent: true
-            }
-          }
+              agent: true,
+            },
+          },
         },
       });
       if (user) {
@@ -565,14 +564,14 @@ export class AuthService {
           auth_code: token,
           clientId,
         },
-        include: { 
-          role: true, 
+        include: {
+          role: true,
           client: true,
           agentUser: {
             include: {
-              agent: true
-            }
-          }
+              agent: true,
+            },
+          },
         },
       });
 
@@ -628,55 +627,55 @@ export class AuthService {
     token,
     clientId,
   }: XpressLoginRequest): Promise<CommonResponseObj> {
-      console.log('validate auth code', token, clientId);
-      try {
-        //
-        const user = await this.prisma.user.findFirst({
-          where: {
-            auth_code: token,
-            clientId,
-          },
-          include: {client: true}
+    console.log('validate auth code', token, clientId);
+    try {
+      //
+      const user = await this.prisma.user.findFirst({
+        where: {
+          auth_code: token,
+          clientId,
+        },
+        include: { client: true },
+      });
+
+      if (user) {
+        //get user wallet
+        const balanceRes = await this.walletService.getWallet({
+          userId: user.id,
+          clientId,
         });
 
-        if (user) {
-            //get user wallet
-            const balanceRes = await this.walletService.getWallet({
-                userId: user.id,
-                clientId,
-            });
+        const data = {
+          playerId: user.id,
+          playerNickname: user.username,
+          sessionId: user.virtualToken,
+          balance: balanceRes.data.availableBalance,
+          group: null,
+          currency: user.client.currency,
+        };
 
-            const data = {
-                playerId: user.id,
-                playerNickname: user.username,
-                sessionId: user.virtualToken,
-                balance: balanceRes.data.availableBalance,
-                group: null,
-                currency: user.client.currency,
-            };
-            
-            return {
-                success: true,
-                status: HttpStatus.OK,
-                message: 'Success',
-                data: data,
-            };
-        } else {
-          return {
-            success: false,
-            status: HttpStatus.NOT_FOUND,
-            message: 'Session Expired',
-            data: null,
-          };
-        }
-      } catch (e) {
+        return {
+          success: true,
+          status: HttpStatus.OK,
+          message: 'Success',
+          data: data,
+        };
+      } else {
         return {
           success: false,
-          status: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: 'Something went wrong',
+          status: HttpStatus.NOT_FOUND,
+          message: 'Session Expired',
           data: null,
         };
       }
+    } catch (e) {
+      return {
+        success: false,
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'Something went wrong',
+        data: null,
+      };
+    }
   }
 
   public async xpressLogout({
@@ -694,14 +693,14 @@ export class AuthService {
       // get user
       const user = await this.prisma.user.findFirst({
         where: { id: parseInt(sessionId) },
-        include: { 
-          role: true, 
+        include: {
+          role: true,
           client: true,
           agentUser: {
             include: {
-              agent: true
-            }
-          }
+              agent: true,
+            },
+          },
         },
       });
       //get balance
@@ -771,5 +770,15 @@ export class AuthService {
         data: null,
       };
     }
+  }
+  private getStartOfDay(date: Date) {
+    const start = new Date(date);
+    start.setHours(0, 0, 0, 0); // Set hours, minutes, seconds, and milliseconds to zero
+    return start;
+  }
+  private getEndOfDay(date: Date) {
+    const end = new Date(date);
+    end.setHours(23, 59, 59, 999); // Set hours, minutes, seconds, and milliseconds to their maximum values
+    return end;
   }
 }

@@ -10,6 +10,8 @@ import {
   CreateUserRequest,
   DeleteItemRequest,
   FetchPlayerSegmentRequest,
+  FindUserRequest,
+  GetAgentUserRequest,
   GrantBonusRequest,
   HandlePinRequest,
   HandleTransferRequest,
@@ -417,6 +419,7 @@ export class UserService {
         status: HttpStatus.OK,
         success: true,
         message: 'Data saved',
+
         data: data,
       };
     } catch (err) {
@@ -440,6 +443,7 @@ export class UserService {
         status: HttpStatus.OK,
         success: true,
         message: 'Data fetched',
+
         data: segments,
       };
     } catch (err) {
@@ -448,6 +452,7 @@ export class UserService {
         success: false,
         message: 'An error occured',
         errors: err.message,
+
         data: [],
       };
     }
@@ -497,7 +502,7 @@ export class UserService {
     clientId,
   }: UploadPlayersToSegment) {
     try {
-      const data = [];
+      const data: any = [];
       for (const username of players) {
         //  find player
         const user = await this.prisma.user.findFirst({
@@ -513,7 +518,7 @@ export class UserService {
           });
 
           if (!isExist) {
-            const player = await this.prisma.playerUserSegment.create({
+            const player: any = await this.prisma.playerUserSegment.create({
               data: {
                 userId: user.id,
                 segmentId,
@@ -594,6 +599,7 @@ export class UserService {
         status: HttpStatus.OK,
         success: true,
         message: 'Users fetched',
+
         data: players,
       };
     } catch (err) {
@@ -636,6 +642,68 @@ export class UserService {
         success: false,
         message: 'An error occured',
         errors: err.message,
+      };
+    }
+  }
+  async getUser(payload: FindUserRequest) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: {
+          id: payload.userId,
+        },
+      });
+      console.log(user, 'usewr');
+      if (!user)
+        return {
+          status: HttpStatus.NOT_FOUND,
+          success: false,
+          message: `User ${payload.userId} does not exist`,
+          errors: null,
+        };
+      console.log(user, 'usewr');
+
+      return {
+        status: HttpStatus.OK,
+        success: true,
+        message: 'User fetched',
+        data: user,
+      };
+    } catch (error) {
+      return {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        success: false,
+        message: 'An error occured',
+        errors: error.message,
+      };
+    }
+  }
+  async getBranchDetails(payload: GetAgentUserRequest) {
+    try {
+      // const branch = await this.prisma.agentUser.findFirst({
+      //   where: {
+      //     agent_id: payload.branchId,
+      //     user_id: payload.cashierId,
+      //   },
+      // });
+      // if (!branch)
+      //   return {
+      //     status: HttpStatus.NOT_FOUND,
+      //     success: false,
+      //     message: `branch ${payload.branchId} does not exist`,
+      //     errors: null,
+      //   };
+      // return {
+      //   status: HttpStatus.OK,
+      //   success: true,
+      //   message: 'User fetched',
+      //   data: JSON.stringify(branch),
+      // };
+    } catch (error) {
+      return {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        success: false,
+        message: 'An error occured',
+        errors: error.message,
       };
     }
   }

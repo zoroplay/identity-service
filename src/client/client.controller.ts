@@ -1,9 +1,19 @@
+/* eslint-disable prettier/prettier */
 import { Controller } from '@nestjs/common';
 import { GrpcMethod, Payload } from '@nestjs/microservices';
 import { ClientService } from './client.service';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
-import { GetAgentUserRequest, GetClientRequest, GetSettingsRequest, GetUserIdNameRequest, GetWithdrawalSettingsRequest, IDENTITY_SERVICE_NAME, SettingsRequest, UserRiskSettingsRequest } from 'src/proto/identity.pb';
+import {
+  GetAgentUserRequest,
+  GetClientRequest,
+  GetSettingsRequest,
+  GetUserIdNameRequest,
+  GetWithdrawalSettingsRequest,
+  IDENTITY_SERVICE_NAME,
+  SettingsRequest,
+  UserRiskSettingsRequest,
+} from 'src/proto/identity.pb';
 import { SettingsService } from './settings/settings.service';
 
 @Controller()
@@ -28,10 +38,10 @@ export class ClientController {
     return this.clientService.findOne(data.id);
   }
 
-  @GrpcMethod(IDENTITY_SERVICE_NAME, 'RefreshToken')
-  refreshToken(@Payload() updateClientDto: UpdateClientDto) {
-    // return this.clientService.refreshToken();
-  }
+  // @GrpcMethod(IDENTITY_SERVICE_NAME, 'RefreshToken')
+  // refreshToken(@Payload() updateClientDto: UpdateClientDto) {
+  //   // return this.clientService.refreshToken();
+  // }
 
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'DeleteClient')
   DeleteClient(payload: CreateClientDto) {
