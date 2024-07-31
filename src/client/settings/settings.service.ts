@@ -154,6 +154,7 @@ export class SettingsService {
     }
 
     async getSettings({clientId, category}): Promise<CommonResponseArray> {
+        console.log(clientId, category);
         const settings = await this.prisma.setting.findMany({
             where: {
                 clientId,
