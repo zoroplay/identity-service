@@ -10,29 +10,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model DailyTransactions {
-  id             Int      @id @default(autoincrement())
-  userId         Int?
-  user           User?    @relation(fields: [userId], references: [id], name: "daily_transactions", onDelete: NoAction, onUpdate: NoAction)
-  verifiedById   Int?
-  verifiedBy     User?    @relation(fields: [verifiedById], references: [id], name: "verified_daily_transactions", onDelete: NoAction, onUpdate: NoAction)
-  verified       Boolean? @default(false)
-  openingbalance Int?     @default(0)
-  closingbalance Int?     @default(0)
-  normalSales    Int?     @default(0)
-  virtualSales   Int?     @default(0)
-  normalPayout   Int?     @default(0)
-  onlineSales    Int?     @default(0)
-  onlinePayout   Int?     @default(0)
-  vurtualPayout  Int?     @default(0)
-  cashIn         Int?     @default(0)
-  cashOut        Int?     @default(0)
-  expenses       Int?     @default(0)
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
-
-  @@map("daily_transactions")
-}
 
 model User {
   id                      Int                           @id @default(autoincrement())
@@ -59,8 +36,6 @@ model User {
   commissionProfiles      RetailUserCommissionProfile[]
   agentUser               AgentUser?                    @relation("agentUser")
   agentUsers              AgentUser[]                   @relation("agent")
-  verifydailyTransactions DailyTransactions[]           @relation("verified_daily_transactions")
-  dailyTransactions       DailyTransactions[]           @relation("daily_transactions")
   client                  Client                        @relation(fields: [clientId], references: [id], onDelete: Cascade)
   clientId                Int
 
