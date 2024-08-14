@@ -206,7 +206,6 @@ export class CommissionService {
       }
     }
 
-
     async assignUserCommissionProfile(
       data: AssignUserCommissionProfile,
     ): Promise<CommonResponseObj> {

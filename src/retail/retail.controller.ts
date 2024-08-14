@@ -1,6 +1,6 @@
 import { Controller } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
-import { AssignUserCommissionProfile, BonusGroupResponse, BonusGroups, CommissionProfile, CommonResponseArray, CommonResponseObj, CreateUserRequest, GetCommissionsRequest, GetNormalRequest, IDENTITY_SERVICE_NAME, NormalResponse, PayNormalRequest, PayNormalResponse, PayPowerRequest, PowerBonusResponse, PowerRequest, PowerResponse, SingleItemRequest } from 'src/proto/identity.pb';
+import { AssignUserCommissionProfile, BonusGroupResponse, BonusGroups, CommissionProfile, CommonResponseArray, CommonResponseObj, CreateUserRequest, GetCommissionsRequest, GetNetworkSalesRequest, GetNormalRequest, IDENTITY_SERVICE_NAME, NormalResponse, PayNormalRequest, PayNormalResponse, PayPowerRequest, PowerBonusResponse, PowerRequest, PowerResponse, SingleItemRequest } from 'src/proto/identity.pb';
 import { RetailService } from './retail.service';
 import { GetAgentUsersRequest } from 'src/proto/retail.pb';
 import { CommissionService } from './commission.service';
@@ -176,6 +176,13 @@ export class RetailController {
   payOutNormalBonus(data: PayNormalRequest): PayNormalResponse | any {
     console.log(data);
     return this.bonusService.payOutNormalBonus(data);
+  }
+
+  // Get network sales report
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'getNetworkSalesReport')
+  GetNetworkSalesReport(data: GetNetworkSalesRequest): CommonResponseObj | any {
+    // console.log(data);
+    return this.retailService.networkSalesReport(data);
   }
     
 }

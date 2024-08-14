@@ -3,10 +3,11 @@ import { User } from '@prisma/client';
 import { JwtService } from 'src/auth/service/jwt.service';
 import { handleError, handleResponse, paginateResponse } from 'src/common/helpers';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { AssignUserCommissionProfile, CommissionProfile, CommonResponseArray, CommonResponseObj, CreateUserRequest, GetCommissionsRequest, MetaData, SingleItemRequest } from 'src/proto/identity.pb';
+import { CreateUserRequest, MetaData } from 'src/proto/identity.pb';
 import { GetAgentUsersRequest } from 'src/proto/retail.pb';
 import { WalletService } from 'src/wallet/wallet.service';
 import { CommissionService } from './commission.service';
+import { BettingService } from 'src/betting/betting.service';
 
 @Injectable()
 export class RetailService {
@@ -14,7 +15,8 @@ export class RetailService {
         private prisma: PrismaService,
         private jwtService: JwtService,
         private readonly walletService: WalletService,
-        private readonly commissionService: CommissionService
+        private readonly commissionService: CommissionService,
+        private readonly bettingService: BettingService,
     ) {}
 
     async createShopUser(data: CreateUserRequest) {
@@ -325,6 +327,97 @@ export class RetailService {
           return auth
 
         })
+      }
+    }
+
+    async networkSalesReport (data) {
+
+      try {
+        const {clientId, product, from, to} = data;
+        //find agents roles (shop, agent, super-agent)
+        const roles = await this.prisma.role.findMany({where: {type: 'agency', name: {not: 'Cashier'}}, select: {id: true}});
+
+        const roleIds = roles.map(role => role.id);
+        // get agents
+        const agents = await this.prisma.user.findMany({
+          where: {
+            roleId: { in: roleIds},
+            clientId
+          },
+          select: {id: true, username: true}
+        });
+
+        if (agents.length) {
+          const data = [];
+          const total = {
+            noOfBets: 0,
+            totalStake: 0,
+            totalWinnings: 0,
+            ggr: 0,
+            ngr: 0
+          }
+
+          for (const agent of agents) {
+            // get agent cashiers
+            const agentUsers = await this.prisma.agentUser.findMany({
+              where: {
+                agent_id: agent.id
+              }
+            });
+
+            if(agentUsers.length) {
+              const agentUsersIds = agentUsers.map(user => user.user_id);
+              // get sales
+              const salesRes = await this.bettingService.getSalesReport({
+                userIds: agentUsersIds.toString(), 
+                product, from, to
+              });
+
+              if (salesRes.success) {
+                data.push({
+                  username: agent.username,
+                  userId: agent.id,
+                  ...salesRes.data
+                })
+                total.noOfBets = total.noOfBets + parseFloat(salesRes.data.noOfBets);
+                total.totalStake = total.totalStake + parseFloat(salesRes.data.totalStake);
+                total.totalWinnings = total.totalWinnings + parseFloat(salesRes.data.totalWinnings);
+                total.ggr = total.totalStake - total.totalWinnings
+              }
+            } else {
+              data.push({
+                username: agent.username,
+                userId: agent.id,
+                running_bets: '0',
+                settledBets: '0',
+                noOfBets: '0',
+                totalStake: '0.00',
+                totalWinnings: '0.00',
+                commission: '0.00'
+              })
+            }
+          }
+
+          return {
+            success: true,
+            message: 'Sales report retrieved',
+            data: {data, total}
+          }
+          
+        } else {
+          return {
+            success: true,
+            message: 'No agent found',
+            data: null,
+          }
+        }
+      } catch (e) {
+        console.log(e.message)
+        return {
+          success: false,
+          message: 'Unable to fetch sales report',
+          data: null,
+        }
       }
     }
     
