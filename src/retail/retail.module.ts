@@ -6,10 +6,12 @@ import { JwtService } from 'src/auth/service/jwt.service';
 import { WalletModule } from 'src/wallet/wallet.module';
 import { CommissionService } from './commission.service';
 import { RetailBonusService } from './retail.bonus.service';
+import { BettingModule } from 'src/betting/betting.module';
 
 @Module({
   imports: [
-    WalletModule
+    WalletModule,
+    BettingModule
   ],
   controllers: [RetailController],
   providers: [CommissionService, RetailBonusService, RetailService, PrismaService, JwtService],

@@ -6,6 +6,31 @@ import { Struct } from "./google/protobuf/struct.pb";
 
 export const protobufPackage = "betting";
 
+export interface GetTicketsRequest {
+  userId: number;
+  clientId: number;
+  from: string;
+  to: string;
+  status: string;
+  page: number;
+  perPage: number;
+  betslipId: string;
+  username: string;
+  gameId?: string | undefined;
+  ticketType?: string | undefined;
+  betType?: string | undefined;
+  amountRange?: string | undefined;
+  groupType?: string | undefined;
+}
+
+export interface GetCommissionsRequest {
+  clientId: number;
+  provider: string;
+  from: string;
+  to: string;
+  page: number;
+}
+
 export interface SalesReportRequest {
   clientId: number;
   userId: number;
@@ -13,6 +38,13 @@ export interface SalesReportRequest {
   from: string;
   to: string;
   productType: string;
+}
+
+export interface NetworkSalesRequest {
+  userIds: string;
+  from: string;
+  to: string;
+  product: string;
 }
 
 export interface CommonResponseObj {
@@ -25,11 +57,15 @@ export interface CommonResponseObj {
 
 export interface GetVirtualBetsRequest {
   clientId: number;
+  gameId?: string | undefined;
+  transactionId?: string | undefined;
   from: string;
   to: string;
-  betType?: number | undefined;
-  username?: string | undefined;
+  status?: string | undefined;
   page: number;
+  perPage?: number | undefined;
+  username?: string | undefined;
+  userId?: number | undefined;
 }
 
 export interface PaginationResponse {
@@ -195,6 +231,7 @@ export interface GamingActivityRequest {
   groupBy: string;
   clientID: number;
   displayType: string;
+  userId?: number | undefined;
 }
 
 export interface GamingActivityResponse {
@@ -478,15 +515,23 @@ export interface BettingServiceClient {
 
   getVirtualBet(request: GetVirtualBetRequest): Observable<GetVirtualBetResponse>;
 
-  getVirtualBets(request: GetVirtualBetsRequest): Observable<PaginationResponse>;
+  getVirtualBets(request: GetVirtualBetsRequest): Observable<CommonResponseObj>;
 
   cashoutRequest(request: ProcessCashoutRequest): Observable<ProcessCashoutResponse>;
 
   getRetailBets(request: BetHistoryRequest): Observable<CommonResponseObj>;
 
+  getRetailVBets(request: GetVirtualBetsRequest): Observable<CommonResponseObj>;
+
   getSalesReport(request: SalesReportRequest): Observable<CommonResponseObj>;
 
+  getTotalSalesReport(request: NetworkSalesRequest): Observable<CommonResponseObj>;
+
   deletePlayerData(request: SettingsById): Observable<CommonResponseObj>;
+
+  getCommissions(request: GetCommissionsRequest): Observable<CommonResponseObj>;
+
+  ticketsReport(request: GetTicketsRequest): Observable<CommonResponseObj>;
 }
 
 export interface BettingServiceController {
@@ -548,7 +593,7 @@ export interface BettingServiceController {
 
   getVirtualBets(
     request: GetVirtualBetsRequest,
-  ): Promise<PaginationResponse> | Observable<PaginationResponse> | PaginationResponse;
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
 
   cashoutRequest(
     request: ProcessCashoutRequest,
@@ -558,12 +603,28 @@ export interface BettingServiceController {
     request: BetHistoryRequest,
   ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
 
+  getRetailVBets(
+    request: GetVirtualBetsRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
   getSalesReport(
     request: SalesReportRequest,
   ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
 
+  getTotalSalesReport(
+    request: NetworkSalesRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
   deletePlayerData(
     request: SettingsById,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
+  getCommissions(
+    request: GetCommissionsRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
+  ticketsReport(
+    request: GetTicketsRequest,
   ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
 }
 
@@ -592,8 +653,12 @@ export function BettingServiceControllerMethods() {
       "getVirtualBets",
       "cashoutRequest",
       "getRetailBets",
+      "getRetailVBets",
       "getSalesReport",
+      "getTotalSalesReport",
       "deletePlayerData",
+      "getCommissions",
+      "ticketsReport",
     ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);

@@ -18,6 +18,9 @@ export class BettingService {
         return  firstValueFrom(this.svc.deletePlayerData(data));
     }
 
+    public getSalesReport(data) {
+        return  firstValueFrom(this.svc.getTotalSalesReport(data));
+    }
 
 
 }
