@@ -379,9 +379,9 @@ export class RetailService {
                   userId: agent.id,
                   ...salesRes.data
                 })
-                total.noOfBets = total.noOfBets + parseFloat(salesRes.data.noOfBets);
-                total.totalStake = total.totalStake + parseFloat(salesRes.data.totalStake);
-                total.totalWinnings = total.totalWinnings + parseFloat(salesRes.data.totalWinnings);
+                total.noOfBets = total.noOfBets + parseFloat(salesRes.data?.noOfBets || 0);
+                total.totalStake = total.totalStake + parseFloat(salesRes.data?.totalStake || 0);
+                total.totalWinnings = total.totalWinnings + parseFloat(salesRes.data?.totalWinnings || 0);
                 total.ggr = total.totalStake - total.totalWinnings
               }
             } else {
