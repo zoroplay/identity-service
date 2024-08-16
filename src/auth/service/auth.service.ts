@@ -121,6 +121,7 @@ export class AuthService {
             customerId: newUser.username,
             customerName: newUser.username,
             trackingToken,
+            clientId
           });
           // console.log(trackREs)
         }

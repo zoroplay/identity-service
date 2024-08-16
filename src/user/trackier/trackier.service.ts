@@ -7,8 +7,8 @@ import { handleError } from 'src/common/helpers';
 export class TrackierService {
   protected baseUrl = 'https://api.trackierigaming.io';
 
-  async createCustomer({customerId, customerName, trackingToken}) {
-    const authres: any = await this.getAccessToken();
+  async createCustomer({customerId, customerName, trackingToken, clientId}) {
+    const authres: any = await this.getAccessToken(clientId);
 
     if (!authres.success) return handleError(authres.error.message, null);
 
@@ -33,8 +33,9 @@ export class TrackierService {
     );
   }
 
-  async registerAffiliate(user_details, user, hashedPassword) {
-    const authres: any = await this.getAccessToken();
+  async registerAffiliate(user_details, user, hashedPassword, clientId) {
+
+    const authres: any = await this.getAccessToken(clientId);
 
     if (!authres.success) return handleError(authres.error.message, null);
 
@@ -51,18 +52,18 @@ export class TrackierService {
       },
       {
         headers: {
-          'x-api-key': process.env.TRACKIER_API_KEY,
+          'x-api-key': `${process.env.TRACKIER_API_KEY_}${clientId}`,
           authorization: `BEARER ${authres.data.accessToken}`,
         },
       },
     );
   }
 
-  async getAccessToken() {
+  async getAccessToken(clientId) {
     const resp = await axios.post(
       `${this.baseUrl}/oauth/access-refresh-token`,
       {
-        auth_code: "$2a$04$geRYyxPlSFlL6uMVUQNgnOV0YvXQB4cr3usXLfp7b0WzZHpky61nO",
+        auth_code: `${process.env.TRACKIER_AUTH_CODE_}${clientId}`,
       },
     );
 
