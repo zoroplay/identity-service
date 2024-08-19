@@ -651,6 +651,8 @@ export class AuthService {
           playerNickname: user.username,
           sessionId: user.virtualToken,
           balance: balanceRes.data.availableBalance,
+          casinoBalance: balanceRes.data.casinoBonusBalance,
+          virtualBalance: balanceRes.data.virtualBonusBalance,
           group: null,
           currency: user.client.currency,
         };

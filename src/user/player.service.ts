@@ -325,7 +325,9 @@ export class PlayerService {
     clientId,
     searchKey,
   }: SearchPlayerRequest): Promise<SearchPlayerResponse> {
+
     const key = `%${searchKey.toLowerCase()}%`;
+
     try {
       const users: any = await this.prisma
         .$queryRaw`SELECT u.id, u.username, u.code, u.created_at, u.status, u.verified,
@@ -334,11 +336,11 @@ export class PlayerService {
           LEFT JOIN user_details d ON u.id = d.user_id
           LEFT JOIN roles r ON r.id = u.role_id
           WHERE u.clientId = ${clientId} AND
-          d.firstName LIKE ${key} OR d.lastName LIKE ${key}
+          (d.firstName LIKE ${key} OR d.lastName LIKE ${key}
           OR LOWER(d.phone) LIKE ${key}
           OR LOWER(u.username) LIKE ${key}
           OR LOWER(u.code) LIKE ${key}
-          OR LOWER(d.email) LIKE ${key}`;
+          OR LOWER(d.email) LIKE ${key})`;
 
       const data = [];
 
@@ -731,7 +733,8 @@ export class PlayerService {
     }
   }
 
-  async findUsersByUsername(key): Promise<GetUserIdNameResponse> {
+  async findUsersByUsername(payload): Promise<GetUserIdNameResponse> {
+    const {username, clientId} = payload;
     const users = await this.prisma.user.findMany({
       select: {
         id: true,
@@ -739,8 +742,9 @@ export class PlayerService {
       },
       where: {
         username: {
-          contains: key,
+          contains: username,
         },
+        clientId
       },
     });
 

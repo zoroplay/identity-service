@@ -85,7 +85,7 @@ export class UserController {
 
   @GrpcMethod(IDENTITY_SERVICE_NAME, "GetUserIdandName")
   findByUsername(param: GetUserIdNameRequest) {
-    return this.playerService.findUsersByUsername(param.username);
+    return this.playerService.findUsersByUsername(param);
   }
 
   @GrpcMethod(IDENTITY_SERVICE_NAME, "GetPlayerData")
