@@ -50,6 +50,7 @@ model UserDetails {
   city          String?
   country       String?
   state         String?
+  lga           String?
   address       String?
   gender        String?
   currency      String?

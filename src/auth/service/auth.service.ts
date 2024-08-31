@@ -404,6 +404,7 @@ export class AuthService {
           country: param.country,
           state: param.state,
           city: param.city,
+          lga: param.lga,
           address: param.address,
           language: param.language,
           currency: param.currency,
