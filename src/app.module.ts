@@ -14,6 +14,7 @@ import { JwtService } from './auth/service/jwt.service';
 import { RetailModule } from './retail/retail.module';
 import { BettingModule } from './betting/betting.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { TrackierService } from './user/trackier/trackier.service';
 
 @Global()
 @Module({
@@ -31,6 +32,6 @@ import { NotificationsModule } from './notifications/notifications.module';
     RetailModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService, JwtService],
+  providers: [AppService, PrismaService, JwtService, TrackierService],
 })
 export class AppModule {}

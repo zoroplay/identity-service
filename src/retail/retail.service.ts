@@ -111,6 +111,7 @@ export class RetailService {
               })
             }
           }
+          
     
           // if (role.name === 'Web Affiliate') {
           //   await this.trackierService.registerAffiliate(
