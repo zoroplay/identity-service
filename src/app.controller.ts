@@ -36,7 +36,7 @@ export class AppController {
     return this.appService.getStatesByCountry(data.countryId);
   }
 
-  @GrpcMethod(IDENTITY_SERVICE_NAME, 'GetTrackierKeys')
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'getTrackierKeys')
   getTrackierKeys(data: SingleItemRequest) {
     return this.trackierService.getKeys(data.itemId);
   }
