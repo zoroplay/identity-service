@@ -48,6 +48,7 @@ export class TrackierService {
     const keys = await this.getKeys(clientId);
 
     if (keys.success) {
+      console.log('keys', keys.data.AuthCode, keys.data.ApiKey)
       const authres: any = await this.getAccessToken(keys.data.AuthCode);
 
       if (!authres.success) return handleError(authres.error.message, null);
