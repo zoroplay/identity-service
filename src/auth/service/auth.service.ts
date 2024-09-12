@@ -117,13 +117,13 @@ export class AuthService {
             });
           }
         } else if (trackingToken && trackingToken !== '') {
-          await this.trackierService.createCustomer({
+          const trackREs = await this.trackierService.createCustomer({
             customerId: newUser.username,
             customerName: newUser.username,
             trackingToken,
             clientId
           });
-          // console.log(trackREs)
+          console.log(trackREs)
         }
 
         if (balanceRes.success) {
