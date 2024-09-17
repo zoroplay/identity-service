@@ -10,146 +10,423 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id            Int           @id @default(autoincrement())
-  username      String        @unique
-  password      String
-  code          String?
-  roleId        Int?          @map("role_id")
-  role          Role?         @relation(fields: [roleId], references: [id])
-  createdAt     DateTime      @default(now()) @map("created_at")
-  updatedAt     DateTime      @updatedAt @map("updated_at")
-  userDetails   UserDetails?
-  bettingParams UserBettingParameter[]
-  userSetting   UserSetting?
 
-  client        Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  clientId      Int
+model User {
+  id                      Int                           @id @default(autoincrement())
+  username                String
+  password                String
+  code                    String?
+  roleId                  Int?                          @map("role_id")
+  role                    Role?                         @relation(fields: [roleId], references: [id])
+  auth_code               String?
+  virtualToken            String?                       @map("virutal_token")
+  registrationSource      String?                       @map("registration_source")
+  trackierToken           String?                       @map("trakier_token")
+  lastLogin               String?                       @map("last_login")
+  status                  Int                           @default(1)
+  verified                Int                           @default(1)
+  pin                     Int?
+  createdAt               DateTime                      @default(now()) @map("created_at")
+  updatedAt               DateTime                      @updatedAt @map("updated_at")
+  userDetails             UserDetails?
+  bettingParams           UserBettingParameter[]
+  userSetting             UserSetting?
+  segmentCreator          PlayerSegment[]
+  segments                PlayerUserSegment[]
+  commissionProfiles      RetailUserCommissionProfile[]
+  agentUser               AgentUser?                    @relation("agentUser")
+  agentUsers              AgentUser[]                   @relation("agent")
+  client                  Client                        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId                Int
 
   @@map("users")
 }
 
 model UserDetails {
-  id        Int       @id @default(autoincrement())
-  firstName String?
-  lastName  String?
-  email     String?   @unique
-  city      String?
-  country   String?
-  state     String?
-  address   String?
-  gender    String?
-  currency  String?
-  phone     String?
+  id            Int     @id @default(autoincrement())
+  firstName     String?
+  lastName      String?
+  email         String?
+  city          String?
+  country       String?
+  state         String?
+  lga           String?
+  address       String?
+  gender        String?
+  currency      String?
+  phone         String?
   date_of_birth String?
-  language  String?
-  userId    Int      @unique @map("user_id")
-  user      User     @relation(fields: [userId], references: [id])
-  
-  createdAt      DateTime   @default(now()) @map("created_at")
-  updatedAt      DateTime   @updatedAt @map("updated_at")
+  language      String?
+  userId        Int     @unique @map("user_id")
+  user          User    @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("user_details")
 }
 
-model Client {
-  id            Int      @id @default(autoincrement())
-  name          String
-  country       String
-  currency      String
-  website       String?
-  contactNumber String?
-  contactEmail  String
-  createdAt     DateTime   @default(now()) @map("created_at")
-  updatedAt     DateTime   @updatedAt @map("updated_at")
+model AgentUser {
+  id        Int      @id @default(autoincrement())
+  agent_id  Int
+  agent     User     @relation(fields: [agent_id], references: [id], name: "agent", onDelete: Cascade, onUpdate: NoAction)
+  user_id   Int      @unique
+  agentUser User     @relation(fields: [user_id], references: [id], name: "agentUser", onDelete: Cascade, onUpdate: NoAction)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  users         User[]
+  @@map("agent_users")
+}
+
+model Client {
+  id                 Int                       @id @default(autoincrement())
+  name               String
+  country            String
+  currency           String
+  groupName          String?
+  apiUrl             String?
+  contactNumber      String?
+  contactEmail       String
+  webUrl             String?
+  mobileUrl          String?
+  shopUrl            String?
+  oAuthToken         String?
+  createdAt          DateTime                  @default(now()) @map("created_at")
+  updatedAt          DateTime                  @updatedAt @map("updated_at")
+  users              User[]
+  segments           PlayerSegment[]
+  settings           Setting[]
+  commissionProfiles RetailCommissionProfile[]
 
   @@map("clients")
 }
 
 model Setting {
-  id        Int       @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
+  clientId  Int      @map("client_id")
+  client    Client   @relation(fields: [clientId], references: [id])
   option    String
   value     String
   category  String
-  createdAt DateTime   @default(now()) @map("created_at")
-  updatedAt DateTime   @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
+  @@unique([clientId, option, category], name: "client_option_category")
   @@map("settings")
 }
 
 model Role {
-  id               Int               @id @default(autoincrement())
-  name             String            @unique
+  id               Int              @id @default(autoincrement())
+  name             String           @unique
   description      String
   type             String?
   user             User[]
   role_permissions RolePermission[]
-  createdAt        DateTime   @default(now()) @map("created_at")
-  updatedAt        DateTime   @updatedAt @map("updated_at")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
 
   @@map("roles")
 }
 
 model Permission {
-  id               Int               @id @default(autoincrement())
-  name             String
-  description      String
-  createdAt      DateTime   @default(now()) @map("created_at")
-  updatedAt      DateTime   @updatedAt @map("updated_at")
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("permissions")
 }
 
 model RolePermission {
-  id           Int         @id @default(autoincrement())
-  roleID       Int         @map("role_id")
-  role         Role?       @relation(fields: [roleID], references: [id])
+  id           Int      @id @default(autoincrement())
+  roleID       Int      @map("role_id")
+  role         Role?    @relation(fields: [roleID], references: [id])
   permissionID Int
-  createdAt    DateTime    @default(now())
+  createdAt    DateTime @default(now())
 
   @@map("role_permissions")
 }
 
 model UserBettingParameter {
-  id          Int           @id @default(autoincrement())
-  userId      Int           @map("user_id")
-  user        User          @relation(fields: [userId], references: [id])
-  period      String        @default("period")
-  maxPayout   Float         @map("max_payout") @default(0)
-  singleMaxOddLength Float  @map("singleMaxOddLength") @default(100)
-  combiMaxOddLength Float   @map("combi_max_odd_length") @default(1000000)
-  minTicketSize Int?        @map("min_ticket_size") @default(1)
-  maxTicketSize Int?        @map("max_ticket_size") @default(40)
-  singleMinStake Float      @map("single_min_stake") @default(100)
-  singleMaxStake Float      @map("single_max_stake") @default(10000)
-  combiMinStake Float       @map("combi_min_stake") @default(100)
-  combiMaxStake Float       @map("combi_max_stake") @default(10000)
-  maxCancelTime Int?        @map("max_cancel_time") @default(300)
-  dailyCancelLimit Int?     @map("daily_cancel_limit") @default(5)
-  holdBets      Float       @map("hold_bets") @default(100000)
-  createdAt      DateTime   @default(now()) @map("created_at")
-  updatedAt      DateTime   @updatedAt @map("updated_at")
+  id                   Int    @id @default(autoincrement())
+  userId               Int    @map("user_id")
+  user                 User   @relation(fields: [userId], references: [id])
+  period               String @default("period")
+  max_payout           Float  @default(0)
+  single_odd_length    Int    @default(100)
+  combi_odd_length     Int    @default(1000000)
+  size_max             Int?   @default(1)
+  size_min             Int?   @default(40)
+  single_min           Float  @default(100)
+  single_max           Float  @default(10000)
+  combi_min            Float  @default(100)
+  combi_max            Float  @default(10000)
+  max_time_to_cancel   Int?   @default(300)
+  daily_cancel_limit   Int?   @default(5)
+  hold_bets_from       Float  @default(100000)
+  single_max_winning   Float  @default(100000)
+  min_withdrawal       Float  @default(1000)
+  max_withdrawal       Float  @default(100000)
+  min_bonus_odd        Float  @default(100000)
+  live_size_min        Int?   @default(1)
+  live_size_max        Int?   @default(20)
+  enable_cashout       Int?   @default(0)
+  enable_cut_x         Int?   @default(0)
+  max_duplicate_ticket Int?   @default(4)
+  accept_prematch_bets Int?   @default(1)
+  accept_live_bets     Int?   @default(1)
+  accept_system_bets   Int?   @default(1)
+  accept_split_bets    Int?   @default(1)
 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, period], name: "user_period")
   @@map("user_betting_parameters")
 }
 
 model UserSetting {
-  id                  Int           @id @default(autoincrement())
-  userId              Int           @map("user_id") @unique
-  user                User          @relation(fields: [userId], references: [id])
-  dailyDepositLimit   Float?        @map("daily_deposit_limit")
-  weeklyDepositLimit  Float?        @map("weekly_deposit_limit")
-  monthlyDepositLimit Float?        @map("monthly_deposit_limit")
-  selfExclusionPeriod String?       @map("self_exclusion_period")
-  excludeFrom         String?       @map("exclude_from")
-  emailCommunication  Int?          @map("email_communication") @default(1)
-  smsCommunication    Int?          @map("sms_communication") @default(1)
-  promotionalPopUp    Int?          @map("promotional_pop_up") @default(1)
+  id                  Int     @id @default(autoincrement())
+  userId              Int     @unique @map("user_id")
+  user                User    @relation(fields: [userId], references: [id])
+  dailyDepositLimit   Float?  @map("daily_deposit_limit")
+  weeklyDepositLimit  Float?  @map("weekly_deposit_limit")
+  monthlyDepositLimit Float?  @map("monthly_deposit_limit")
+  selfExclusionPeriod String? @map("self_exclusion_period")
+  excludeFrom         String? @map("exclude_from")
+  emailCommunication  Int?    @default(1) @map("email_communication")
+  smsCommunication    Int?    @default(1) @map("sms_communication")
+  promotionalPopUp    Int?    @default(1) @map("promotional_pop_up")
 
-  createdAt      DateTime     @default(now()) @map("created_at")
-  updatedAt      DateTime     @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("user_settings")
+}
+
+model PlayerSegment {
+  id           Int     @id @default(autoincrement())
+  title        String
+  minOdd       Float?  @map("min_odd")
+  minSelection Int?    @map("min_selection")
+  message      String?
+
+  createdBy Int?
+  creator   User? @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId Int
+
+  userSegment PlayerUserSegment[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("player_segments")
+}
+
+model PlayerUserSegment {
+  id Int @id @default(autoincrement())
+
+  segmentId Int           @map("segment_id")
+  segment   PlayerSegment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+
+  userId Int  @map("user_id")
+  player User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("player_user_segments")
+}
+
+model Country {
+  id              Int           @id @default(autoincrement())
+  name            String
+  CountryCodeLong String        @map("country_code_long")
+  CountryCode     String        @map("country_code")
+  DialCode        String        @map("dial_code")
+  region          CountryRegion
+  CurrencyName    String        @map("currency_name")
+  CurrencyCode    String        @map("currency_code")
+  CurrencySymbol  String?       @map("currency_symbol")
+  CountryFlag     String?       @map("country_flag")
+  states          State[]
+
+  @@map("countries")
+}
+
+model State {
+  id        Int     @id @default(autoincrement())
+  name      String
+  countryId Int     @map("country_id")
+  country   Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
+
+  @@map("states")
+}
+
+model RetailCommissionProfile {
+  id              Int              @id @default(autoincrement())
+  name            String
+  isDefault       Boolean
+  description     String?
+  providerGroup   String           @map("provider_group")
+  period          CommissionPeriod @default(WEEKLY)
+  calculationType String           @default("flat")
+  percentage      Float?
+  commissionType  Int?
+  client          Client           @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId        Int
+
+  turnovers RetailCommissionTurnover[]
+  users     RetailUserCommissionProfile[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // @@unique([isDefault, providerGroup], name: "default_group")
+
+  @@map("retail_commission_profiles")
+}
+
+model RetailCommissionTurnover {
+  id         Int     @id @default(autoincrement())
+  event      Int
+  maxOdd     Float   @map("max_odd")
+  minOdd     Float   @map("min_odd")
+  percentage Float
+  oddSet     Boolean @map("odd_set")
+
+  commissionId      Int
+  commissionProfile RetailCommissionProfile @relation(fields: [commissionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("retail_commission_turnovers")
+}
+
+model RetailUserCommissionProfile {
+  id Int @id @default(autoincrement())
+
+  provider String @default("sports")
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  profileId Int
+  profile   RetailCommissionProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  commissions RetailCommission[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, profileId], name: "user_profile")
+  @@map("retail_user_commission_profiles")
+}
+
+model RetailCommission {
+  id              Int                         @id @default(autoincrement())
+  clientId        Int                         @map("client_id")
+  userCommssionId Int
+  userCommission  RetailUserCommissionProfile @relation(fields: [userCommssionId], references: [id], onDelete: Cascade)
+
+  totalTickets Int?    @map("total_tickets")
+  totalStake   Float?  @map("total_stake")
+  totalWon     Float?  @map("total_won")
+  net          Float?
+  commission   Float?
+  profit       Float?
+  startDate    String  @map("start_date")
+  endDate      String  @map("end_date")
+  isPaid       Boolean @default(false) @map("is_paid")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("retail_commissions")
+}
+
+model RetailCommissionBonusGroup {
+  id           Int    @id @default(autoincrement())
+  clientId     Int    @map("client_id")
+  group        String
+  minSelection Float  @map("min_selection")
+  maxSelection Float  @map("max_selection")
+  rateIsLess   Float  @map("rate_is_less")
+  rateIsMore   Float  @map("rate_is_more")
+  rate         Float  @map("rate")
+  targetStake  Float  @map("target_stake")
+  targetCoupon Int    @map("target_coupon")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("retail_commission_bonus_groups")
+}
+
+model RetailNormalPayout {
+  id Int @id @default(autoincrement())
+
+  betId          Int     @map("bet_id")
+  selectionCount Int     @map("selection_count")
+  totalOdds      Float   @map("total_odds")
+  stake          Float
+  userId         Int     @map("user_id")
+  clientId       Int     @map("client_id")
+  profileId      Int     @map("profile_id")
+  profileGroup   String?
+  commission     Float
+  isPaid         Boolean @map("is_paid")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("retail_normal_payout")
+}
+
+model RetailPowerPayout {
+  id       Int @id @default(autoincrement())
+  userId   Int @map("user_id")
+  clientId Int @map("client_id")
+
+  totalTickets          Int     @map("total_tickets")
+  totalStake            Float   @map("total_stake")
+  totalWeightedStake    Float   @map("total_weighted_stake")
+  averageNoOfSelections Float   @map("average_no_of_selections")
+  grossProfit           Float   @map("gross_profit")
+  ggrPercent            Float   @map("ggr_percent")
+  rateIsLess            Float   @map("rate_is_less")
+  rateIsMore            Float   @map("rate_is_more")
+  rate                  Float   @map("rate")
+  turnoverCommission    Float   @map("turnover_commission")
+  monthlyBonus          Float   @map("monthly_bonus")
+  totalWinnings         Float   @map("total_winnings")
+  status                Boolean
+  message               String?
+  isPaid                Boolean @map("is_paid")
+  startDate             String  @map("start_date")
+  endDate               String  @map("end_date")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("retail_power_payout")
+}
+
+enum CountryRegion {
+  Africa
+  Antarctica
+  Asia
+  Europe
+  North_America @map("North America")
+  Oceania
+  South_America @map("South America")
+}
+
+enum CommissionPeriod {
+  WEEKLY  @map("weekly")
+  MONTHLY @map("monthly")
 }
