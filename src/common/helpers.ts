@@ -27,8 +27,38 @@ export const handleResponse: SuccessResponseFn = (data, message) => {
 
 export const handleError: ErrorResponseFn = (message, errors) => {
   return {
+    success: false,
     status: false,
     message,
     errors,
   };
 };
+
+export const paginateResponse = (data: any,page: number,limit: number, message = 'success') => {
+  const [result, total]=data;
+  const lastPage=Math.ceil(total/limit);
+  const nextPage=page+1 >lastPage ? 0 :page+1;
+  const prevPage=page-1 < 1 ? 0 :page-1;
+  return {
+    message,
+    data: [...result],
+    count: total,
+    currentPage: page,
+    nextPage: nextPage,
+    prevPage: prevPage,
+    lastPage: lastPage,
+  }
+}
+
+
+export const generateString = (length) => {
+  const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  const charactersLength = characters.length;
+
+  for ( let i = 0; i < length; i++ ) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+
+ return result.toUpperCase();
+}

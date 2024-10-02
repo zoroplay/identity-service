@@ -6,22 +6,32 @@ import { PermissionModule } from './permission/permission.module';
 import { PrismaService } from './prisma/prisma.service';
 import { ClientModule } from './client/client.module';
 import { UserModule } from './user/user.module';
-import { CustomersModule } from './customers/customers.module';
 import { AuthModule } from './auth/auth.module';
 import 'dotenv/config';
+import { ScheduleModule } from '@nestjs/schedule';
+import { WalletModule } from './wallet/wallet.module';
+import { JwtService } from './auth/service/jwt.service';
+import { RetailModule } from './retail/retail.module';
+import { BettingModule } from './betting/betting.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { TrackierService } from './user/trackier/trackier.service';
 
 @Global()
 @Module({
   imports: [
     AppModule,
     AuthModule,
+    BettingModule,
     RolesModule,
     PermissionModule,
     ClientModule,
     UserModule,
-    CustomersModule,
+    WalletModule,
+    NotificationsModule,
+    ScheduleModule.forRoot(),
+    RetailModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService],
+  providers: [AppService, PrismaService, JwtService, TrackierService],
 })
 export class AppModule {}
