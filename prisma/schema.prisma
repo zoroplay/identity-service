@@ -22,6 +22,7 @@ model User {
   virtualToken            String?                       @map("virutal_token")
   registrationSource      String?                       @map("registration_source")
   trackierToken           String?                       @map("trakier_token")
+  trackierId              String?                       @map("trackier_id")
   lastLogin               String?                       @map("last_login")
   status                  Int                           @default(1)
   verified                Int                           @default(1)

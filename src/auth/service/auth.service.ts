@@ -117,13 +117,26 @@ export class AuthService {
             });
           }
         } else if (trackingToken && trackingToken !== '') {
-          const trackREs = await this.trackierService.createCustomer({
+          const trackREs: any = await this.trackierService.createCustomer({
             customerId: newUser.username,
             customerName: newUser.username,
             trackingToken,
             clientId
           });
-          console.log(trackREs)
+          // update 
+          if (trackREs.data.success) {
+            const trackData = trackREs.data.data;
+            // update user data
+            await this.prisma.user.update({
+              data: {
+                trackierId: trackData.customer_id,
+              },
+              where: {
+                id: newUser.id,
+              },
+            })
+          }
+          // console.log(trackREs)
         }
 
         if (balanceRes.success) {
