@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Timeout } from '@nestjs/schedule';
 import axios from 'axios';
 import * as dayjs from 'dayjs';
 import { handleError } from 'src/common/helpers';
@@ -50,7 +51,7 @@ export class TrackierService {
     if (keys.success) {
       console.log('keys', keys.data.AuthCode, keys.data.ApiKey)
       const authres: any = await this.getAccessToken(keys.data.AuthCode);
-
+      console.log(authres);
       if (!authres.success) return handleError(authres.error.message, null);
 
       return await axios.post(
@@ -113,5 +114,36 @@ export class TrackierService {
     );
 
     return resp.data;
+  }
+
+  
+  // @Timeout(10000)
+  async getCustomers(clientId = 1) {
+    try {
+      console.log('fetching customers')
+      const keys = await this.getKeys(clientId);
+
+      if (keys.success) {
+        console.log('keys', keys.data.AuthCode, keys.data.ApiKey)
+        
+        const authres: any = await this.getAccessToken(keys.data.AuthCode);
+
+        if (!authres.success) return handleError(authres.error.message, null);
+
+        const customers = await axios.get(
+          `${this.baseUrl}/api/admin/v2/customers`,
+          {
+            headers: {
+              'x-api-key': keys.data.ApiKey,
+              authorization: `BEARER ${authres.data.accessToken}`,
+            },
+          },
+        );
+
+        console.log(customers.data.data.customers[0]);
+      }
+    } catch (e) {
+      console.log('error fetching trackier customers', e.message);
+    }
   }
 }
