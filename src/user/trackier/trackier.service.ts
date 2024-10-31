@@ -67,7 +67,7 @@ export class TrackierService {
 
       // console.log(payload)
 
-      const res = await axios.post(
+      return await axios.post(
         `${this.baseUrl}/customer`,
         payload,
         {
@@ -77,8 +77,6 @@ export class TrackierService {
           },
         },
       ).catch(err => console.log('trackier error', err.response.data));
-      // console.log(res);
-      return res;
     }
   }
 

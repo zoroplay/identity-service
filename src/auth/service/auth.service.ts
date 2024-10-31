@@ -126,15 +126,15 @@ export class AuthService {
             promoCode,
             clientId
           });
-          console.log(trackREs)
+          // console.log(trackREs)
 
           // update 
           if (trackREs.data.success) {
             const trackData = trackREs.data.data;
             // update user data
-            await this.prisma.user.update({
+            await prisma.user.update({
               data: {
-                trackierId: trackData.customer_id,
+                trackierId: trackData.hash_id,
               },
               where: {
                 id: newUser.id,
