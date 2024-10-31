@@ -30,7 +30,7 @@ export class TrackierService {
 
     let success = true, message = 'Success'
 
-    if (!apiKeyQ.value) {
+    if (!apiKeyQ?.value) {
       success = false;
       message = 'Not available'
     }
@@ -49,30 +49,33 @@ export class TrackierService {
     const keys = await this.getKeys(clientId);
 
     if (keys.success) {
-      console.log('keys', keys.data.AuthCode, keys.data.ApiKey)
+      // console.log('keys', keys.data.AuthCode, keys.data.ApiKey)
       const authres: any = await this.getAccessToken(keys.data.AuthCode);
-      console.log(authres);
       if (!authres.success) return handleError(authres.error.message, null);
+
+      const payload = {
+        customerId,
+        customerName,
+        date: dayjs().format('YYYY-MM-DD'),
+        timestamp: dayjs().unix(),
+        country: 'NG',
+        currency: 'ngn',
+        trackingToken,
+        productId: '1',
+      }
+
+      console.log(payload)
 
       return await axios.post(
         `${this.baseUrl}/customer`,
-        {
-          customerId,
-          customerName,
-          date: dayjs().format('YYYY-MM-DD'),
-          timestamp: dayjs().unix(),
-          country: 'NG',
-          currency: 'ngn',
-          trackingToken,
-          productId: '1',
-        },
+        payload,
         {
           headers: {
             'x-api-key': keys.data.ApiKey,
             authorization: `BEARER ${authres.data.accessToken}`,
           },
         },
-      );
+      ).catch(err => console.log('trackier error', err.message));
     }
   }
 
