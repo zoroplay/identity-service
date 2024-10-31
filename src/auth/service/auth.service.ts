@@ -123,6 +123,8 @@ export class AuthService {
             trackingToken,
             clientId
           });
+          console.log(trackREs)
+
           // update 
           if (trackREs.data.success) {
             const trackData = trackREs.data.data;
@@ -136,7 +138,6 @@ export class AuthService {
               },
             })
           }
-          // console.log(trackREs)
         }
 
         if (balanceRes.success) {
