@@ -56,7 +56,7 @@ export class TrackierService {
       const payload = {
         customerId,
         customerName,
-        date: dayjs().format('YYYY-MM-DD'),
+        // date: dayjs().format('YYYY-MM-DD'),
         timestamp: dayjs().unix(),
         country: 'NG',
         currency: 'ngn',
