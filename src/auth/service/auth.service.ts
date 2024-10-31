@@ -757,7 +757,6 @@ export class AuthService {
     clientId,
   }: SessionRequest): Promise<CommonResponseObj> {
     try {
-      console.log('session area', sessionId);
       const user = await this.prisma.user.findFirst({
         where: {
           virtualToken: sessionId,
@@ -788,6 +787,7 @@ export class AuthService {
       };
     }
   }
+  
   private getStartOfDay(date: Date) {
     const start = new Date(date);
     start.setHours(0, 0, 0, 0); // Set hours, minutes, seconds, and milliseconds to zero
