@@ -45,7 +45,7 @@ export class TrackierService {
     }
   }
 
-  async createCustomer({customerId, customerName, trackingToken, clientId}) {
+  async createCustomer({customerId, customerName, trackingToken, promoCode, clientId}) {
     const keys = await this.getKeys(clientId);
 
     if (keys.success) {
@@ -62,6 +62,7 @@ export class TrackierService {
         currency: 'ngn',
         trackingToken,
         productId: '1',
+        promoCode
       }
 
       console.log(payload)
