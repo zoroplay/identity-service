@@ -119,27 +119,31 @@ export class AuthService {
         } 
         
         if ((trackingToken && trackingToken !== '') || (promoCode && promoCode !== '')) {
-          const trackREs: any = await this.trackierService.createCustomer({
-            customerId: newUser.username,
-            customerName: newUser.username,
-            trackingToken,
-            promoCode,
-            clientId
-          });
-          // console.log(trackREs)
+          try {
+            const trackREs: any = await this.trackierService.createCustomer({
+              customerId: newUser.username,
+              customerName: newUser.username,
+              trackingToken,
+              promoCode,
+              clientId
+            });
+            // console.log(trackREs)
 
-          // update 
-          if (trackREs.data.success) {
-            const trackData = trackREs.data.data;
-            // update user data
-            await prisma.user.update({
-              data: {
-                trackierId: trackData.hash_id,
-              },
-              where: {
-                id: newUser.id,
-              },
-            })
+            // update 
+            if (trackREs.data.success) {
+              const trackData = trackREs.data.data;
+              // update user data
+              await prisma.user.update({
+                data: {
+                  trackierId: trackData.hash_id,
+                },
+                where: {
+                  id: newUser.id,
+                },
+              })
+            }
+          } catch (e) {
+            console.log('error creating trackier customer', e)
           }
         }
 
