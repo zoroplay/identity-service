@@ -116,11 +116,14 @@ export class AuthService {
               promoCode,
             });
           }
-        } else if (trackingToken && trackingToken !== '') {
+        } 
+        
+        if ((trackingToken && trackingToken !== '') || (promoCode && promoCode !== '')) {
           const trackREs: any = await this.trackierService.createCustomer({
             customerId: newUser.username,
             customerName: newUser.username,
             trackingToken,
+            promoCode,
             clientId
           });
           console.log(trackREs)
