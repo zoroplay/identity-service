@@ -49,7 +49,7 @@ export class TrackierService {
     const keys = await this.getKeys(clientId);
 
     if (keys.success) {
-      // console.log('keys', keys.data.AuthCode, keys.data.ApiKey)
+      console.log('keys', keys.data.AuthCode, keys.data.ApiKey)
       const authres: any = await this.getAccessToken(keys.data.AuthCode);
       if (!authres.success) return handleError(authres.error.message, null);
 
@@ -67,7 +67,7 @@ export class TrackierService {
 
       console.log(payload)
 
-      return await axios.post(
+      const res = await axios.post(
         `${this.baseUrl}/customer`,
         payload,
         {
@@ -76,7 +76,9 @@ export class TrackierService {
             authorization: `BEARER ${authres.data.accessToken}`,
           },
         },
-      ).catch(err => console.log('trackier error', err.message));
+      ).catch(err => console.log('trackier error', err.response.data));
+      console.log(res);
+      return res;
     }
   }
 
