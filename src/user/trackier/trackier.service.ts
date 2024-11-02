@@ -53,17 +53,20 @@ export class TrackierService {
       const authres: any = await this.getAccessToken(keys.data.AuthCode);
       if (!authres.success) return handleError(authres.error.message, null);
 
-      const payload = {
+      const payload: any = {
         customerId,
         customerName,
         // date: dayjs().format('YYYY-MM-DD'),
         timestamp: dayjs().unix(),
         country: 'NG',
         currency: 'ngn',
-        trackingToken,
         productId: '1',
-        promocode: promoCode
       }
+      if (promoCode && promoCode !== '') 
+        payload.promocode = promoCode;
+
+      if (trackingToken && trackingToken !== '')
+        payload.trackingToken = trackingToken;
 
       console.log(payload)
 
