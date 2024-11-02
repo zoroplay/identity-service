@@ -97,6 +97,7 @@ export class AuthService {
           clientId,
           amount: 0,
         });
+        console.log('promo code', promoCode)
 
         //check if promo code is provided and activate bonus
         if (promoCode && promoCode !== '') {
@@ -123,11 +124,11 @@ export class AuthService {
             const trackREs: any = await this.trackierService.createCustomer({
               customerId: newUser.username,
               customerName: newUser.username,
-              trackingToken,
-              promoCode,
+              trackingToken: trackingToken || '',
+              promoCode: promoCode || "",
               clientId
             });
-            console.log(trackREs)
+            console.log(trackREs?.data)
 
             // update 
             if (trackREs.data.success) {
