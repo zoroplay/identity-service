@@ -62,13 +62,13 @@ export class TrackierService {
         currency: 'ngn',
         trackingToken,
         productId: '1',
-        promoCode
+        promocode: promoCode
       }
 
-      // console.log(payload)
+      console.log(payload)
 
       return await axios.post(
-        `${this.baseUrl}/customer`,
+        `${this.baseUrl}/api/admin/v2/customer`,
         payload,
         {
           headers: {
