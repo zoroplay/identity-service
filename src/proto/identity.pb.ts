@@ -235,6 +235,15 @@ export interface GetCommissionsRequest {
   provider?: string | undefined;
 }
 
+export interface CalculateCommissionRequest {
+  clientId: number;
+  userId: number;
+  stake: number;
+  totalOdds: number;
+  provider: string;
+  noOfSelections: number;
+}
+
 /** Commission Profile */
 export interface CommissionProfile {
   clientId: number;
@@ -713,6 +722,7 @@ export interface GetPaymentDataResponse {
   siteUrl: string;
   currency?: string | undefined;
   country?: string | undefined;
+  pin?: string | undefined;
 }
 
 export interface GetClientRequest {
@@ -1130,6 +1140,8 @@ export interface IdentityServiceClient {
 
   getCommissionProfileUsers(request: GetCommissionsRequest): Observable<CommonResponseArray>;
 
+  calculateCommission(request: CalculateCommissionRequest): Observable<CommonResponseObj>;
+
   getBonusGroups(request: SingleItemRequest): Observable<BonusGroupResponse>;
 
   createBonusGroups(request: BonusGroups): Observable<BonusGroupResponse>;
@@ -1410,6 +1422,10 @@ export interface IdentityServiceController {
     request: GetCommissionsRequest,
   ): Promise<CommonResponseArray> | Observable<CommonResponseArray> | CommonResponseArray;
 
+  calculateCommission(
+    request: CalculateCommissionRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
   getBonusGroups(
     request: SingleItemRequest,
   ): Promise<BonusGroupResponse> | Observable<BonusGroupResponse> | BonusGroupResponse;
@@ -1521,6 +1537,7 @@ export function IdentityServiceControllerMethods() {
       "getCommissionProfile",
       "deleteCommissionProfile",
       "getCommissionProfileUsers",
+      "calculateCommission",
       "getBonusGroups",
       "createBonusGroups",
       "createPowerBonus",

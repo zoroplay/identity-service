@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { handleError, handleResponse } from 'src/common/helpers';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { AssignUserCommissionProfile, CommissionProfile, CommonResponseArray, CommonResponseObj, CreateUserRequest, GetCommissionsRequest, MetaData, SingleItemRequest } from 'src/proto/identity.pb';
+import { AssignUserCommissionProfile, CalculateCommissionRequest, CommissionProfile, CommonResponseArray, CommonResponseObj, CreateUserRequest, GetCommissionsRequest, MetaData, SingleItemRequest } from 'src/proto/identity.pb';
 import { WalletService } from 'src/wallet/wallet.service';
 
 
@@ -305,46 +305,60 @@ export class CommissionService {
       };
     }
 
-    async calculateCommissionOnTicket (shopId, betData, provider) {
+    async calculateCommissionOnTicket (data: CalculateCommissionRequest) {
       let commission = 0, percentage = 0;
+      const {userId, noOfSelections, provider, stake, clientId, totalOdds} = data;
       try {
+        const agentUser = await this.prisma.agentUser.findFirst({
+          where: {
+            user_id: userId
+          },
+          include: {agent: true}
+        });
+
         const commissionProfile = await this.prisma.retailUserCommissionProfile.findFirst({
           where: {
-            userId: shopId,
+            userId: agentUser.agent_id,
             provider,
           },
           include: {profile: true}
         });
 
         if (commissionProfile) {
+          // console.log('has profile')
           const profile = commissionProfile.profile;
-          // remove stake from shop balance
-          await this.walletService.debitAgent({
-            amount: ''+betData.stake,
-            userId: shopId,
-            clientId: betData.clientId,
-            username: '',
-            description: "",
-            source: '',
-            wallet: 'sport',
-            channel: 'Internal',
-            subject: 'Stake debit'
-          });
+          try {
+            // remove stake from shop balance
+            await this.walletService.debitAgent({
+              amount: ''+stake,
+              userId: agentUser.agent_id,
+              clientId,
+              username: agentUser.agent.username,
+              description: "Bet Placement",
+              source: 'retail',
+              wallet: 'main',
+              channel: 'Internal',
+              subject: 'Stake debit'
+            });
+          } catch (e) {
+            console.log('error wallet', e.message)
+          }
 
           if (profile.calculationType === 'flat') {
-            commission = (betData.stake * profile.percentage) / 100
+            commission = (stake * profile.percentage) / 100
           } else {
+
             // get turnover
             const turnover = await this.prisma.retailCommissionTurnover.findFirst({
               where: {
                 commissionId: profile.id,
-                event: betData.selections.length
+                event: noOfSelections
               }
             });
 
             if (turnover) {
               if (turnover.minOdd !== null) {
-                if (betData.totalOdds >= turnover.minOdd && betData.totalOdds <= turnover.maxOdd) {
+                if (totalOdds >= turnover.minOdd && totalOdds <= turnover.maxOdd) {
                   percentage = turnover.percentage
                 } else {
                   percentage = turnover.percentage;
@@ -352,9 +366,8 @@ export class CommissionService {
               }
             }
             // use flat calculation
-            commission = (betData.stake * percentage) / 100
+            commission = (stake * percentage) / 100
           }
-
           return commission;
         } else {
           return commission;

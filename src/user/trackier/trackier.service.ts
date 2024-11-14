@@ -68,8 +68,6 @@ export class TrackierService {
       if (trackingToken && trackingToken !== '')
         payload.trackingToken = trackingToken;
 
-      console.log(payload)
-
       return await axios.post(
         `${this.baseUrl}/customer`,
         payload,
