@@ -331,8 +331,9 @@ model RetailUserCommissionProfile {
 model RetailCommission {
   id              Int                         @id @default(autoincrement())
   clientId        Int                         @map("client_id")
-  userCommssionId Int
-  userCommission  RetailUserCommissionProfile @relation(fields: [userCommssionId], references: [id], onDelete: Cascade)
+  userId          Int                         @map("user_id")
+  userCommissionId Int
+  userCommission  RetailUserCommissionProfile @relation(fields: [userCommissionId], references: [id], onDelete: Cascade)
 
   totalTickets Int?    @map("total_tickets")
   totalStake   Float?  @map("total_stake")

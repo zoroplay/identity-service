@@ -244,6 +244,26 @@ export interface CalculateCommissionRequest {
   noOfSelections: number;
 }
 
+export interface PayoutCommissionRequest {
+  data: PayoutCommissionData[];
+}
+
+export interface PayoutCommissionData {
+  clientId: number;
+  userId: number;
+  stake: number;
+  totalSales: number;
+  provider: string;
+  totalWon: number;
+  totalTickets: number;
+  net: number;
+  commission: number;
+  profit: number;
+  commissionId: number;
+  startDate: string;
+  endDate: string;
+}
+
 /** Commission Profile */
 export interface CommissionProfile {
   clientId: number;
@@ -1142,6 +1162,8 @@ export interface IdentityServiceClient {
 
   calculateCommission(request: CalculateCommissionRequest): Observable<CommonResponseObj>;
 
+  payoutCommission(request: PayoutCommissionRequest): Observable<CommonResponseObj>;
+
   getBonusGroups(request: SingleItemRequest): Observable<BonusGroupResponse>;
 
   createBonusGroups(request: BonusGroups): Observable<BonusGroupResponse>;
@@ -1426,6 +1448,10 @@ export interface IdentityServiceController {
     request: CalculateCommissionRequest,
   ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
 
+  payoutCommission(
+    request: PayoutCommissionRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
   getBonusGroups(
     request: SingleItemRequest,
   ): Promise<BonusGroupResponse> | Observable<BonusGroupResponse> | BonusGroupResponse;
@@ -1538,6 +1564,7 @@ export function IdentityServiceControllerMethods() {
       "deleteCommissionProfile",
       "getCommissionProfileUsers",
       "calculateCommission",
+      "payoutCommission",
       "getBonusGroups",
       "createBonusGroups",
       "createPowerBonus",
