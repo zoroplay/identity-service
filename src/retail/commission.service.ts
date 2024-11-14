@@ -380,6 +380,64 @@ export class CommissionService {
       }
     }
 
+    async payoutCommission(data) {
+      try {
+        for (const item of data) {
+          const {userId, clientId, commissionId, totalTickets, totalSales, totalWon, net, commission, profit, startDate, endDate,  provider } = item;
+          // find user commission
+          const userCommission = await this.prisma.retailUserCommissionProfile.findFirst({
+            where: {id: commissionId},
+            include: {
+              profile: true,
+              user: true
+            }
+          })
+
+          // add commission to history
+          await this.prisma.retailCommission.create({
+            data: {
+              clientId,
+              userId,
+              userCommissionId: userCommission.id,
+              totalStake: totalSales,
+              totalWon,
+              totalTickets,
+              net, 
+              commission, 
+              profit,
+              startDate, 
+              endDate
+            }
+          })
+          // credit user
+          await this.walletService.credit({
+            amount: ''+commission,
+            userId,
+            clientId,
+            description: `${userCommission.profile.name} commission for the period of  ${startDate} - ${endDate}`,
+            subject: `Comm. ${provider}`,
+            source: 'system',
+            wallet: 'main',
+            channel: 'Internal',
+            username: userCommission.user.username,
+          })
+        }
+
+        return {
+          success: true,
+          message: 'Success',
+          data: null
+        }
+      } catch (e) {
+        // console.log(e.message);
+        return {
+          success: false,
+          message: 'Failed',
+          error: "Error paying commission: " + e.message
+        }
+      }
+    }
+
     async getCommissionProfilesByProvider ({provider, clientId}: GetCommissionsRequest) {
       try {
 

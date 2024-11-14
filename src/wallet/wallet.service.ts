@@ -5,6 +5,7 @@ import { Observable, firstValueFrom } from "rxjs";
 
 import {
   CreateWalletRequest,
+  CreditUserRequest,
   FetchBetRangeRequest,
   FetchDepositCountRequest,
   FetchDepositRangeRequest,
@@ -31,6 +32,11 @@ export class WalletService {
   public async fetchBetRange(data: FetchBetRangeRequest) {
     return firstValueFrom(this.svc.fetchBetRange(data));
   }
+
+  public async credit(data: CreditUserRequest) {
+    return firstValueFrom(this.svc.creditUser(data));
+  }
+
   public async fetchDepositCount(data: FetchDepositCountRequest) {
     return firstValueFrom(this.svc.fetchDepositCount(data));
   }
@@ -64,7 +70,7 @@ export class WalletService {
   }
 
   public walletTransfer(data: WalletTransferRequest) {
-    console.log(38108931, data);
+    // console.log(38108931, data);
     return firstValueFrom(this.svc.walletTransfer(data));
   }
 }
