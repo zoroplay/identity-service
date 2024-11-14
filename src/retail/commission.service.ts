@@ -393,6 +393,18 @@ export class CommissionService {
             }
           })
 
+          // check if payment has been made for the period
+          const hasPaid = await this.prisma.retailCommission.findFirst({
+            where: {
+              userId,
+              startDate,
+              endDate
+            }
+          })
+          // if payment has been maid before, skip
+          if (hasPaid)
+            continue;
+
           // add commission to history
           await this.prisma.retailCommission.create({
             data: {
