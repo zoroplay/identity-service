@@ -273,7 +273,7 @@ export class SettingsService {
   async validateBet(data: PlaceBetRequest): Promise<CommonResponseObj> {
     // console.log(data);
     try {
-      const { userId, clientId, stake, selections, totalOdds, isBooking } =
+      const { userId, clientId, stake, selections, totalOdds, isBooking, source } =
         data;
       const period = this.getBettingPeriod();
       const totalSelections = selections.length;
@@ -466,6 +466,13 @@ export class SettingsService {
         'max_payout',
       );
 
+      const max_duplicate_ticket = await this.getBettingParameter(
+        userId,
+        clientId,
+        period,
+        'max_duplicate_ticket',
+      );
+
       let currency = await this.prisma.setting.findFirst({
         where: {
           clientId,
@@ -473,8 +480,15 @@ export class SettingsService {
         },
       });
 
-      const params = { max_winning, currency: currency.value };
+      const params = { max_winning, currency: currency.value, max_duplicate_ticket, commission: 0 };
 
+      if (source === 'shop') {
+        console.log('calculat commission')
+        params.commission = await this.commissionService.calculateCommissionOnTicket({
+          clientId, stake, totalOdds, noOfSelections: selections.length, provider: 'sports', userId
+        })
+      }
+      console.log(params)
       return {
         success: true,
         status: HttpStatus.OK,

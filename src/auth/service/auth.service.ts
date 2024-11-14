@@ -128,7 +128,7 @@ export class AuthService {
               promoCode: promoCode || "",
               clientId
             });
-            console.log(trackREs?.data)
+            // console.log(trackREs?.data)
 
             // update 
             if (trackREs.data.success) {
