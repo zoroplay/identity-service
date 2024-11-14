@@ -176,7 +176,6 @@ export class RetailController {
   async calcualateCommission(data: CalculateCommissionRequest): Promise<CommonResponseObj | any> {
     // console.log(data);
     const commission = await this.commissionService.calculateCommissionOnTicket(data);
-    console.log('calculated commission', commission)
     return {
       success: true,
       status: HttpStatus.OK,
