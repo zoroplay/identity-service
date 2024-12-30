@@ -306,6 +306,8 @@ export class AuthService {
       auth.group = group;
 
       delete auth.password;
+      //save oauth details
+      await this.jwtService.saveToken(auth.id, auth.clientId, auth.token)
 
       return { success: true, status: HttpStatus.OK, error: null, data: auth };
     } catch (err) {
@@ -552,6 +554,16 @@ export class AuthService {
       return {
         status: HttpStatus.CONFLICT,
         error: 'User not found',
+        user: null,
+      };
+    }
+
+    const oauth = await this.jwtService.validateToken(token, auth.id, auth.clientId);
+
+    if (!oauth) {
+      return {
+        status: HttpStatus.FORBIDDEN,
+        error: 'Token is expired',
         user: null,
       };
     }

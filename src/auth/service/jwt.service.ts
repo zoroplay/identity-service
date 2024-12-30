@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService as Jwt } from '@nestjs/jwt';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import * as dayjs from 'dayjs';
 
 @Injectable()
 export class JwtService {
@@ -13,7 +12,7 @@ export class JwtService {
 
     constructor(
         jwt: Jwt,
-        private readonly prisma: PrismaService
+        private readonly prisma: PrismaService,
     ) {
         this.jwt = jwt;
     }
@@ -50,5 +49,54 @@ export class JwtService {
         try {
             return this.jwt.verify(token);
         } catch (err) { }
+    }
+
+    public async saveToken(userId: number, clientId: number, token: string) {
+        try{
+            // check for existing token
+            const oauth = await this.prisma.oAuthAccessToken.findFirst({where: {
+                userId,
+                clientId,
+                revoked: false
+            }});
+            if (oauth) {
+                // revoke existing token
+                await this.prisma.oAuthAccessToken.update({
+                    where: { 
+                        active_token:{ 
+                            userId, clientId, revoked: false
+                        }
+                    },
+                    data: {revoked: true}
+                })
+            }
+            // save new session
+            await this.prisma.oAuthAccessToken.create({
+                data: {
+                    userId, 
+                    clientId, 
+                    token,
+                    revoked: false,
+                    expiresAt: dayjs().add(1, 'h').toDate()
+                }})
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    public async validateToken(token: string, userId: number, clientId: number) {
+        try {
+             // check if token is still valid
+             const oauth = await this.prisma.oAuthAccessToken.findFirst({where: {
+                userId,
+                clientId, 
+                token,
+            }})
+
+            if (oauth && oauth.revoked)
+                return false;
+
+            return true;
+        } catch (err) {return false}
     }
 }
