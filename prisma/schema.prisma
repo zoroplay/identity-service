@@ -429,7 +429,7 @@ model OAuthAccessToken {
   updatedAt DateTime @updatedAt @map("updated_at")
   expiresAt DateTime @map("expires_at")
 
-  @@unique([userId, clientId, revoked], name: "active_token")
+  // @@unique([userId, clientId], name: "active_token")
   @@map("oauth_access_token")
 
 }

@@ -54,18 +54,16 @@ export class JwtService {
     public async saveToken(userId: number, clientId: number, token: string) {
         try{
             // check for existing token
-            const oauth = await this.prisma.oAuthAccessToken.findFirst({where: {
+            const oauth = await this.prisma.oAuthAccessToken.findMany({where: {
                 userId,
                 clientId,
-                revoked: false
             }});
-            if (oauth) {
+            if (oauth.length) {
                 // revoke existing token
-                await this.prisma.oAuthAccessToken.update({
+                await this.prisma.oAuthAccessToken.updateMany({
                     where: { 
-                        active_token:{ 
-                            userId, clientId, revoked: false
-                        }
+                        userId, 
+                        clientId
                     },
                     data: {revoked: true}
                 })
