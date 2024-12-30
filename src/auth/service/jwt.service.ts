@@ -91,6 +91,9 @@ export class JwtService {
                 token,
             }})
 
+            if(!oauth)
+                return false;
+
             if (oauth && oauth.revoked)
                 return false;
 
