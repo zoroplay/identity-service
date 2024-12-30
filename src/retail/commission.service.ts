@@ -385,14 +385,11 @@ export class CommissionService {
         for (const item of data) {
           const {userId, clientId, commissionId, totalTickets, totalSales, totalWon, net, commission, profit, startDate, endDate,  provider } = item;
           // find user commission
-          const userCommission = await this.prisma.retailUserCommissionProfile.findFirst({
+          const profile = await this.prisma.retailCommissionProfile.findFirst({
             where: {id: commissionId},
-            include: {
-              profile: true,
-              user: true
-            }
           })
-
+          // get user
+          const user = await this.prisma.user.findFirst({where: {id: userId}});
           // check if payment has been made for the period
           const hasPaid = await this.prisma.retailCommission.findFirst({
             where: {
@@ -410,7 +407,7 @@ export class CommissionService {
             data: {
               clientId,
               userId,
-              userCommissionId: userCommission.id,
+              profileId: profile.id,
               totalStake: totalSales,
               totalWon,
               totalTickets,
@@ -418,7 +415,8 @@ export class CommissionService {
               commission, 
               profit,
               startDate, 
-              endDate
+              endDate,
+              provider
             }
           })
           // credit user
@@ -426,12 +424,12 @@ export class CommissionService {
             amount: ''+commission,
             userId,
             clientId,
-            description: `${userCommission.profile.name} commission for the period of  ${startDate} - ${endDate}`,
+            description: `${profile.name} commission for the period of  ${startDate} - ${endDate}`,
             subject: `Comm. ${provider}`,
             source: 'system',
             wallet: 'main',
             channel: 'Internal',
-            username: userCommission.user.username,
+            username: user.username,
           })
         }
 
