@@ -494,7 +494,7 @@ export class SettingsService {
           option: `enable_tax`,
         },
       });
-      let excisetTax = 0, wthTax = 0;
+      let exciseTax = 0, wthTax = 0;
 
       if (enableTax.value == '1') {
         let excisetTaxData = await this.prisma.setting.findFirst({
@@ -503,7 +503,7 @@ export class SettingsService {
             option: `excise_tax`,
           },
         });
-        excisetTax = parseFloat(excisetTaxData.value);
+        exciseTax = parseFloat(excisetTaxData.value);
         let wthTaxData = await this.prisma.setting.findFirst({
           where: {
             clientId,
@@ -518,7 +518,7 @@ export class SettingsService {
         currency: currency.value, 
         max_duplicate_ticket, 
         commission: 0,
-        excisetTax, wthTax
+        exciseTax, wthTax
       };
 
       if (source === 'shop') {
