@@ -496,21 +496,23 @@ export class SettingsService {
       });
       let exciseTax = 0, wthTax = 0;
 
-      if (enableTax.value == '1') {
-        let excisetTaxData = await this.prisma.setting.findFirst({
-          where: {
-            clientId,
-            option: `excise_tax`,
-          },
-        });
-        exciseTax = parseFloat(excisetTaxData.value);
-        let wthTaxData = await this.prisma.setting.findFirst({
-          where: {
-            clientId,
-            option: `wth_tax`,
-          },
-        });
-        wthTax = parseFloat(wthTaxData.value);
+      if (enableTax) {
+        if (enableTax.value == '1') {
+          let excisetTaxData = await this.prisma.setting.findFirst({
+            where: {
+              clientId,
+              option: `excise_tax`,
+            },
+          });
+          exciseTax = parseFloat(excisetTaxData.value);
+          let wthTaxData = await this.prisma.setting.findFirst({
+            where: {
+              clientId,
+              option: `wth_tax`,
+            },
+          });
+          wthTax = parseFloat(wthTaxData.value);
+        }
       }
 
       const params = { 
