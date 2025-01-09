@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { handleError, handleResponse } from 'src/common/helpers';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { AssignUserCommissionProfile, CommissionProfile, CommonResponseArray, CommonResponseObj, CreateUserRequest, GetCommissionsRequest, MetaData, SingleItemRequest } from 'src/proto/identity.pb';
+import { AssignUserCommissionProfile, CalculateCommissionRequest, CommissionProfile, CommonResponseArray, CommonResponseObj, CreateUserRequest, GetCommissionsRequest, MetaData, SingleItemRequest } from 'src/proto/identity.pb';
 import { WalletService } from 'src/wallet/wallet.service';
 
 
@@ -305,46 +305,60 @@ export class CommissionService {
       };
     }
 
-    async calculateCommissionOnTicket (shopId, betData, provider) {
+    async calculateCommissionOnTicket (data: CalculateCommissionRequest) {
       let commission = 0, percentage = 0;
+      const {userId, noOfSelections, provider, stake, clientId, totalOdds} = data;
       try {
+        const agentUser = await this.prisma.agentUser.findFirst({
+          where: {
+            user_id: userId
+          },
+          include: {agent: true}
+        });
+
         const commissionProfile = await this.prisma.retailUserCommissionProfile.findFirst({
           where: {
-            userId: shopId,
+            userId: agentUser.agent_id,
             provider,
           },
           include: {profile: true}
         });
 
         if (commissionProfile) {
+          // console.log('has profile')
           const profile = commissionProfile.profile;
-          // remove stake from shop balance
-          await this.walletService.debitAgent({
-            amount: ''+betData.stake,
-            userId: shopId,
-            clientId: betData.clientId,
-            username: '',
-            description: "",
-            source: '',
-            wallet: 'sport',
-            channel: 'Internal',
-            subject: 'Stake debit'
-          });
+          try {
+            // remove stake from shop balance
+            await this.walletService.debitAgent({
+              amount: ''+stake,
+              userId: agentUser.agent_id,
+              clientId,
+              username: agentUser.agent.username,
+              description: "Bet Placement",
+              source: 'retail',
+              wallet: 'main',
+              channel: 'Internal',
+              subject: 'Stake debit'
+            });
+          } catch (e) {
+            console.log('error wallet', e.message)
+          }
 
           if (profile.calculationType === 'flat') {
-            commission = (betData.stake * profile.percentage) / 100
+            commission = (stake * profile.percentage) / 100
           } else {
+
             // get turnover
             const turnover = await this.prisma.retailCommissionTurnover.findFirst({
               where: {
                 commissionId: profile.id,
-                event: betData.selections.length
+                event: noOfSelections
               }
             });
 
             if (turnover) {
               if (turnover.minOdd !== null) {
-                if (betData.totalOdds >= turnover.minOdd && betData.totalOdds <= turnover.maxOdd) {
+                if (totalOdds >= turnover.minOdd && totalOdds <= turnover.maxOdd) {
                   percentage = turnover.percentage
                 } else {
                   percentage = turnover.percentage;
@@ -352,9 +366,8 @@ export class CommissionService {
               }
             }
             // use flat calculation
-            commission = (betData.stake * percentage) / 100
+            commission = (stake * percentage) / 100
           }
-
           return commission;
         } else {
           return commission;
@@ -364,6 +377,74 @@ export class CommissionService {
       } catch (e) {
         console.log("error calculating commission", e.message);
         return commission;
+      }
+    }
+
+    async payoutCommission(data) {
+      try {
+        for (const item of data) {
+          const {userId, clientId, commissionId, totalTickets, totalSales, totalWon, net, commission, profit, startDate, endDate,  provider } = item;
+          // find user commission
+          const profile = await this.prisma.retailCommissionProfile.findFirst({
+            where: {id: commissionId},
+          })
+          // get user
+          const user = await this.prisma.user.findFirst({where: {id: userId}});
+          // check if payment has been made for the period
+          const hasPaid = await this.prisma.retailCommission.findFirst({
+            where: {
+              userId,
+              startDate,
+              endDate
+            }
+          })
+          // if payment has been maid before, skip
+          if (hasPaid)
+            continue;
+
+          // add commission to history
+          await this.prisma.retailCommission.create({
+            data: {
+              clientId,
+              userId,
+              profileId: profile.id,
+              totalStake: totalSales,
+              totalWon,
+              totalTickets,
+              net, 
+              commission, 
+              profit,
+              startDate, 
+              endDate,
+              provider
+            }
+          })
+          // credit user
+          await this.walletService.credit({
+            amount: ''+commission,
+            userId,
+            clientId,
+            description: `${profile.name} commission for the period of  ${startDate} - ${endDate}`,
+            subject: `Comm. ${provider}`,
+            source: 'system',
+            wallet: 'main',
+            channel: 'Internal',
+            username: user.username,
+          })
+        }
+
+        return {
+          success: true,
+          message: 'Success',
+          data: null
+        }
+      } catch (e) {
+        // console.log(e.message);
+        return {
+          success: false,
+          message: 'Failed',
+          error: "Error paying commission: " + e.message
+        }
       }
     }
 

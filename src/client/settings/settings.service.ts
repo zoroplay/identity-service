@@ -29,7 +29,7 @@ export class SettingsService {
       const clientId = params.clientId;
 
       for (const [key, value] of Object.entries(data)) {
-        console.log(`Key: ${key}, Value: ${value}`);
+        // console.log(`Key: ${key}, Value: ${value}`);
         const val: any = value;
         if (key !== 'logo' && key !== 'print_logo') {
           await this.prisma.setting.upsert({
@@ -260,6 +260,15 @@ export class SettingsService {
       if (setting.option === 'min_deposit') {
         data.MinDeposit = setting.value;
       }
+      if (setting.option === 'enable_tax') {
+        data.taxEnabled = setting.value;
+      }
+      if (setting.option === 'excise_tax') {
+        data.exciseTax = setting.value;
+      }
+      if (setting.option === 'wth_tax') {
+        data.wthTax = setting.value;
+      }
     }
 
     return {
@@ -273,7 +282,7 @@ export class SettingsService {
   async validateBet(data: PlaceBetRequest): Promise<CommonResponseObj> {
     // console.log(data);
     try {
-      const { userId, clientId, stake, selections, totalOdds, isBooking } =
+      const { userId, clientId, stake, selections, totalOdds, isBooking, source } =
         data;
       const period = this.getBettingPeriod();
       const totalSelections = selections.length;
@@ -466,15 +475,61 @@ export class SettingsService {
         'max_payout',
       );
 
+      const max_duplicate_ticket = await this.getBettingParameter(
+        userId,
+        clientId,
+        period,
+        'max_duplicate_ticket',
+      );
+
       let currency = await this.prisma.setting.findFirst({
         where: {
           clientId,
           option: `currency_code`,
         },
       });
+      let enableTax = await this.prisma.setting.findFirst({
+        where: {
+          clientId,
+          option: `enable_tax`,
+        },
+      });
+      let exciseTax = 0, wthTax = 0;
 
-      const params = { max_winning, currency: currency.value };
+      if (enableTax) {
+        if (enableTax.value == '1') {
+          let excisetTaxData = await this.prisma.setting.findFirst({
+            where: {
+              clientId,
+              option: `excise_tax`,
+            },
+          });
+          exciseTax = parseFloat(excisetTaxData.value);
+          let wthTaxData = await this.prisma.setting.findFirst({
+            where: {
+              clientId,
+              option: `wth_tax`,
+            },
+          });
+          wthTax = parseFloat(wthTaxData.value);
+        }
+      }
 
+      const params = { 
+        max_winning, 
+        currency: currency.value, 
+        max_duplicate_ticket, 
+        commission: 0,
+        exciseTax, wthTax
+      };
+
+      if (source === 'shop') {
+        console.log('calculat commission')
+        params.commission = await this.commissionService.calculateCommissionOnTicket({
+          clientId, stake, totalOdds, noOfSelections: selections.length, provider: 'sports', userId
+        })
+      }
+      console.log(params)
       return {
         success: true,
         status: HttpStatus.OK,

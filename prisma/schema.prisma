@@ -22,6 +22,7 @@ model User {
   virtualToken            String?                       @map("virutal_token")
   registrationSource      String?                       @map("registration_source")
   trackierToken           String?                       @map("trakier_token")
+  trackierId              String?                       @map("trackier_id")
   lastLogin               String?                       @map("last_login")
   status                  Int                           @default(1)
   verified                Int                           @default(1)
@@ -281,6 +282,7 @@ model RetailCommissionProfile {
 
   turnovers RetailCommissionTurnover[]
   users     RetailUserCommissionProfile[]
+  commissions RetailCommission[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -318,8 +320,6 @@ model RetailUserCommissionProfile {
   profileId Int
   profile   RetailCommissionProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
-  commissions RetailCommission[]
-
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -330,8 +330,9 @@ model RetailUserCommissionProfile {
 model RetailCommission {
   id              Int                         @id @default(autoincrement())
   clientId        Int                         @map("client_id")
-  userCommssionId Int
-  userCommission  RetailUserCommissionProfile @relation(fields: [userCommssionId], references: [id], onDelete: Cascade)
+  userId          Int                         @map("user_id")
+  profileId       Int   @default(1)
+  profile  RetailCommissionProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
   totalTickets Int?    @map("total_tickets")
   totalStake   Float?  @map("total_stake")
@@ -339,6 +340,7 @@ model RetailCommission {
   net          Float?
   commission   Float?
   profit       Float?
+  provider     String?
   startDate    String  @map("start_date")
   endDate      String  @map("end_date")
   isPaid       Boolean @default(false) @map("is_paid")
@@ -414,6 +416,22 @@ model RetailPowerPayout {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("retail_power_payout")
+}
+
+model OAuthAccessToken {
+  id       Int @id @default(autoincrement())
+  userId   Int @map("user_id")
+  clientId Int @map("client_id")
+  scopes   String?
+  token    String?
+  revoked  Boolean @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  expiresAt DateTime @map("expires_at")
+
+  // @@unique([userId, clientId], name: "active_token")
+  @@map("oauth_access_token")
+
 }
 
 enum CountryRegion {
