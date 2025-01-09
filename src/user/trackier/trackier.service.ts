@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Timeout } from '@nestjs/schedule';
 import axios from 'axios';
 import * as dayjs from 'dayjs';
 import { handleError } from 'src/common/helpers';
@@ -29,7 +30,7 @@ export class TrackierService {
 
     let success = true, message = 'Success'
 
-    if (!apiKeyQ.value) {
+    if (!apiKeyQ?.value) {
       success = false;
       message = 'Not available'
     }
@@ -44,34 +45,39 @@ export class TrackierService {
     }
   }
 
-  async createCustomer({customerId, customerName, trackingToken, clientId}) {
+  async createCustomer({customerId, customerName, trackingToken, promoCode, clientId}) {
     const keys = await this.getKeys(clientId);
 
     if (keys.success) {
-      console.log('keys', keys.data.AuthCode, keys.data.ApiKey)
+      // console.log('keys', keys.data.AuthCode, keys.data.ApiKey)
       const authres: any = await this.getAccessToken(keys.data.AuthCode);
-
       if (!authres.success) return handleError(authres.error.message, null);
+
+      const payload: any = {
+        customerId,
+        customerName,
+        // date: dayjs().format('YYYY-MM-DD'),
+        timestamp: dayjs().unix(),
+        country: 'NG',
+        currency: 'ngn',
+        productId: '1',
+      }
+      if (promoCode && promoCode !== '') 
+        payload.promocode = promoCode;
+
+      if (trackingToken && trackingToken !== '')
+        payload.trackingToken = trackingToken;
 
       return await axios.post(
         `${this.baseUrl}/customer`,
-        {
-          customerId,
-          customerName,
-          date: dayjs().format('YYYY-MM-DD'),
-          timestamp: dayjs().unix(),
-          country: 'NG',
-          currency: 'ngn',
-          trackingToken,
-          productId: '1',
-        },
+        payload,
         {
           headers: {
             'x-api-key': keys.data.ApiKey,
             authorization: `BEARER ${authres.data.accessToken}`,
           },
         },
-      );
+      ).catch(err => console.log('trackier error', err.response.data));
     }
   }
 
@@ -113,5 +119,36 @@ export class TrackierService {
     );
 
     return resp.data;
+  }
+
+  
+  // @Timeout(10000)
+  async getCustomers(clientId = 1) {
+    try {
+      console.log('fetching customers')
+      const keys = await this.getKeys(clientId);
+
+      if (keys.success) {
+        console.log('keys', keys.data.AuthCode, keys.data.ApiKey)
+        
+        const authres: any = await this.getAccessToken(keys.data.AuthCode);
+
+        if (!authres.success) return handleError(authres.error.message, null);
+
+        const customers = await axios.get(
+          `${this.baseUrl}/api/admin/v2/customers`,
+          {
+            headers: {
+              'x-api-key': keys.data.ApiKey,
+              authorization: `BEARER ${authres.data.accessToken}`,
+            },
+          },
+        );
+
+        console.log(customers.data.data.customers[0]);
+      }
+    } catch (e) {
+      console.log('error fetching trackier customers', e.message);
+    }
   }
 }

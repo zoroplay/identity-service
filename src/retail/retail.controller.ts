@@ -1,6 +1,6 @@
-import { Controller } from '@nestjs/common';
+import { Controller, HttpStatus } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
-import { AssignUserCommissionProfile, BonusGroupResponse, BonusGroups, CommissionProfile, CommonResponseArray, CommonResponseObj, CreateUserRequest, GetCommissionsRequest, GetNetworkSalesRequest, GetNormalRequest, IDENTITY_SERVICE_NAME, NormalResponse, PayNormalRequest, PayNormalResponse, PayPowerRequest, PowerBonusResponse, PowerRequest, PowerResponse, SingleItemRequest } from 'src/proto/identity.pb';
+import { AssignUserCommissionProfile, BonusGroupResponse, BonusGroups, CalculateCommissionRequest, CommissionProfile, CommonResponseArray, CommonResponseObj, CreateUserRequest, GetCommissionsRequest, GetNetworkSalesRequest, GetNormalRequest, IDENTITY_SERVICE_NAME, NormalResponse, PayNormalRequest, PayNormalResponse, PayoutCommissionRequest, PayPowerRequest, PowerBonusResponse, PowerRequest, PowerResponse, SingleItemRequest } from 'src/proto/identity.pb';
 import { RetailService } from './retail.service';
 import { GetAgentUsersRequest } from 'src/proto/retail.pb';
 import { CommissionService } from './commission.service';
@@ -169,6 +169,26 @@ export class RetailController {
   calculateNormalBonus(data: PayNormalRequest): PayNormalResponse | any {
     console.log(data);
     return this.bonusService.calculateNormalBonus(data);
+  }
+
+  // Calculate Commission on Ticket
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'calculateCommission')
+  async calcualateCommission(data: CalculateCommissionRequest): Promise<CommonResponseObj | any> {
+    // console.log(data);
+    const commission = await this.commissionService.calculateCommissionOnTicket(data);
+    return {
+      success: true,
+      status: HttpStatus.OK,
+      message: 'commission calculated succesfully',
+      data: {
+        commission
+      }
+    }
+  }
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'payoutCommission')
+  payCommission(payload: PayoutCommissionRequest): CommonResponseObj | any {
+    return this.commissionService.payoutCommission(payload.data);
   }
 
   // Payout Normal bonus

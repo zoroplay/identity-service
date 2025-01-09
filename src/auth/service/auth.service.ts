@@ -97,6 +97,7 @@ export class AuthService {
           clientId,
           amount: 0,
         });
+        console.log('promo code', promoCode)
 
         //check if promo code is provided and activate bonus
         if (promoCode && promoCode !== '') {
@@ -116,14 +117,35 @@ export class AuthService {
               promoCode,
             });
           }
-        } else if (trackingToken && trackingToken !== '') {
-          const trackREs = await this.trackierService.createCustomer({
-            customerId: newUser.username,
-            customerName: newUser.username,
-            trackingToken,
-            clientId
-          });
-          console.log(trackREs)
+        } 
+        
+        if ((trackingToken && trackingToken !== '') || (promoCode && promoCode !== '')) {
+          try {
+            const trackREs: any = await this.trackierService.createCustomer({
+              customerId: newUser.username,
+              customerName: newUser.username,
+              trackingToken: trackingToken || '',
+              promoCode: promoCode || "",
+              clientId
+            });
+            // console.log(trackREs?.data)
+
+            // update 
+            if (trackREs.data.success) {
+              const trackData = trackREs.data.data;
+              // update user data
+              await prisma.user.update({
+                data: {
+                  trackierId: trackData.hash_id,
+                },
+                where: {
+                  id: newUser.id,
+                },
+              })
+            }
+          } catch (e) {
+            console.log('error creating trackier customer', e)
+          }
         }
 
         if (balanceRes.success) {
@@ -284,6 +306,8 @@ export class AuthService {
       auth.group = group;
 
       delete auth.password;
+      //save oauth details
+      await this.jwtService.saveToken(auth.id, auth.clientId, auth.token)
 
       return { success: true, status: HttpStatus.OK, error: null, data: auth };
     } catch (err) {
@@ -534,6 +558,16 @@ export class AuthService {
       };
     }
 
+    const oauth = await this.jwtService.validateToken(token, auth.id, auth.clientId);
+
+    if (!oauth) {
+      return {
+        status: HttpStatus.FORBIDDEN,
+        error: 'Token is expired',
+        user: null,
+      };
+    }
+
     return { status: HttpStatus.OK, error: null, user: decoded };
   }
 
@@ -629,7 +663,7 @@ export class AuthService {
     token,
     clientId,
   }: XpressLoginRequest): Promise<CommonResponseObj> {
-    console.log('validate auth code', token, clientId);
+    // console.log('validate auth code', token, clientId);
     try {
       //
       const user = await this.prisma.user.findFirst({
@@ -745,7 +779,6 @@ export class AuthService {
     clientId,
   }: SessionRequest): Promise<CommonResponseObj> {
     try {
-      console.log('session area', sessionId);
       const user = await this.prisma.user.findFirst({
         where: {
           virtualToken: sessionId,
@@ -776,6 +809,7 @@ export class AuthService {
       };
     }
   }
+  
   private getStartOfDay(date: Date) {
     const start = new Date(date);
     start.setHours(0, 0, 0, 0); // Set hours, minutes, seconds, and milliseconds to zero

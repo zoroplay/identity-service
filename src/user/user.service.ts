@@ -117,13 +117,20 @@ export class UserService {
       }
       switch (createPinDto.type) {
         case 'create':
-          if (createPinDto.pin !== createPinDto.confirmPin) {
+          if (createPinDto.pin !== createPinDto.confirmPin)
             return {
               success: false,
               status: HttpStatus.BAD_REQUEST,
               message: 'Cannot create Pin: Pin and confirmPin does not match',
             };
-          }
+          if (user.pin)
+            return {
+              success: false,
+              status: HttpStatus.BAD_REQUEST,
+              message:
+                'Cannot create Pin: User Already has pin, comtact support to update',
+            };
+
           user = await this.prisma.user.update({
             where: {
               id: createPinDto.userId,
