@@ -663,7 +663,7 @@ export class AuthService {
     token,
     clientId,
   }: XpressLoginRequest): Promise<CommonResponseObj> {
-    console.log('validate auth code', token, clientId);
+    // console.log('validate auth code', token, clientId);
     try {
       //
       const user = await this.prisma.user.findFirst({
