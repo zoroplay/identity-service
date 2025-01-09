@@ -529,7 +529,7 @@ export class SettingsService {
           clientId, stake, totalOdds, noOfSelections: selections.length, provider: 'sports', userId
         })
       }
-      console.log(params)
+      // console.log(params)
       return {
         success: true,
         status: HttpStatus.OK,
