@@ -287,18 +287,25 @@ export class SettingsService {
       const period = this.getBettingPeriod();
       const totalSelections = selections.length;
 
-      const user = await this.prisma.user.findFirst({ where: { id: userId } });
+      const user = await this.prisma.user.findFirst({ 
+        where: { id: userId }, 
+        include: {role: true} 
+      });
+      let category = user.role.name === 'Player' ? 'online' : 'retail';
+
       const maxSelections = await this.getBettingParameter(
         userId,
         clientId,
         period,
         'size_max',
+        category
       );
       const minSelections = await this.getBettingParameter(
         userId,
         clientId,
         period,
         'size_min',
+        category
       );
 
       // console.log(user);
@@ -323,6 +330,7 @@ export class SettingsService {
           clientId,
           period,
           'accept_live_bets',
+          category
         );
         if (acceptLive == 0)
           return {
@@ -336,6 +344,7 @@ export class SettingsService {
           clientId,
           period,
           'accept_prematch_bets',
+          category
         );
         if (acceptLive == 0)
           return {
@@ -392,18 +401,21 @@ export class SettingsService {
           clientId,
           period,
           'single_odd_length',
+          category,
         );
         const singleMinStake = await this.getBettingParameter(
           userId,
           clientId,
           period,
           'single_min',
+          category
         );
         const singleMaxStake = await this.getBettingParameter(
           userId,
           clientId,
           period,
           'single_max',
+          category
         );
 
         if (parseInt(singleOddLength) < totalOdds)
@@ -432,18 +444,21 @@ export class SettingsService {
           clientId,
           period,
           'combi_odd_length',
+          category
         );
         const combiMinStake = await this.getBettingParameter(
           userId,
           clientId,
           period,
           'combi_min',
+          category
         );
         const combiMaxStake = await this.getBettingParameter(
           userId,
           clientId,
           period,
           'combi_max',
+          category
         );
 
         if (parseInt(combiOddLength) < totalOdds)
@@ -473,6 +488,7 @@ export class SettingsService {
         clientId,
         period,
         'max_payout',
+        category
       );
 
       const max_duplicate_ticket = await this.getBettingParameter(
@@ -480,6 +496,7 @@ export class SettingsService {
         clientId,
         period,
         'max_duplicate_ticket',
+        category
       );
 
       let currency = await this.prisma.setting.findFirst({
@@ -529,7 +546,7 @@ export class SettingsService {
           clientId, stake, totalOdds, noOfSelections: selections.length, provider: 'sports', userId
         })
       }
-      console.log(params)
+      // console.log(params)
       return {
         success: true,
         status: HttpStatus.OK,
@@ -542,7 +559,7 @@ export class SettingsService {
     }
   }
 
-  async getBettingParameter(userId, clientId, period, option) {
+  async getBettingParameter(userId, clientId, period, option, category) {
     let userSettings = await this.prisma.userBettingParameter.findFirst({
       where: {
         userId,
@@ -555,6 +572,7 @@ export class SettingsService {
         where: {
           clientId,
           option: `${option}_${period}`,
+          category
         },
       });
       if (settings) {

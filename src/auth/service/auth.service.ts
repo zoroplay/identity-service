@@ -683,6 +683,7 @@ export class AuthService {
 
         const data = {
           playerId: user.id,
+          clientId: user.clientId,
           playerNickname: user.username,
           sessionId: user.virtualToken,
           balance: balanceRes.data.availableBalance,
