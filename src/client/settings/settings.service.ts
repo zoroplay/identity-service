@@ -23,50 +23,93 @@ export class SettingsService {
     private readonly commissionService: CommissionService,
   ) {}
 
-  async saveSettings(params: SettingsRequest): Promise<CommonResponseObj> {
-    try {
-      const data = JSON.parse(params.inputs);
-      const clientId = params.clientId;
+  // async saveSettings(params: SettingsRequest): Promise<CommonResponseObj> {
+  //   try {
+  //     const data = JSON.parse(params.inputs);
+  //     const clientId = params.clientId;
 
-      for (const [key, value] of Object.entries(data)) {
-        // console.log(`Key: ${key}, Value: ${value}`);
-        const val: any = value;
-        if (key !== 'logo' && key !== 'print_logo') {
-          await this.prisma.setting.upsert({
-            where: {
-              client_option_category: {
-                clientId,
-                option: key,
-                category: 'general',
-              },
-            },
-            // update existing
-            update: {
-              value: val,
-            },
-            // new record
-            create: {
-              clientId,
-              option: key,
-              value: val,
-              category: 'general',
-            },
-          });
-        }
-      }
-      return {
-        success: true,
-        status: HttpStatus.OK,
-        message: 'Saved successfully',
-      };
-    } catch (e) {
-      return {
-        success: false,
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: `Something went wrong: ${e.message}`,
-      };
+  //     for (const [key, value] of Object.entries(data)) {
+  //       // console.log(`Key: ${key}, Value: ${value}`);
+  //       const val: any = value;
+  //       if (key !== 'logo' && key !== 'print_logo') {
+  //         await this.prisma.setting.upsert({
+  //           where: {
+  //             client_option_category: {
+  //               clientId,
+  //               option: key,
+  //               category: 'general',
+  //             },
+  //           },
+  //           // update existing
+  //           update: {
+  //             value: val,
+  //           },
+  //           // new record
+  //           create: {
+  //             clientId,
+  //             option: key,
+  //             value: val,
+  //             category: 'general',
+  //           },
+  //         });
+  //       }
+  //     }
+  //     return {
+  //       success: true,
+  //       status: HttpStatus.OK,
+  //       message: 'Saved successfully',
+  //     };
+  //   } catch (e) {
+  //     return {
+  //       success: false,
+  //       status: HttpStatus.INTERNAL_SERVER_ERROR,
+  //       message: `Something went wrong: ${e.message}`,
+  //     };
+  //   }
+  // }
+
+  async saveSettings(params: SettingsRequest): Promise<CommonResponseObj> {
+  try {
+    const data = JSON.parse(params.inputs);
+    const clientId = params.clientId;
+
+    for (const [key, value] of Object.entries(data)) {
+      const val: any = value;
+      await this.prisma.setting.upsert({
+        where: {
+          client_option_category: {
+            clientId,
+            option: key,
+            category: 'general',
+          },
+        },
+        // update existing
+        update: {
+          value: val,
+        },
+        // new record
+        create: {
+          clientId,
+          option: key,
+          value: val,
+          category: 'general',
+        },
+      });
     }
+    return {
+      success: true,
+      status: HttpStatus.OK,
+      message: 'Saved successfully',
+    };
+  } catch (e) {
+    return {
+      success: false,
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: `Something went wrong: ${e.message}`,
+    };
   }
+}
+
 
   async saveRiskSettings(params: SettingsRequest): Promise<CommonResponseObj> {
     try {
