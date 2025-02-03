@@ -299,8 +299,10 @@ export class SettingsService {
       });
       
       let category = 'online';
+
+      console.log(user)
       
-      if (user && user.role.name === 'Cashier')
+      if (user && user.role?.name === 'Cashier')
         category = 'retail';
 
       const maxSelections = await this.getBettingParameter(
