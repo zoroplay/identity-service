@@ -295,9 +295,9 @@ export class SettingsService {
 
       let category = 'online';
       let user;
-      
+
       if (userId) {
-        const user = await this.prisma.user.findFirst({ 
+        user = await this.prisma.user.findFirst({ 
           where: { id: userId }, 
           include: {role: true} 
         });
