@@ -263,11 +263,17 @@ export class SettingsService {
       if (setting.option === 'enable_tax') {
         data.taxEnabled = setting.value;
       }
+
       if (setting.option === 'excise_tax') {
         data.exciseTax = setting.value;
       }
+
       if (setting.option === 'wth_tax') {
         data.wthTax = setting.value;
+      }
+
+      if (setting.option === 'enable_cashout_' + period) {
+        data.enableCashout = setting.value;
       }
     }
 
