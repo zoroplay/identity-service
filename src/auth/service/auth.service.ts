@@ -297,7 +297,7 @@ export class AuthService {
       auth.city = user.userDetails.city;
       auth.address = user.userDetails.address;
       auth.country = user.userDetails.country;
-      auth.currency = user.userDetails.currency;
+      auth.currency = user.client.currency;
       auth.dateOfBirth = user.userDetails.date_of_birth;
       auth.role = user.role.name;
       auth.roleId = user.role.id;
@@ -380,7 +380,7 @@ export class AuthService {
         auth.city = user.userDetails.city;
         auth.address = user.userDetails.address;
         auth.country = user.userDetails.country;
-        auth.currency = user.userDetails.currency;
+        auth.currency = user.client.currency;
         auth.dateOfBirth = user.userDetails.date_of_birth;
         auth.group = group;
 

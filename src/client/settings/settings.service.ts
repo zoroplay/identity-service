@@ -291,7 +291,8 @@ export class SettingsService {
         where: { id: userId }, 
         include: {role: true} 
       });
-      let category = user.role.name === 'Player' ? 'online' : 'retail';
+      
+      let category = (user.role.name || isBooking === 1)=== 'Player' ? 'online' : 'retail';
 
       const maxSelections = await this.getBettingParameter(
         userId,
@@ -499,18 +500,28 @@ export class SettingsService {
         category
       );
 
+      const cashoutEnabled = await this.getBettingParameter(
+        userId,
+        clientId,
+        period,
+        'enable_cashout',
+        category
+      );
+
       let currency = await this.prisma.setting.findFirst({
         where: {
           clientId,
           option: `currency_code`,
         },
       });
+
       let enableTax = await this.prisma.setting.findFirst({
         where: {
           clientId,
           option: `enable_tax`,
         },
       });
+
       let exciseTax = 0, wthTax = 0;
 
       if (enableTax) {
@@ -537,6 +548,7 @@ export class SettingsService {
         currency: currency.value, 
         max_duplicate_ticket, 
         commission: 0,
+        cashoutEnabled,
         exciseTax, wthTax
       };
 
