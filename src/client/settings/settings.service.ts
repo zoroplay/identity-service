@@ -293,17 +293,18 @@ export class SettingsService {
       const period = this.getBettingPeriod();
       const totalSelections = selections.length;
 
-      const user = await this.prisma.user.findFirst({ 
-        where: { id: userId }, 
-        include: {role: true} 
-      });
-      
       let category = 'online';
-
-      console.log(user)
+      let user;
       
-      if (user && user.role?.name === 'Cashier')
-        category = 'retail';
+      if (userId) {
+        const user = await this.prisma.user.findFirst({ 
+          where: { id: userId }, 
+          include: {role: true} 
+        });
+              
+        if (user && user.role?.name === 'Cashier')
+          category = 'retail';
+      }
 
       const maxSelections = await this.getBettingParameter(
         userId,
