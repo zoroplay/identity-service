@@ -298,7 +298,10 @@ export class SettingsService {
         include: {role: true} 
       });
       
-      let category = (user.role.name || isBooking === 1)=== 'Player' ? 'online' : 'retail';
+      let category = 'online';
+      
+      if (user && user.role.name === 'Cashier')
+        category = 'retail';
 
       const maxSelections = await this.getBettingParameter(
         userId,
