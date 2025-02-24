@@ -268,6 +268,22 @@ export class SettingsService {
         data.exciseTax = setting.value;
       }
 
+      if (setting.option === 'combi_min_day') {
+        data.comboMinStake = setting.value;
+      }
+
+      if (setting.option === 'combi_max_day') {
+        data.comboMaxStake = setting.value;
+      }
+
+      if (setting.option === 'single_max_day') {
+        data.singleMaxStake = setting.value;
+      }
+
+      if (setting.option === 'single_min_day') {
+        data.singleMinStake = setting.value;
+      }
+
       if (setting.option === 'wth_tax') {
         data.wthTax = setting.value;
       }
@@ -293,15 +309,18 @@ export class SettingsService {
       const period = this.getBettingPeriod();
       const totalSelections = selections.length;
 
-      const user = await this.prisma.user.findFirst({ 
-        where: { id: userId }, 
-        include: {role: true} 
-      });
-      
       let category = 'online';
-      
-      if (user && user.role.name === 'Cashier')
-        category = 'retail';
+      let user;
+
+      if (userId) {
+        user = await this.prisma.user.findFirst({ 
+          where: { id: userId }, 
+          include: {role: true} 
+        });
+              
+        if (user && user.role?.name === 'Cashier')
+          category = 'retail';
+      }
 
       const maxSelections = await this.getBettingParameter(
         userId,
@@ -471,6 +490,7 @@ export class SettingsService {
           category
         );
 
+
         if (parseInt(combiOddLength) < totalOdds)
           return {
             success: false,
@@ -478,12 +498,16 @@ export class SettingsService {
             message: `Total odds exceeds allowed odds of ${combiOddLength}`,
           };
 
+          console.log('max combo stake', parseFloat(combiMaxStake), stake)
+          console.log('min combo stake', parseFloat(combiMinStake), stake)
         if (parseFloat(combiMaxStake) < stake)
           return {
             success: false,
             status: HttpStatus.NOT_ACCEPTABLE,
             message: `Max allowed stake is ${combiMaxStake}`,
           };
+
+
 
         if (parseFloat(combiMinStake) > stake)
           return {
