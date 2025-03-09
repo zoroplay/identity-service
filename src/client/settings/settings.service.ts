@@ -1,6 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { HttpStatus, Injectable } from '@nestjs/common';
 import * as dayjs from 'dayjs';
+import { BettingService } from 'src/betting/betting.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
   WithdrawalSettingsResponse,
@@ -21,6 +22,7 @@ export class SettingsService {
     private prisma: PrismaService,
     private readonly walletService: WalletService,
     private readonly commissionService: CommissionService,
+    private readonly bettingService: BettingService
   ) {}
 
   async saveSettings(params: SettingsRequest): Promise<CommonResponseObj> {
@@ -54,6 +56,9 @@ export class SettingsService {
           });
         }
       }
+
+      await this.bettingService.saveSetting(params)
+
       return {
         success: true,
         status: HttpStatus.OK,
