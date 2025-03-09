@@ -111,7 +111,7 @@ export class SettingsService {
         }
       }
       // send data betting service
-      await this.bettingService.saveRiskSetting(data);
+      await this.bettingService.saveRiskSetting(params);
 
       return {
         success: true,
