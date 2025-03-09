@@ -26,5 +26,9 @@ export class BettingService {
         return firstValueFrom(this.svc.saveSettings(data))
     }
 
+    public saveRiskSetting(data) {
+        return firstValueFrom(this.svc.saveRiskSettings(data))
+    }
+
 
 }
