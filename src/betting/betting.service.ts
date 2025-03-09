@@ -22,5 +22,9 @@ export class BettingService {
         return  firstValueFrom(this.svc.getTotalSalesReport(data));
     }
 
+    public saveSetting(data) {
+        return firstValueFrom(this.svc.saveSettings(data))
+    }
+
 
 }
