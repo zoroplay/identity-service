@@ -18,7 +18,6 @@ import { WalletService } from 'src/wallet/wallet.service';
 import * as dayjs from 'dayjs';
 import {
   FetchBetRangeRequest,
-  FetchDepositCountRequest,
   FetchDepositRangeRequest,
 } from 'src/proto/wallet.pb';
 import { paginateResponse } from 'src/common/helpers';
