@@ -525,7 +525,7 @@ export class PlayerService {
     clientId,
     from: startDate,
     to: endDate,
-    source,
+    reportType,
     page,
     limit,
   }: RegistrationReportRequest): Promise<PlayersListResponse> {
@@ -542,9 +542,31 @@ export class PlayerService {
       where: { name: 'Player' },
     });
 
-    total = await this.prisma.user.count({
-      where: { roleId: role.id, clientId },
-    });
+    const date = new Date();
+    date.setMonth(date.getMonth() - 3);
+    const lastThreeMonths = date.toISOString().split('T')[0]; 
+
+    console.log("lastThreeMonths", lastThreeMonths, typeof lastThreeMonths);
+
+    if(reportType === 'frozen') {
+      total = await this.prisma.user.count({
+        where: { roleId: role.id, clientId, status: 2 },
+      });
+    } else if(reportType === 'inactive') {
+      total = await this.prisma.user.count({
+        where: { roleId: role.id, clientId, lastLogin: {lt: lastThreeMonths} },
+      });
+    } else {
+      total = await this.prisma.user.count({
+        where: { roleId: role.id, clientId },
+      });
+    }
+
+    console.log("total", total);
+
+    // total = await this.prisma.user.count({
+    //   where: { roleId: role.id, clientId },
+    // });
 
     if (total <= perPage) {
       last_page = 1;
@@ -593,6 +615,31 @@ export class PlayerService {
     WHERE u.clientId = ${clientId} AND u.role_id = ${role.id}
     AND u.created_at >= '${startDate}' AND u.created_at <= '${endDate}' 
     LIMIT ${offset},${perPage}`;
+
+    if(reportType === 'frozen') {
+      sql = `
+        SELECT u.id, u.username, u.code, u.created_at, u.status, u.verified,
+              d.email, d.phone, d.firstName, d.lastName, d.country, d.currency, u.last_login
+        FROM users u 
+        LEFT JOIN user_details d ON u.id = d.user_id
+        WHERE u.clientId = ${clientId}
+          AND u.role_id = ${role.id} 
+          AND u.created_at >= '${startDate}' AND u.created_at <= '${endDate}' 
+          AND u.status = 2
+        LIMIT ${offset},${perPage}`;
+    }
+
+    if(reportType === 'inactive') {
+      sql = `
+        SELECT u.id, u.username, u.code, u.created_at, u.status, u.verified,
+              d.email, d.phone, d.firstName, d.lastName, d.country, d.currency, u.last_login
+        FROM users u 
+        LEFT JOIN user_details d ON u.id = d.user_id
+        WHERE u.clientId = ${clientId}
+          AND u.role_id = ${role.id} 
+          AND STR_TO_DATE(u.last_login, '%Y-%m-%d') < STR_TO_DATE('${lastThreeMonths}', '%Y-%m-%d')
+        LIMIT ${offset},${perPage}`;
+    }
 
     const users: any = await this.prisma.$queryRawUnsafe(sql);
     if (users.length > 0) {
@@ -643,7 +690,7 @@ export class PlayerService {
 
     return { perPage, currentPage, total, data, from, to };
   }
-
+  
   async getPlayerData({ clientId, userId }): Promise<GetPlayerDataResponse> {
     try {
       let userDetails: any = await this.prisma.user.findUnique({

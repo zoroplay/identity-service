@@ -859,6 +859,7 @@ export interface RegistrationReportRequest {
   source: string;
   page?: number | undefined;
   limit?: number | undefined;
+  reportType?: string | undefined;
 }
 
 export interface PlayersListResponse {
