@@ -24,5 +24,6 @@ import { BettingModule } from 'src/betting/betting.module';
   ],
   controllers: [AuthController],
   providers: [AuthService, CommissionService, JwtService, JwtStrategy, PrismaService, SettingsService, TrackierService],
+  exports: [JwtService]
 })
-export class AuthModule { }
+export class AuthModule {}
