@@ -15,6 +15,10 @@ import { RetailModule } from './retail/retail.module';
 import { BettingModule } from './betting/betting.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { TrackierService } from './user/trackier/trackier.service';
+<<<<<<< HEAD
+=======
+import { AuditLogModule } from './audit/audit.module';
+>>>>>>> 571bc0a70ddfee10708e0b3f6c983db39b1abd2d
 
 @Global()
 @Module({
@@ -30,6 +34,10 @@ import { TrackierService } from './user/trackier/trackier.service';
     NotificationsModule,
     ScheduleModule.forRoot(),
     RetailModule,
+<<<<<<< HEAD
+=======
+    AuditLogModule,
+>>>>>>> 571bc0a70ddfee10708e0b3f6c983db39b1abd2d
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService, JwtService, TrackierService],
