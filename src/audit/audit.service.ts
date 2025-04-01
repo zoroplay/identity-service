@@ -81,7 +81,6 @@ export class AuditLogService {
           take: perPage,
         }),
       ]);
-
       return { logs, totalCount, perPage, page };
     } catch (error) {
       console.error('Error retrieving all logs:', error.message);

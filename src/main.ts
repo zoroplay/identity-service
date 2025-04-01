@@ -7,7 +7,7 @@ import { AuditLogInterceptor } from './audit/audit.interceptor';
 import { PrismaService } from './prisma/prisma.service';
 import { AuditLogService } from './audit/audit.service';
 import { JwtService } from './auth/service/jwt.service';
- 
+
 async function bootstrap() {
   const uri = `${process.env.GRPC_HOST}:${process.env.GRPC_PORT}`;
 
