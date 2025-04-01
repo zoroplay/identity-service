@@ -54,7 +54,7 @@ export class AuditLogService {
     page = 1,
     perPage = 50,
   }: {
-    clientId: number;
+    clientId?: number;
     page?: number;
     perPage?: number;
   }): Promise<{
@@ -64,17 +64,23 @@ export class AuditLogService {
     page: number;
   }> {
     try {
+      const whereClause: any = {};
+
+      // Add clientId filter if provided
+      if (clientId) {
+        whereClause.clientId = clientId;
+      }
+
       const [totalCount, logs] = await Promise.all([
         this.prisma.auditLog.count({
-          where: { clientId },
+          where: whereClause,
         }),
         this.prisma.auditLog.findMany({
-          where: { clientId },
+          where: whereClause,
           skip: (page - 1) * perPage,
           take: perPage,
         }),
       ]);
-
       return { logs, totalCount, perPage, page };
     } catch (error) {
       console.error('Error retrieving all logs:', error.message);
