@@ -24,5 +24,11 @@ import { BettingModule } from 'src/betting/betting.module';
   ],
   controllers: [AuthController],
   providers: [AuthService, CommissionService, JwtService, JwtStrategy, PrismaService, SettingsService, TrackierService],
+<<<<<<< HEAD
 })
 export class AuthModule { }
+=======
+  exports: [JwtService]
+})
+export class AuthModule {}
+>>>>>>> 571bc0a70ddfee10708e0b3f6c983db39b1abd2d

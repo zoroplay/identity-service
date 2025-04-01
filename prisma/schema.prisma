@@ -12,6 +12,7 @@ datasource db {
 
 
 model User {
+<<<<<<< HEAD
   id                      Int                           @id @default(autoincrement())
   username                String
   password                String
@@ -39,6 +40,35 @@ model User {
   agentUsers              AgentUser[]                   @relation("agent")
   client                  Client                        @relation(fields: [clientId], references: [id], onDelete: Cascade)
   clientId                Int
+=======
+  id                 Int                           @id @default(autoincrement())
+  username           String
+  password           String
+  code               String?
+  roleId             Int?                          @map("role_id")
+  role               Role?                         @relation(fields: [roleId], references: [id])
+  auth_code          String?
+  virtualToken       String?                       @map("virutal_token")
+  registrationSource String?                       @map("registration_source")
+  trackierToken      String?                       @map("trakier_token")
+  trackierId         String?                       @map("trackier_id")
+  lastLogin          String?                       @map("last_login")
+  status             Int                           @default(1)
+  verified           Int                           @default(1)
+  pin                Int?
+  createdAt          DateTime                      @default(now()) @map("created_at")
+  updatedAt          DateTime                      @updatedAt @map("updated_at")
+  userDetails        UserDetails?
+  bettingParams      UserBettingParameter[]
+  userSetting        UserSetting?
+  segmentCreator     PlayerSegment[]
+  segments           PlayerUserSegment[]
+  commissionProfiles RetailUserCommissionProfile[]
+  agentUser          AgentUser?                    @relation("agentUser")
+  agentUsers         AgentUser[]                   @relation("agent")
+  client             Client                        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId           Int
+>>>>>>> 571bc0a70ddfee10708e0b3f6c983db39b1abd2d
 
   @@map("users")
 }
@@ -280,8 +310,13 @@ model RetailCommissionProfile {
   client          Client           @relation(fields: [clientId], references: [id], onDelete: Cascade)
   clientId        Int
 
+<<<<<<< HEAD
   turnovers RetailCommissionTurnover[]
   users     RetailUserCommissionProfile[]
+=======
+  turnovers   RetailCommissionTurnover[]
+  users       RetailUserCommissionProfile[]
+>>>>>>> 571bc0a70ddfee10708e0b3f6c983db39b1abd2d
   commissions RetailCommission[]
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -328,11 +363,19 @@ model RetailUserCommissionProfile {
 }
 
 model RetailCommission {
+<<<<<<< HEAD
   id              Int                         @id @default(autoincrement())
   clientId        Int                         @map("client_id")
   userId          Int                         @map("user_id")
   profileId       Int   @default(1)
   profile  RetailCommissionProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+=======
+  id        Int                     @id @default(autoincrement())
+  clientId  Int                     @map("client_id")
+  userId    Int                     @map("user_id")
+  profileId Int                     @default(1)
+  profile   RetailCommissionProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+>>>>>>> 571bc0a70ddfee10708e0b3f6c983db39b1abd2d
 
   totalTickets Int?    @map("total_tickets")
   totalStake   Float?  @map("total_stake")
@@ -419,19 +462,49 @@ model RetailPowerPayout {
 }
 
 model OAuthAccessToken {
+<<<<<<< HEAD
   id       Int @id @default(autoincrement())
   userId   Int @map("user_id")
   clientId Int @map("client_id")
   scopes   String?
   token    String?
   revoked  Boolean @default(false)
+=======
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  clientId  Int      @map("client_id")
+  scopes    String?
+  token     String?
+  revoked   Boolean  @default(false)
+>>>>>>> 571bc0a70ddfee10708e0b3f6c983db39b1abd2d
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   expiresAt DateTime @map("expires_at")
 
   // @@unique([userId, clientId], name: "active_token")
   @@map("oauth_access_token")
+<<<<<<< HEAD
 
+=======
+}
+
+model AuditLog {
+  id             Int      @id @default(autoincrement())
+  userId         Int      @map("user_id")
+  clientId       Int      @map("client_id")
+  action         String   @map("action")
+  endpoint       String   @map("endpoint")
+  method         String   @map("method")
+  statusCode     Int      @map("status_code")
+  payload        String?  @map("payload")
+  response       String?  @map("response")
+  ipAddress      String?  @map("ip_address")
+  userAgent      String?  @map("user_agent")
+  additionalInfo String?  @map("additional_info")
+  timestamp      DateTime @default(now())
+
+  @@map("audit_logs")
+>>>>>>> 571bc0a70ddfee10708e0b3f6c983db39b1abd2d
 }
 
 enum CountryRegion {
