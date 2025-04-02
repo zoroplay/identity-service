@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Ip } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditLog } from '@prisma/client';
 
@@ -49,21 +49,14 @@ export class AuditLogService {
    * @param perPage - The number of logs per page.
    * @returns Paginated logs with metadata.
    */
-  async getAllLogs({
-    clientId,
-    page = 1,
-    perPage = 50,
-  }: {
-    clientId?: number;
-    page?: number;
-    perPage?: number;
-  }): Promise<{
+  async getAllLogs(payload): Promise<{
     logs: AuditLog[];
     totalCount: number;
     perPage: number;
     page: number;
   }> {
     try {
+      const { clientId, page = 1, perPage = 50 } = payload;
       const whereClause: any = {};
 
       // Add clientId filter if provided
@@ -88,23 +81,14 @@ export class AuditLogService {
     }
   }
 
-  async getLogsByUser({
-    userId,
-    clientId,
-    page = 1,
-    perPage = 50,
-  }: {
-    userId: number;
-    clientId: number;
-    page?: number;
-    perPage?: number;
-  }): Promise<{
+  async getLogsByUser(payload): Promise<{
     logs: AuditLog[];
     totalCount: number;
     perPage: number;
     page: number;
     user?: any; // Adjust the type based on your user model
   }> {
+    const { clientId, userId, page = 1, perPage = 50 } = payload;
     try {
       const [totalCount, logs, user] = await Promise.all([
         this.prisma.auditLog.count({

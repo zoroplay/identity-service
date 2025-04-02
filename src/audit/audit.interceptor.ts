@@ -11,6 +11,7 @@ import { tap } from 'rxjs/operators';
 import { AuditLogService } from './audit.service';
 import * as useragent from 'express-useragent';
 import { JwtService } from '../auth/service/jwt.service';
+import { Ip } from '@nestjs/common';
 
 @Injectable()
 export class AuditLogInterceptor implements NestInterceptor {
@@ -39,7 +40,11 @@ export class AuditLogInterceptor implements NestInterceptor {
 
           this.auditLogService.createLog({
             clientId,
-            userId: userId || (data?.data && data?.data?.id) || 0,
+            userId:
+              userId ||
+              (data?.data && data?.data?.id) ||
+              data?.data?.userId ||
+              0,
             action,
             endpoint,
             method,

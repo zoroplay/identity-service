@@ -17,6 +17,8 @@ export class AuditLogController {
   async getAllLogs(payload: GetAllLogsRequest): Promise<GetAllLogsResponse> {
     const result = await this.auditLogService.getAllLogs(payload);
 
+    console.log('From controller', payload);
+
     return {
       logs: result.logs.map((log) => ({
         ...log,
