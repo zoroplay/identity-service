@@ -3,15 +3,13 @@ import {
   ExecutionContext,
   Injectable,
   NestInterceptor,
-  HttpStatus,
-  HttpCode,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { AuditLogService } from './audit.service';
 import * as useragent from 'express-useragent';
 import { JwtService } from '../auth/service/jwt.service';
-import { Ip } from '@nestjs/common';
+import { Metadata } from '@grpc/grpc-js';
 
 @Injectable()
 export class AuditLogInterceptor implements NestInterceptor {
@@ -21,36 +19,33 @@ export class AuditLogInterceptor implements NestInterceptor {
   ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    const requestType = this.getRequestType(context);
+
     try {
-      const rpcData = this.extractRpcData(context);
-      const { metadata, call } = this.extractGrpcContext(context);
-      const userAgent = this.extractUserAgent(metadata);
-      const ua = useragent.parse(userAgent);
-      const { action, endpoint, method, additionalInfo } = this.extractMetadata(
-        context,
-        ua,
-      );
-      const authHeader = this.extractAuthHeader(metadata);
-      const ipAddress = this.extractIpAddress(metadata, call);
-      const clientId = rpcData?.clientId || 0;
+      const {
+        action,
+        endpoint,
+        method,
+        additionalInfo,
+        clientId,
+        ipAddress,
+        userAgent,
+        authHeader,
+      } = this.extractRequestData(context);
 
       return next.handle().pipe(
-        tap(async (data) => {
-          const userId = await this.validateUserDetail(authHeader, action); // Await the result here
+        tap(async (response) => {
+          const userId = await this.resolveUserId(authHeader, action, response);
 
-          this.auditLogService.createLog({
+          await this.auditLogService.createLog({
             clientId,
-            userId:
-              userId ||
-              (data?.data && data?.data?.id) ||
-              data?.data?.userId ||
-              0,
+            userId,
             action,
             endpoint,
             method,
-            statusCode: data?.status || 200,
-            payload: rpcData,
-            response: data,
+            statusCode: this.getStatusCode(response, requestType),
+            payload: this.getRequestPayload(context, requestType),
+            response: this.sanitizeResponse(response),
             ipAddress,
             userAgent,
             additionalInfo,
@@ -58,106 +53,221 @@ export class AuditLogInterceptor implements NestInterceptor {
         }),
       );
     } catch (error) {
-      console.error('Error in AuditLogInterceptor:', error.message);
+      console.error('AuditLogInterceptor error:', error);
       throw error;
     }
   }
 
-  private extractRpcData(context: ExecutionContext) {
-    return context.switchToRpc().getData();
+  private getRequestType(context: ExecutionContext): 'http' | 'grpc' {
+    const type = context.getType();
+    return type === 'http' ? 'http' : 'grpc';
   }
 
-  private extractGrpcContext(context: ExecutionContext) {
-    const grpcContext = context.switchToRpc().getContext();
+  private extractRequestData(context: ExecutionContext) {
+    const requestType = this.getRequestType(context);
+    const ua = this.getUserAgent(context, requestType);
+
     return {
-      metadata: grpcContext?.metadata,
-      call: grpcContext?.call,
+      ...this.getActionAndEndpoint(context),
+      ...this.getNetworkInfo(context, requestType),
+      additionalInfo: this.getUserAgentInfo(ua),
+      authHeader: this.getAuthHeader(context, requestType),
     };
   }
 
-  private extractAuthHeader(metadata: any): string {
-    return metadata?.get('authorization')?.[0] || '';
+  private getActionAndEndpoint(context: ExecutionContext) {
+    const handlerName = context.getHandler().name;
+    const className = context.getClass().name;
+
+    return {
+      action: `${handlerName}`,
+      endpoint: `${className}/${handlerName}`,
+      method: context.getType(),
+    };
   }
 
-  private async validateUserDetail(authHeader: string, action: string) {
+  private async resolveUserId(
+    authHeader: string,
+    action: string,
+    response: any,
+  ): Promise<number> {
     if (this.isLoginAction(action)) return 0;
 
     try {
-      this.validateAuthHeader(authHeader);
+      if (!authHeader) return this.getUserIdFromResponse(response);
+
       const token = this.extractToken(authHeader);
       const decoded = await this.jwtService.verify(token);
-      return await this.getUserIdFromToken(decoded);
+      const user = await this.jwtService.validateUser(decoded);
+      return user?.id || 0;
     } catch (err) {
-      console.error('Error validating token:', err.message);
-      return 0;
+      console.error('User validation error:', err.message);
+      return this.getUserIdFromResponse(response);
     }
   }
 
-  private isLoginAction(action: string): boolean {
-    return action?.toLowerCase() === 'login';
+  private getUserIdFromResponse(response: any): number {
+    return response?.data?.id || response?.data?.userId || 0;
   }
 
-  private validateAuthHeader(authHeader: string): void {
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new Error('Authorization header is missing or invalid');
+  private getNetworkInfo(
+    context: ExecutionContext,
+    requestType: 'http' | 'grpc',
+  ) {
+    if (requestType === 'grpc') {
+      const grpcContext = context.switchToRpc().getContext();
+      return {
+        clientId: context.switchToRpc().getData()?.clientId || 0,
+        ipAddress: this.getGrpcIpAddress(grpcContext),
+        userAgent: this.getGrpcUserAgent(grpcContext),
+      };
+    } else {
+      const httpContext = context.switchToHttp().getRequest();
+      return {
+        clientId: httpContext.body?.clientId || 0,
+        ipAddress: this.getHttpIpAddress(httpContext),
+        userAgent: httpContext.headers['user-agent'] || 'unknown',
+      };
     }
   }
 
-  private extractToken(authHeader: string): string {
-    return authHeader.split(' ')[1];
-  }
-
-  private async getUserIdFromToken(decoded: any): Promise<number> {
-    const validateUser = await this.jwtService.validateUser(decoded);
-    console.log('VALIDATE USER ===:', validateUser);
-    return validateUser ? validateUser?.id || 0 : 0;
-  }
-
-  private extractIpAddress(metadata: any, call: any): string {
+  private getGrpcIpAddress(context: any): string {
     try {
-      const ipAddress = this.getIpAddressFromMetadata(metadata);
-      if (ipAddress === 'unknown') {
-        return this.getIpAddressFromCall(call);
+      const metadata: Metadata = context.metadata;
+      const xForwardedFor = metadata.get('x-forwarded-for')[0]?.toString();
+      if (xForwardedFor) return xForwardedFor;
+
+      if (context.call && typeof context.call.getPeer === 'function') {
+        const peer = context.call.getPeer(); // "ipv4:127.0.0.1:12345"
+        return peer.split(':')[1] || 'unknown';
       }
-      return ipAddress;
+      return 'unknown';
     } catch (err) {
-      console.error('Error extracting IP address:', err.message);
       return 'unknown';
     }
   }
 
-  private getIpAddressFromMetadata(metadata: any): string {
-    return metadata?.get('x-forwarded-for')?.[0] || 'unknown';
+  private getHttpIpAddress(request: any): string {
+    return (
+      request.ip ||
+      request.connection?.remoteAddress ||
+      request.socket?.remoteAddress ||
+      request.headers['x-forwarded-for'] ||
+      'unknown'
+    );
   }
 
-  private getIpAddressFromCall(call: any): string {
-    if (call && typeof call.getPeer === 'function') {
-      const peer = call.getPeer(); // e.g., "ipv4:127.0.0.1:12345"
-      return peer.split(':')[1] || 'unknown';
-    }
-    return 'unknown';
-  }
-
-  private extractUserAgent(metadata: any): string {
+  private getGrpcUserAgent(context: any): string {
     try {
-      return metadata?.get('user-agent')?.[0] || 'unknown';
-    } catch (err) {
-      console.error('Error extracting user-agent:', err.message);
+      const metadata: Metadata = context.metadata;
+      return metadata.get('user-agent')[0]?.toString() || 'unknown';
+    } catch {
       return 'unknown';
     }
   }
 
-  private extractMetadata(context: ExecutionContext, ua: any) {
-    const handlerName = context.getHandler().name;
-    const className = context.getClass().name;
-    const action = `${handlerName}`;
-    const endpoint = `${className}/${handlerName}`;
-    const method = context.getType();
-    const additionalInfo = {
+  private getUserAgent(
+    context: ExecutionContext,
+    requestType: 'http' | 'grpc',
+  ) {
+    const userAgentString =
+      requestType === 'http'
+        ? context.switchToHttp().getRequest().headers['user-agent']
+        : this.getGrpcUserAgent(context.switchToRpc().getContext());
+
+    return useragent.parse(userAgentString || '');
+  }
+
+  private getUserAgentInfo(ua: useragent.Details) {
+    return {
       browser: ua.browser,
       os: ua.os,
       platform: ua.platform,
     };
-    return { action, endpoint, method, additionalInfo };
+  }
+
+  private getAuthHeader(
+    context: ExecutionContext,
+    requestType: 'http' | 'grpc',
+  ): string {
+    try {
+      if (requestType === 'http') {
+        const request = context.switchToHttp().getRequest();
+        return request.headers?.authorization || '';
+      } else {
+        const grpcContext = context.switchToRpc().getContext();
+        // Check if metadata exists and has the get method
+        if (
+          grpcContext?.metadata &&
+          typeof grpcContext.metadata.get === 'function'
+        ) {
+          const authHeader = grpcContext.metadata.get('authorization');
+          return authHeader?.[0]?.toString() || '';
+        }
+        return '';
+      }
+    } catch (error) {
+      console.error('Error getting auth header:', error);
+      return '';
+    }
+  }
+
+  private getRequestPayload(
+    context: ExecutionContext,
+    requestType: 'http' | 'grpc',
+  ): any {
+    return requestType === 'http'
+      ? context.switchToHttp().getRequest().body
+      : context.switchToRpc().getData();
+  }
+
+  private getStatusCode(response: any, requestType: 'http' | 'grpc'): number {
+    if (requestType === 'http') {
+      return response?.status || 200;
+    }
+    // gRPC status codes can be mapped to HTTP equivalents
+    return response?.code ? this.mapGrpcStatusCode(response.code) : 200;
+  }
+
+  private mapGrpcStatusCode(grpcCode: number): number {
+    // Map gRPC status codes to HTTP status codes
+    const mapping = {
+      0: 200, // OK
+      1: 500, // CANCELLED
+      2: 500, // UNKNOWN
+      3: 400, // INVALID_ARGUMENT
+      4: 504, // DEADLINE_EXCEEDED
+      5: 404, // NOT_FOUND
+      // Add more mappings as needed
+    };
+    return mapping[grpcCode] || 500;
+  }
+
+  private sanitizeResponse(response: any): any {
+    // Remove sensitive data from response before logging
+    if (typeof response !== 'object' || response === null) return response;
+
+    const sanitized = { ...response };
+    const sensitiveFields = [
+      'password',
+      'token',
+      'accessToken',
+      'refreshToken',
+    ];
+
+    sensitiveFields.forEach((field) => {
+      if (sanitized[field]) delete sanitized[field];
+      if (sanitized.data?.[field]) delete sanitized.data[field];
+    });
+
+    return sanitized;
+  }
+
+  private isLoginAction(action: string): boolean {
+    return action?.toLowerCase().includes('login');
+  }
+
+  private extractToken(authHeader: string): string {
+    return authHeader.split(' ')[1] || '';
   }
 }

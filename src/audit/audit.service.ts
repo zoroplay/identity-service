@@ -56,12 +56,16 @@ export class AuditLogService {
     page: number;
   }> {
     try {
-      const { clientId, page = 1, perPage = 50 } = payload;
+      const { clientId, userId, page = 1, perPage = 50 } = payload;
       const whereClause: any = {};
 
       // Add clientId filter if provided
       if (clientId) {
         whereClause.clientId = clientId;
+      }
+
+      if (userId) {
+        whereClause.userId = userId;
       }
 
       const [totalCount, logs] = await Promise.all([
