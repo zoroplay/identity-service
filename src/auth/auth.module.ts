@@ -20,9 +20,18 @@ import { BettingModule } from 'src/betting/betting.module';
     }),
     BettingModule,
     WalletModule,
-    BonusModule
+    BonusModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, CommissionService, JwtService, JwtStrategy, PrismaService, SettingsService, TrackierService],
+  providers: [
+    AuthService,
+    CommissionService,
+    JwtService,
+    JwtStrategy,
+    PrismaService,
+    SettingsService,
+    TrackierService,
+  ],
+  exports: [JwtService],
 })
-export class AuthModule { }
+export class AuthModule {}
