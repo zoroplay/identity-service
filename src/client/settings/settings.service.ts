@@ -155,6 +155,9 @@ export class SettingsService {
       if (setting.option === 'single_odd_length_' + period) {
         data.SingleTicketLenght = setting.value;
       }
+      if (setting.option === 'single_max_winning_' + period) {
+        data.SingleMaxWinning = setting.value;
+      }
       if (setting.option === 'combi_odd_length_' + period) {
         data.MaxCombinationOddLength = setting.value;
       }
