@@ -441,8 +441,8 @@ model AuditLog {
   endpoint       String   @map("endpoint")
   method         String   @map("method")
   statusCode     Int      @map("status_code")
-  payload        String?  @map("payload")
-  response       String?  @map("response")
+  payload        String?  @map("payload") @db.LongText
+  response       String?  @map("response") @db.LongText
   ipAddress      String?  @map("ip_address")
   userAgent      String?  @map("user_agent")
   additionalInfo String?  @map("additional_info")
