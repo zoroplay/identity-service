@@ -436,6 +436,7 @@ model AuditLog {
   id             Int      @id @default(autoincrement())
   userId         Int      @map("user_id")
   clientId       Int      @map("client_id")
+  userName       String   @map("username")
   action         String   @map("action")
   endpoint       String   @map("endpoint")
   method         String   @map("method")
