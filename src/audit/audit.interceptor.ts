@@ -250,7 +250,7 @@ export class AuditLogInterceptor implements NestInterceptor {
     const sanitized = { ...response };
     const sensitiveFields = [
       'password',
-      'token',
+      // 'token',
       'accessToken',
       'refreshToken',
     ];
