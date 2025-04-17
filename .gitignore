@@ -3,6 +3,7 @@
 /node_modules
 package-lock.json
 yarn.lock
+
 .env
 
 # Logs
@@ -36,5 +37,3 @@ lerna-debug.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json.env
-.env
-.env
