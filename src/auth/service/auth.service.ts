@@ -558,6 +558,14 @@ export class AuthService {
       };
     }
 
+    if (auth && auth.status !== 1) {
+      return {
+        status: HttpStatus.CONFLICT,
+        error: 'Account not active',
+        user: null,
+      };
+    }
+
     const oauth = await this.jwtService.validateToken(token, auth.id, auth.clientId);
 
     if (!oauth) {
