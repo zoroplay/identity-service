@@ -23,12 +23,14 @@ import {
 import { paginateResponse } from 'src/common/helpers';
 import { BonusService } from 'src/bonus/bonus.service';
 import { BettingService } from 'src/betting/betting.service';
+import { GoWalletService } from 'src/go-wallet/go-wallet.service';
 
 @Injectable()
 export class PlayerService {
   constructor(
     private prisma: PrismaService,
     private readonly walletService: WalletService,
+        private readonly goWalletService: GoWalletService,
     private readonly bonusService: BonusService,
     private readonly bettingService: BettingService,
   ) {}
@@ -368,7 +370,7 @@ export class PlayerService {
             lastLogin: user.last_login,
           };
           //get user wallet
-          const balanceRes = await this.walletService.getWallet({
+          const balanceRes = await this.goWalletService.getWallet({
             userId: user.id,
             clientId,
           });
@@ -496,7 +498,7 @@ export class PlayerService {
           lastLogin: user.last_login,
         };
         //get user wallet
-        const balanceRes = await this.walletService.getWallet({
+        const balanceRes = await this.goWalletService.getWallet({
           userId: user.id,
           clientId,
         });
@@ -666,7 +668,7 @@ export class PlayerService {
           lastLogin: user.last_login,
         };
         //get user wallet
-        const balanceRes = await this.walletService.getWallet({
+        const balanceRes = await this.goWalletService.getWallet({
           userId: user.id,
           clientId,
         });

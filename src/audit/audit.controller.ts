@@ -44,10 +44,10 @@ export class AuditLogController {
     }
   }
 
-  @GrpcMethod(IDENTITY_SERVICE_NAME, 'getAllLogs')
-  async getAllLogs(payload: GetAllLogsRequest): Promise<GetAllLogsResponse> {
-    const result = await this.auditLogService.getAllLogs(payload);
+  // @GrpcMethod(IDENTITY_SERVICE_NAME, 'getAllLogs')
+  // async getAllLogs(payload: GetAllLogsRequest): Promise<GetAllLogsResponse> {
+  //   const result = await this.auditLogService.getAllLogs(payload);
 
-    return result;
-  }
+  //   return result;
+  // }
 }
