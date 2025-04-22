@@ -33,10 +33,6 @@ export class WalletService {
     return firstValueFrom(this.svc.fetchBetRange(data));
   }
 
-  public async credit(data: CreditUserRequest) {
-    return firstValueFrom(this.svc.creditUser(data));
-  }
-
   public async fetchDepositCount(data: FetchDepositCountRequest) {
     return firstValueFrom(this.svc.fetchDepositCount(data));
   }
@@ -48,10 +44,6 @@ export class WalletService {
   }
   public createWallet(data: CreateWalletRequest) {
     return firstValueFrom(this.svc.createWallet(data));
-  }
-
-  public getWallet(param: GetBalanceRequest) {
-    return firstValueFrom(this.svc.getBalance(param));
   }
 
   public async getWalletSummary(param: GetBalanceRequest) {
