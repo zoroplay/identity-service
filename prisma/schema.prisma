@@ -435,6 +435,7 @@ model OAuthAccessToken {
 model AuditLog {
   id             Int      @id @default(autoincrement())
   userId         Int      @map("user_id")
+  userName       String?  @map("username")
   clientId       Int      @map("client_id")
   action         String   @map("action")
   endpoint       String   @map("endpoint")
