@@ -1,6 +1,7 @@
-import { Injectable, InternalServerErrorException, Ip } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Get } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditLog } from '@prisma/client';
+import { GetAllLogsRequest, GetAllLogsResponse } from 'src/proto/identity.pb';
 
 interface AuditLogPayload {
   userId: number;
@@ -14,6 +15,7 @@ interface AuditLogPayload {
   ipAddress?: string;
   userAgent?: string;
   additionalInfo?: any;
+  userName?: string;
 }
 
 @Injectable()
@@ -29,16 +31,17 @@ export class AuditLogService {
       // Ensure payload is serializable
       const sanitizedPayload = {
         ...payload,
-        payload: JSON.stringify(payload.payload) || null,
-        response: JSON.stringify(payload.response) || null,
-        additionalInfo: JSON.stringify(payload.additionalInfo) || null,
+        // payload: JSON.stringify(payload.payload) || null,
+        // response: JSON.stringify(payload.response) || null,
+        // additionalInfo: JSON.stringify(payload.additionalInfo) || null,
+        userName: payload.userName || 'Unknown', // Ensure userName is included
       };
       await this.prisma.auditLog.create({
         data: sanitizedPayload,
       });
     } catch (error) {
       console.error('Error creating audit log:', error);
-      throw new InternalServerErrorException('Failed to create audit log.');
+      // throw new InternalServerErrorException('Failed to create audit log.');
     }
   }
 
@@ -49,24 +52,15 @@ export class AuditLogService {
    * @param perPage - The number of logs per page.
    * @returns Paginated logs with metadata.
    */
-  async getAllLogs(payload): Promise<{
-    logs: AuditLog[];
-    totalCount: number;
-    perPage: number;
-    page: number;
-  }> {
+  async getAllLogs(payload: GetAllLogsRequest): Promise<GetAllLogsResponse> {
     try {
-      const { clientId, userId, page = 1, perPage = 50 } = payload;
+      const { clientId, userName, page = 1 } = payload;
+      const perPage = 50; // Default number of logs per page
       const whereClause: any = {};
 
       // Add clientId filter if provided
-      if (clientId) {
-        whereClause.clientId = clientId;
-      }
-
-      if (userId) {
-        whereClause.userId = userId;
-      }
+      if (clientId) whereClause.clientId = clientId;
+      if (userName) whereClause.userName = userName;
 
       const [totalCount, logs] = await Promise.all([
         this.prisma.auditLog.count({
@@ -76,43 +70,34 @@ export class AuditLogService {
           where: whereClause,
           skip: (page - 1) * perPage,
           take: perPage,
+          orderBy: { timestamp: 'desc' },
         }),
       ]);
-      return { logs, totalCount, perPage, page };
+
+      const total = totalCount;
+      const totalPages = Math.ceil(totalCount / perPage);
+      const currentPage = page;
+      const itemsPerPage = perPage;
+
+      return {
+        logs: logs.map((log) => ({
+          ...log,
+          additionalInfo: this.parseAdditionalInfo(log.additionalInfo),
+          timestamp: log.timestamp.toISOString(),
+          userName: log.userName || 'Unknown', // Ensure userName is included
+        })),
+        meta: { total, totalPages, currentPage, itemsPerPage },
+      };
     } catch (error) {
       console.error('Error retrieving all logs:', error.message);
-      throw new InternalServerErrorException('Failed to retrieve logs.');
+      // throw new InternalServerErrorException('Failed to retrieve logs.');
     }
   }
-
-  async getLogsByUser(payload): Promise<{
-    logs: AuditLog[];
-    totalCount: number;
-    perPage: number;
-    page: number;
-    user?: any; // Adjust the type based on your user model
-  }> {
-    const { clientId, userId, page = 1, perPage = 50 } = payload;
+  private parseAdditionalInfo(info: string | null): any {
     try {
-      const [totalCount, logs, user] = await Promise.all([
-        this.prisma.auditLog.count({
-          where: { userId, clientId },
-        }),
-        this.prisma.auditLog.findMany({
-          where: { userId, clientId },
-          skip: (page - 1) * perPage,
-          take: perPage,
-        }),
-        this.prisma.user.findFirst({
-          where: { id: userId, clientId },
-        }),
-      ]);
-
-      // Transform logs if necessary (e.g., ensure payload and response are objects)
-      return { totalCount, logs, perPage, page, user };
-    } catch (error) {
-      console.error('Error retrieving logs by user:', error.message);
-      throw new InternalServerErrorException('Failed to retrieve user logs.');
+      return info ? JSON.parse(info) : {};
+    } catch {
+      return {};
     }
   }
 }
