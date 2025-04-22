@@ -1,6 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { HttpStatus, Injectable } from '@nestjs/common';
 import * as dayjs from 'dayjs';
+import { BettingService } from 'src/betting/betting.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
   WithdrawalSettingsResponse,
@@ -21,6 +22,7 @@ export class SettingsService {
     private prisma: PrismaService,
     private readonly walletService: WalletService,
     private readonly commissionService: CommissionService,
+    private readonly bettingService: BettingService
   ) {}
 
   async saveSettings(params: SettingsRequest): Promise<CommonResponseObj> {
@@ -54,6 +56,10 @@ export class SettingsService {
           });
         }
       }
+
+      // send data betting service
+      await this.bettingService.saveSetting(params)
+
       return {
         success: true,
         status: HttpStatus.OK,
@@ -104,68 +110,8 @@ export class SettingsService {
           });
         }
       }
-
-      return {
-        success: true,
-        status: HttpStatus.OK,
-        message: 'Saved successfully',
-      };
-    } catch (e) {
-      console.log(e.message);
-      return {
-        success: false,
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: `Something went wrong: ${e.message}`,
-      };
-    }
-  }
-
-  async saveUserRiskSettings(param): Promise<CommonResponseObj> {
-    try {
-      // console.log(param);
-      const settings = JSON.parse(param.inputs);
-      const user_id = param.userId;
-      const period = param.period;
-      const data = {
-        period,
-        userId: user_id,
-        max_payout: parseFloat(settings.max_payout),
-        single_odd_length: parseInt(settings.single_odd_length),
-        combi_odd_length: parseInt(settings.combi_odd_length),
-        // single_delay: settings.single_delay,
-        // combi_delay: settings.combi_delay,
-        single_min: parseFloat(settings.single_min),
-        single_max: parseFloat(settings.single_max),
-        combi_max: parseFloat(settings.combi_max),
-        combi_min: parseFloat(settings.combi_min),
-        size_min: parseInt(settings.size_min),
-        size_max: parseInt(settings.size_max),
-        single_max_winning: parseFloat(settings.single_max_winning),
-        min_withdrawal: parseFloat(settings.min_withdrawal),
-        max_withdrawal: parseFloat(settings.max_withdrawal),
-        hold_bets_from: parseFloat(settings.hold_bets_from),
-        min_bonus_odd: parseFloat(settings.min_bonus_odd),
-        live_size_min: parseInt(settings.live_size_min),
-        live_size_max: parseInt(settings.live_size_max),
-        enable_cashout: parseInt(settings.enable_cashout),
-        enable_cut_x: parseInt(settings.enable_cut_x),
-        max_duplicate_ticket: parseInt(settings.max_duplicate_ticket),
-        accept_prematch_bets: parseInt(settings.accept_prematch_bets) || 0,
-        accept_live_bets: settings.accept_live_bets || 0,
-        accept_system_bets: settings.accept_system_bets || 0,
-        accept_split_bets: settings.accept_split_bets || 0,
-      };
-
-      await this.prisma.userBettingParameter.upsert({
-        where: {
-          user_period: {
-            userId: user_id,
-            period,
-          },
-        },
-        create: data,
-        update: data,
-      });
+      // send data betting service
+      await this.bettingService.saveRiskSetting(params);
 
       return {
         success: true,
@@ -208,6 +154,9 @@ export class SettingsService {
       }
       if (setting.option === 'single_odd_length_' + period) {
         data.SingleTicketLenght = setting.value;
+      }
+      if (setting.option === 'single_max_winning_' + period) {
+        data.SingleMaxWinning = setting.value;
       }
       if (setting.option === 'combi_odd_length_' + period) {
         data.MaxCombinationOddLength = setting.value;
@@ -268,6 +217,22 @@ export class SettingsService {
         data.exciseTax = setting.value;
       }
 
+      if (setting.option === 'combi_min_day') {
+        data.comboMinStake = setting.value;
+      }
+
+      if (setting.option === 'combi_max_day') {
+        data.comboMaxStake = setting.value;
+      }
+
+      if (setting.option === 'single_max_day') {
+        data.singleMaxStake = setting.value;
+      }
+
+      if (setting.option === 'single_min_day') {
+        data.singleMinStake = setting.value;
+      }
+
       if (setting.option === 'wth_tax') {
         data.wthTax = setting.value;
       }
@@ -293,15 +258,18 @@ export class SettingsService {
       const period = this.getBettingPeriod();
       const totalSelections = selections.length;
 
-      const user = await this.prisma.user.findFirst({ 
-        where: { id: userId }, 
-        include: {role: true} 
-      });
-      
       let category = 'online';
-      
-      if (user && user.role.name === 'Cashier')
-        category = 'retail';
+      let user;
+
+      if (userId) {
+        user = await this.prisma.user.findFirst({ 
+          where: { id: userId }, 
+          include: {role: true} 
+        });
+              
+        if (user && user.role?.name === 'Cashier')
+          category = 'retail';
+      }
 
       const maxSelections = await this.getBettingParameter(
         userId,
@@ -471,6 +439,7 @@ export class SettingsService {
           category
         );
 
+
         if (parseInt(combiOddLength) < totalOdds)
           return {
             success: false,
@@ -478,12 +447,16 @@ export class SettingsService {
             message: `Total odds exceeds allowed odds of ${combiOddLength}`,
           };
 
+          console.log('max combo stake', parseFloat(combiMaxStake), stake)
+          console.log('min combo stake', parseFloat(combiMinStake), stake)
         if (parseFloat(combiMaxStake) < stake)
           return {
             success: false,
             status: HttpStatus.NOT_ACCEPTABLE,
             message: `Max allowed stake is ${combiMaxStake}`,
           };
+
+
 
         if (parseFloat(combiMinStake) > stake)
           return {

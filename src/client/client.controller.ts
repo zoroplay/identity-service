@@ -58,10 +58,10 @@ export class ClientController {
     return this.settingService.saveRiskSettings(payload);
   }
 
-  @GrpcMethod(IDENTITY_SERVICE_NAME, 'SaveUserRiskSettings')
-  saveUserRiskSettings(payload: UserRiskSettingsRequest) {
-    return this.settingService.saveUserRiskSettings(payload);
-  }
+  // @GrpcMethod(IDENTITY_SERVICE_NAME, 'SaveUserRiskSettings')
+  // saveUserRiskSettings(payload: UserRiskSettingsRequest) {
+  //   return this.settingService.saveUserRiskSettings(payload);
+  // }
 
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'GetSettings')
   getSettings(payload: GetSettingsRequest) {
