@@ -21,6 +21,8 @@ import {
   ValidateResponse,
   XpressLoginRequest,
   XpressLoginResponse,
+  ValidateGroupCodeRequest,
+  ValidateGroupCodeResponse,
 } from 'src/proto/identity.pb';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Client, User } from '@prisma/client';
@@ -97,7 +99,7 @@ export class AuthService {
           clientId,
           amount: 0,
         });
-        console.log('promo code', promoCode)
+        console.log('promo code', promoCode);
 
         //check if promo code is provided and activate bonus
         if (promoCode && promoCode !== '') {
@@ -117,20 +119,23 @@ export class AuthService {
               promoCode,
             });
           }
-        } 
-        
-        if ((trackingToken && trackingToken !== '') || (promoCode && promoCode !== '')) {
+        }
+
+        if (
+          (trackingToken && trackingToken !== '') ||
+          (promoCode && promoCode !== '')
+        ) {
           try {
             const trackREs: any = await this.trackierService.createCustomer({
               customerId: newUser.username,
               customerName: newUser.username,
               trackingToken: trackingToken || '',
-              promoCode: promoCode || "",
-              clientId
+              promoCode: promoCode || '',
+              clientId,
             });
             // console.log(trackREs?.data)
 
-            // update 
+            // update
             if (trackREs.data.success) {
               const trackData = trackREs.data.data;
               // update user data
@@ -141,10 +146,10 @@ export class AuthService {
                 where: {
                   id: newUser.id,
                 },
-              })
+              });
             }
           } catch (e) {
-            console.log('error creating trackier customer', e)
+            console.log('error creating trackier customer', e);
           }
         }
 
@@ -307,7 +312,7 @@ export class AuthService {
 
       delete auth.password;
       //save oauth details
-      await this.jwtService.saveToken(auth.id, auth.clientId, auth.token)
+      await this.jwtService.saveToken(auth.id, auth.clientId, auth.token);
 
       return { success: true, status: HttpStatus.OK, error: null, data: auth };
     } catch (err) {
@@ -566,7 +571,11 @@ export class AuthService {
       };
     }
 
-    const oauth = await this.jwtService.validateToken(token, auth.id, auth.clientId);
+    const oauth = await this.jwtService.validateToken(
+      token,
+      auth.id,
+      auth.clientId,
+    );
 
     if (!oauth) {
       return {
@@ -817,7 +826,31 @@ export class AuthService {
       };
     }
   }
-  
+
+  public async validateGroupCode({
+    groupName,
+  }: ValidateGroupCodeRequest): Promise<ValidateGroupCodeResponse> {
+    const client: Client = await this.prisma.client.findFirst({
+      where: { groupName },
+    });
+
+    if (!client) {
+      return {
+        status: HttpStatus.NOT_FOUND,
+        error: 'Client not found',
+        clientId: null,
+        groupName: '',
+      };
+    }
+
+    return {
+      status: HttpStatus.OK,
+      error: null,
+      clientId: client.id,
+      groupName: client.groupName,
+    };
+  }
+
   private getStartOfDay(date: Date) {
     const start = new Date(date);
     start.setHours(0, 0, 0, 0); // Set hours, minutes, seconds, and milliseconds to zero

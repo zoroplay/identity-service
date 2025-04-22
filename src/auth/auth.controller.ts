@@ -22,6 +22,7 @@ import {
   ValidateClientResponse,
   ValidateResponse,
   XpressLoginRequest,
+  ValidateGroupCodeRequest,
 } from '../proto/identity.pb';
 import { AuthService } from './service/auth.service';
 import { SettingsService } from 'src/client/settings/settings.service';
@@ -105,5 +106,10 @@ export class AuthController {
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'ValidateBet')
   validateBet(data: PlaceBetRequest) {
     return this.settingService.validateBet(data);
+  }
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'validateGroupCode')
+  validateGroupCode(data: ValidateGroupCodeRequest) {
+    return this.authService.validateGroupCode(data);
   }
 }
