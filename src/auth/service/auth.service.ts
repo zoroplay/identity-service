@@ -684,8 +684,6 @@ export class AuthService {
         include: { client: true },
       });
 
-      console.log(user)
-
       if (user) {
         //get user wallet
         const balanceRes = await this.goWalletService.getWallet({
