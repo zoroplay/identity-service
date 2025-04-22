@@ -16,6 +16,7 @@ import { BettingModule } from './betting/betting.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { TrackierService } from './user/trackier/trackier.service';
 import { AuditLogModule } from './audit/audit.module';
+import { GoWalletModule } from './go-wallet/go-wallet.module';
 
 @Global()
 @Module({
@@ -32,6 +33,7 @@ import { AuditLogModule } from './audit/audit.module';
     ScheduleModule.forRoot(),
     RetailModule,
     AuditLogModule,
+    GoWalletModule
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService, JwtService, TrackierService],
