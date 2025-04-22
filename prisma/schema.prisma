@@ -437,7 +437,6 @@ model AuditLog {
   userId         Int      @map("user_id")
   userName       String?  @map("username")
   clientId       Int      @map("client_id")
-  userName       String?  @map("username")
   action         String   @map("action")
   endpoint       String   @map("endpoint")
   method         String   @map("method")
