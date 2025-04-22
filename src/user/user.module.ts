@@ -11,6 +11,7 @@ import { BonusModule } from 'src/bonus/bonus.module';
 import { JwtService } from 'src/auth/service/jwt.service';
 import { BettingModule } from 'src/betting/betting.module';
 import { NotificationsModule } from 'src/notifications/notifications.module';
+import { GoWalletModule } from 'src/go-wallet/go-wallet.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { NotificationsModule } from 'src/notifications/notifications.module';
     BettingModule,
     BonusModule,
     WalletModule,
+    GoWalletModule,
     NotificationsModule,
   ],
   controllers: [UserController],

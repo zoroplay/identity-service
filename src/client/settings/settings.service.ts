@@ -2,6 +2,7 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import * as dayjs from 'dayjs';
 import { BettingService } from 'src/betting/betting.service';
+import { GoWalletService } from 'src/go-wallet/go-wallet.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
   WithdrawalSettingsResponse,
@@ -12,7 +13,6 @@ import {
   CommonResponseArray,
 } from 'src/proto/identity.pb';
 import { CommissionService } from 'src/retail/commission.service';
-import { WalletService } from 'src/wallet/wallet.service';
 var customParseFormat = require('dayjs/plugin/customParseFormat');
 dayjs.extend(customParseFormat);
 
@@ -20,7 +20,7 @@ dayjs.extend(customParseFormat);
 export class SettingsService {
   constructor(
     private prisma: PrismaService,
-    private readonly walletService: WalletService,
+    private readonly goWalletService: GoWalletService,
     private readonly commissionService: CommissionService,
     private readonly bettingService: BettingService
   ) {}
@@ -332,7 +332,7 @@ export class SettingsService {
           };
       }
       // get user wallet
-      const wallet = await this.walletService.getWallet({ userId, clientId });
+      const wallet = await this.goWalletService.getWallet({ userId, clientId });
 
       // validate wallet balance
       if (
