@@ -11,6 +11,7 @@ import { TrackierService } from 'src/user/trackier/trackier.service';
 import { SettingsService } from 'src/client/settings/settings.service';
 import { CommissionService } from 'src/retail/commission.service';
 import { BettingModule } from 'src/betting/betting.module';
+import { GoWalletModule } from 'src/go-wallet/go-wallet.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { BettingModule } from 'src/betting/betting.module';
     }),
     BettingModule,
     WalletModule,
+    GoWalletModule,
     BonusModule,
   ],
   controllers: [AuthController],
