@@ -26,7 +26,7 @@ export class AuditLogController {
         additionalInfo: JSON.stringify(additionalInfo) || null,
         userName: userName || 'Unknown',
       };
-      await this.auditLogService.createLog(auditLog);
+      // await this.auditLogService.createLog(auditLog);
       // Return a success response
       return {
         success: true,
