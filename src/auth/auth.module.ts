@@ -10,8 +10,6 @@ import { BonusModule } from 'src/bonus/bonus.module';
 import { TrackierService } from 'src/user/trackier/trackier.service';
 import { SettingsService } from 'src/client/settings/settings.service';
 import { CommissionService } from 'src/retail/commission.service';
-import { BettingModule } from 'src/betting/betting.module';
-import { GoWalletModule } from 'src/go-wallet/go-wallet.module';
 
 @Module({
   imports: [
@@ -19,21 +17,10 @@ import { GoWalletModule } from 'src/go-wallet/go-wallet.module';
       secret: 'dev',
       signOptions: { expiresIn: '1d' },
     }),
-    BettingModule,
     WalletModule,
-    GoWalletModule,
-    BonusModule,
+    BonusModule
   ],
   controllers: [AuthController],
-  providers: [
-    AuthService,
-    CommissionService,
-    JwtService,
-    JwtStrategy,
-    PrismaService,
-    SettingsService,
-    TrackierService,
-  ],
-  exports: [JwtService],
+  providers: [AuthService, CommissionService, JwtService, JwtStrategy, PrismaService, SettingsService, TrackierService],
 })
-export class AuthModule {}
+export class AuthModule { }
