@@ -5,11 +5,9 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { SettingsService } from './settings/settings.service';
 import { WalletModule } from 'src/wallet/wallet.module';
 import { CommissionService } from 'src/retail/commission.service';
-import { BettingModule } from 'src/betting/betting.module';
-import { GoWalletModule } from 'src/go-wallet/go-wallet.module';
 
 @Module({
-  imports: [BettingModule, WalletModule, GoWalletModule],
+  imports: [WalletModule],
   controllers: [ClientController],
   providers: [ClientService, CommissionService, PrismaService, SettingsService],
   exports: [SettingsService]
