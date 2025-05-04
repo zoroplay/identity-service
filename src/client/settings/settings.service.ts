@@ -25,7 +25,10 @@ export class SettingsService {
 
   async saveSettings(params: SettingsRequest): Promise<CommonResponseObj> {
     try {
+      console.log("params", params);
+       
       const data = JSON.parse(params.inputs);
+      console.log("data", data);
       const clientId = params.clientId;
 
       for (const [key, value] of Object.entries(data)) {
