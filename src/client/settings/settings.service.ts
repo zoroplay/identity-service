@@ -1,6 +1,9 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable no-var */
 /* eslint-disable prettier/prettier */
 import { HttpStatus, Injectable } from '@nestjs/common';
 import * as dayjs from 'dayjs';
+import { FirebaseService } from 'src/common/firebaseUpload';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
   WithdrawalSettingsResponse,
@@ -21,42 +24,168 @@ export class SettingsService {
     private prisma: PrismaService,
     private readonly walletService: WalletService,
     private readonly commissionService: CommissionService,
+    private readonly firebaseService: FirebaseService,
   ) {}
+
+  // async saveSettings(params: SettingsRequest): Promise<CommonResponseObj> {
+  //   try {
+  //     console.log("params", params);
+       
+  //     const data = JSON.parse(params.inputs);
+  //     console.log("data", data);
+  //     const clientId = params.clientId;
+
+  //     if(data.logo && data.print_logo) {
+  //       if (data.logo.startsWith('data:image/png;base64,')|| data.print_logo.startsWith('data:image/png;base64,')) {
+  //         data.logo = data.logo.replace(/^data:image\/\w+;base64,/, '');
+  //         data.print_logo = data.print_logo.replace(/^data:image\/\w+;base64,/, '');
+  //       }
+  //     }
+
+  //     // Define the folder and file name for the image in Firebase
+  //   const folderName = 'settings'; // Example: folder to store promotion images
+  //   const fileName = `${Date.now()}_uploaded-file`;
+
+  //     console.log("data-logo", data.logo);
+  //     console.log("data-print_logo", data.print_logo);
+
+  //     const logoImg = await this.firebaseService.uploadFileToFirebase(
+  //       folderName,
+  //       fileName,
+  //       data.logo,
+  //     );
+
+  //     const printLogoImg = await this.firebaseService.uploadFileToFirebase(
+  //       folderName,
+  //       fileName,
+  //       data.print_logo,
+  //     );
+
+
+
+
+  //     for (const [key, value] of Object.entries(data)) {
+  //       // console.log(`Key: ${key}, Value: ${value}`);
+  //       const val: any = value;
+  //       if (key !== 'logo' && key !== 'print_logo') {
+  //         await this.prisma.setting.upsert({
+  //           where: {
+  //             client_option_category: {
+  //               clientId,
+  //               option: key,
+  //               category: 'general',
+  //             },
+  //           },
+  //           // update existing
+  //           update: {
+  //             value: val,
+  //           },
+  //           // new record
+  //           create: {
+  //             clientId,
+  //             option: key,
+  //             value: val,
+  //             category: 'general',
+  //           },
+  //         });
+  //       }
+  //     }
+  //     return {
+  //       success: true,
+  //       status: HttpStatus.OK,
+  //       message: 'Saved successfully',
+  //     };
+  //   } catch (e) {
+  //     return {
+  //       success: false,
+  //       status: HttpStatus.INTERNAL_SERVER_ERROR,
+  //       message: `Something went wrong: ${e.message}`,
+  //     };
+  //   }
+  // }
 
   async saveSettings(params: SettingsRequest): Promise<CommonResponseObj> {
     try {
       console.log("params", params);
        
       const data = JSON.parse(params.inputs);
+      
       console.log("data", data);
       const clientId = params.clientId;
 
-      for (const [key, value] of Object.entries(data)) {
-        // console.log(`Key: ${key}, Value: ${value}`);
-        const val: any = value;
-        if (key !== 'logo' && key !== 'print_logo') {
-          await this.prisma.setting.upsert({
-            where: {
-              client_option_category: {
-                clientId,
-                option: key,
-                category: 'general',
-              },
-            },
-            // update existing
-            update: {
-              value: val,
-            },
-            // new record
-            create: {
-              clientId,
-              option: key,
-              value: val,
-              category: 'general',
-            },
-          });
+  
+      let logoUrl = null;
+      let printLogoUrl = null;
+  
+      if(data.logo && data.print_logo) {
+        if (data.logo.startsWith('data:image/png;base64,')|| data.print_logo.startsWith('data:image/png;base64,')) {
+          data.logo = data.logo.replace(/^data:image\/\w+;base64,/, '');
+          data.print_logo = data.print_logo.replace(/^data:image\/\w+;base64,/, '');
         }
       }
+  
+      // Define the folder and file name for the image in Firebase
+      const folderName = 'settings';
+  
+      // Upload logo if it exists
+      if (data.logo) {
+        const logoFileName = `${Date.now()}_logo`;
+        logoUrl = await this.firebaseService.uploadFileToFirebase(
+          folderName,
+          logoFileName,
+          data.logo,
+        );
+      }
+  
+      // Upload print logo if it exists
+      if (data.print_logo) {
+        const printLogoFileName = `${Date.now()}_print_logo`;
+        printLogoUrl = await this.firebaseService.uploadFileToFirebase(
+          folderName,
+          printLogoFileName,
+          data.print_logo,
+        );
+      }
+  
+      console.log("logoUrl", logoUrl);
+      console.log("printLogoUrl", printLogoUrl);
+  
+      // Save all settings to the database
+      for (const [key, value] of Object.entries(data)) {
+        let val: any = value;
+        
+        // For logo and print_logo, save the URLs instead of base64 data
+        if (key === 'logo' && logoUrl) {
+          val = logoUrl;
+        } else if (key === 'print_logo' && printLogoUrl) {
+          val = printLogoUrl;
+        } else if (key === 'logo' || key === 'print_logo') {
+          // Skip if we don't have URLs (this avoids saving base64 data directly)
+          continue;
+        }
+  
+        await this.prisma.setting.upsert({
+          where: {
+            client_option_category: {
+              clientId,
+              option: key,
+              category: 'general',
+            },
+          },
+          // update existing
+          update: {
+            value: val,
+          },
+          // new record
+          create: {
+            clientId,
+            option: key,
+            value: val,
+            category: 'general',
+          },
+        });
+      }
+  
       return {
         success: true,
         status: HttpStatus.OK,
