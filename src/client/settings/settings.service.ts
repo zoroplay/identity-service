@@ -95,6 +95,7 @@ export class SettingsService {
         message: 'Saved successfully',
       };
     } catch (e) {
+      console.log("error", e.message);
       return {
         success: false,
         status: HttpStatus.INTERNAL_SERVER_ERROR,
