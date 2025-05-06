@@ -6,6 +6,70 @@ import { Struct } from "./google/protobuf/struct.pb";
 
 export const protobufPackage = "identity";
 
+/** Additional Audit Info */
+export interface AdditionalInfo {
+  browser: string;
+  os: string;
+  platform: string;
+}
+
+/** AuditLog */
+export interface AuditLog {
+  id: number;
+  userId: number;
+  userName: string;
+  clientId: number;
+  action: string;
+  endpoint: string;
+  method: string;
+  statusCode: number;
+  payload: string;
+  response: string;
+  additionalInfo: AdditionalInfo | undefined;
+  ipAddress: string;
+  userAgent: string;
+  timestamp: string;
+}
+
+/** Request message for creating an audit log */
+export interface CreateLogRequest {
+  auditLog: AuditLog | undefined;
+}
+
+/** audit User */
+export interface AuditUser {
+  roleId: number;
+  username: string;
+}
+
+/** Response message for creating an audit log */
+export interface CreateLogResponse {
+  success: boolean;
+  status: number;
+  message: string;
+}
+
+/** GetAllLogs */
+export interface GetAllLogsRequest {
+  clientId?: number | undefined;
+  userName?: string | undefined;
+  page?: number | undefined;
+  limit?: number | undefined;
+  ipAddress: string;
+  userAgent: string;
+  os: string;
+  browser: string;
+  platform: string;
+  endpoint: string;
+  method: string;
+}
+
+/** GetAllLogsResponse */
+export interface GetAllLogsResponse {
+  logs: AuditLog[];
+  meta?: Meta | undefined;
+}
+
 /** HandlePin */
 export interface HandlePinRequest {
   pin: number;
@@ -670,6 +734,17 @@ export interface ValidateClientResponse {
   clientId: number;
 }
 
+export interface ValidateGroupCodeRequest {
+  groupName: string;
+}
+
+export interface ValidateGroupCodeResponse {
+  status: number;
+  error: string;
+  groupName: string;
+  clientId: number;
+}
+
 export interface ClientRequest {
   name: string;
   country: string;
@@ -1035,6 +1110,8 @@ export interface IdentityServiceClient {
 
   validate(request: ValidateRequest): Observable<ValidateResponse>;
 
+  validateGroupCode(request: ValidateGroupCodeRequest): Observable<ValidateGroupCodeResponse>;
+
   validateClient(request: ValidateRequest): Observable<ValidateClientResponse>;
 
   getUserDetails(request: GetUserDetailsRequest): Observable<GetUserDetailsResponse>;
@@ -1184,6 +1261,10 @@ export interface IdentityServiceClient {
   getNetworkSalesReport(request: GetNetworkSalesRequest): Observable<CommonResponseObj>;
 
   getTrackierKeys(request: SingleItemRequest): Observable<CommonResponseObj>;
+
+  getAllLogs(request: GetAllLogsRequest): Observable<GetAllLogsResponse>;
+
+  createLog(request: CreateLogRequest): Observable<CreateLogResponse>;
 }
 
 export interface IdentityServiceController {
@@ -1214,6 +1295,10 @@ export interface IdentityServiceController {
   ): Promise<XpressLoginResponse> | Observable<XpressLoginResponse> | XpressLoginResponse;
 
   validate(request: ValidateRequest): Promise<ValidateResponse> | Observable<ValidateResponse> | ValidateResponse;
+
+  validateGroupCode(
+    request: ValidateGroupCodeRequest,
+  ): Promise<ValidateGroupCodeResponse> | Observable<ValidateGroupCodeResponse> | ValidateGroupCodeResponse;
 
   validateClient(
     request: ValidateRequest,
@@ -1488,6 +1573,12 @@ export interface IdentityServiceController {
   getTrackierKeys(
     request: SingleItemRequest,
   ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
+  getAllLogs(
+    request: GetAllLogsRequest,
+  ): Promise<GetAllLogsResponse> | Observable<GetAllLogsResponse> | GetAllLogsResponse;
+
+  createLog(request: CreateLogRequest): Promise<CreateLogResponse> | Observable<CreateLogResponse> | CreateLogResponse;
 }
 
 export function IdentityServiceControllerMethods() {
@@ -1502,6 +1593,7 @@ export function IdentityServiceControllerMethods() {
       "validateAuthCode",
       "xpressGameLogout",
       "validate",
+      "validateGroupCode",
       "validateClient",
       "getUserDetails",
       "createClient",
@@ -1576,6 +1668,8 @@ export function IdentityServiceControllerMethods() {
       "payOutNormalBonus",
       "getNetworkSalesReport",
       "getTrackierKeys",
+      "getAllLogs",
+      "createLog",
     ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
