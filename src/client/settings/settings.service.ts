@@ -27,182 +27,81 @@ export class SettingsService {
     private readonly firebaseService: FirebaseService,
   ) {}
 
-  // async saveSettings(params: SettingsRequest): Promise<CommonResponseObj> {
-  //   try {
-  //     console.log("params", params);
+  async saveSettings(params: SettingsRequest): Promise<CommonResponseObj> {
+    try {
+      console.log("params", params);
        
-  //     const data = JSON.parse(params.inputs);
-  //     console.log("data", data);
-  //     const clientId = params.clientId;
+      const data = JSON.parse(params.inputs);
+      console.log("data", data);
+      const clientId = params.clientId;
 
-  //     if(data.logo && data.print_logo) {
-  //       if (data.logo.startsWith('data:image/png;base64,')|| data.print_logo.startsWith('data:image/png;base64,')) {
-  //         data.logo = data.logo.replace(/^data:image\/\w+;base64,/, '');
-  //         data.print_logo = data.print_logo.replace(/^data:image\/\w+;base64,/, '');
-  //       }
-  //     }
+      if(data.logo && data.print_logo) {
+        if (data.logo.startsWith('data:image/png;base64,')|| data.print_logo.startsWith('data:image/png;base64,')) {
+          data.logo = data.logo.replace(/^data:image\/\w+;base64,/, '');
+          data.print_logo = data.print_logo.replace(/^data:image\/\w+;base64,/, '');
+        }
+      }
 
-  //     // Define the folder and file name for the image in Firebase
-  //   const folderName = 'settings'; // Example: folder to store promotion images
-  //   const fileName = `${Date.now()}_uploaded-file`;
+      // Define the folder and file name for the image in Firebase
+    const folderName = 'settings'; // Example: folder to store promotion images
+    const fileName = `${Date.now()}_uploaded-file`;
 
-  //     console.log("data-logo", data.logo);
-  //     console.log("data-print_logo", data.print_logo);
+      console.log("data-logo", data.logo);
+      console.log("data-print_logo", data.print_logo);
 
-  //     const logoImg = await this.firebaseService.uploadFileToFirebase(
-  //       folderName,
-  //       fileName,
-  //       data.logo,
-  //     );
+      const logoImg = await this.firebaseService.uploadFileToFirebase(
+        folderName,
+        fileName,
+        data.logo,
+      );
 
-  //     const printLogoImg = await this.firebaseService.uploadFileToFirebase(
-  //       folderName,
-  //       fileName,
-  //       data.print_logo,
-  //     );
+      const printLogoImg = await this.firebaseService.uploadFileToFirebase(
+        folderName,
+        fileName,
+        data.print_logo,
+      );
+
+      const dataObject = { ...data, logo: logoImg, print_logo: printLogoImg };
+      console.log("dataObject", dataObject);
 
 
-
-
-  //     for (const [key, value] of Object.entries(data)) {
-  //       // console.log(`Key: ${key}, Value: ${value}`);
-  //       const val: any = value;
-  //       if (key !== 'logo' && key !== 'print_logo') {
-  //         await this.prisma.setting.upsert({
-  //           where: {
-  //             client_option_category: {
-  //               clientId,
-  //               option: key,
-  //               category: 'general',
-  //             },
-  //           },
-  //           // update existing
-  //           update: {
-  //             value: val,
-  //           },
-  //           // new record
-  //           create: {
-  //             clientId,
-  //             option: key,
-  //             value: val,
-  //             category: 'general',
-  //           },
-  //         });
-  //       }
-  //     }
-  //     return {
-  //       success: true,
-  //       status: HttpStatus.OK,
-  //       message: 'Saved successfully',
-  //     };
-  //   } catch (e) {
-  //     return {
-  //       success: false,
-  //       status: HttpStatus.INTERNAL_SERVER_ERROR,
-  //       message: `Something went wrong: ${e.message}`,
-  //     };
-  //   }
-  // }
-
-  // async saveSettings(params: SettingsRequest): Promise<CommonResponseObj> {
-  //   try {
-  //     console.log("params", params);
-       
-  //     const data = JSON.parse(params.inputs);
-  //     console.log("data", data);
-  //     const clientId = params.clientId;
-
-  
-  //     let logoUrl = null;
-  //     let printLogoUrl = null;
-  
-  //     if(data.logo && data.print_logo) {
-  //       if (data.logo.startsWith('data:image/png;base64,')|| data.print_logo.startsWith('data:image/png;base64,')) {
-  //         data.logo = data.logo.replace(/^data:image\/\w+;base64,/, '');
-  //         data.print_logo = data.print_logo.replace(/^data:image\/\w+;base64,/, '');
-  //       }
-  //     }
-  
-  //     // Define the folder and file name for the image in Firebase
-  //     const folderName = 'settings';
-  
-  //     // Upload logo if it exists
-  //     if (data.logo) {
-  //       const logoFileName = `${Date.now()}_logo`;
-  //       logoUrl = await this.firebaseService.uploadFileToFirebase(
-  //         folderName,
-  //         logoFileName,
-  //         data.logo,
-  //       );
-  //     }
-  
-  //     // Upload print logo if it exists
-  //     if (data.print_logo) {
-  //       const printLogoFileName = `${Date.now()}_print_logo`;
-  //       printLogoUrl = await this.firebaseService.uploadFileToFirebase(
-  //         folderName,
-  //         printLogoFileName,
-  //         data.print_logo,
-  //       );
-  //     }
-  
-  //     console.log("logoUrl", logoUrl);
-  //     console.log("printLogoUrl", printLogoUrl);
-  
-  //     // Save all settings to the database
-  //     for (const [key, value] of Object.entries(data)) {
-  //       let val: any = value;
-        
-  //       // For logo and print_logo, save the URLs instead of base64 data
-  //       if (key === 'logo' && logoUrl) {
-  //         val = logoUrl;
-  //       } else if (key === 'print_logo' && printLogoUrl) {
-  //         val = printLogoUrl;
-  //       } else if (key === 'logo' || key === 'print_logo') {
-  //         // Skip if we don't have URLs (this avoids saving base64 data directly)
-  //         continue;
-  //       }
-  
-  //       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  //       const savedSettings = await this.prisma.setting.upsert({
-  //         where: {
-  //           client_option_category: {
-  //             clientId,
-  //             option: key,
-  //             category: 'general',
-  //           },
-  //         },
-  //         // update existing
-  //         update: {
-  //           value: val,
-  //         },
-  //         // new record
-  //         create: {
-  //           clientId,
-  //           option: key,
-  //           value: val,
-  //           category: 'general',
-  //         },
-  //       });
-
-  //       console.log("savedSettings", savedSettings);
-  //     };
-
-      
-  
-  //     return {
-  //       success: true,
-  //       status: HttpStatus.OK,
-  //       message: 'Saved successfully',
-  //     };
-  //   } catch (e) {
-  //     return {
-  //       success: false,
-  //       status: HttpStatus.INTERNAL_SERVER_ERROR,
-  //       message: `Something went wrong: ${e.message}`,
-  //     };
-  //   }
-  // }
+      for (const [key, value] of Object.entries(dataObject)) {
+        console.log(`Key: ${key}, Value: ${value}`);
+        const val: any = value;
+          await this.prisma.setting.upsert({
+            where: {
+              client_option_category: {
+                clientId,
+                option: key,
+                category: 'general',
+              },
+            },
+            // update existing
+            update: {
+              value: val,
+            },
+            // new record
+            create: {
+              clientId,
+              option: key,
+              value: val,
+              category: 'general',
+            },
+          });
+      }
+      return {
+        success: true,
+        status: HttpStatus.OK,
+        message: 'Saved successfully',
+      };
+    } catch (e) {
+      return {
+        success: false,
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: `Something went wrong: ${e.message}`,
+      };
+    }
+  }
 
   async saveSettings(params: SettingsRequest): Promise<CommonResponseObj> {
     try {
@@ -211,6 +110,7 @@ export class SettingsService {
       const data = JSON.parse(params.inputs);
       console.log("data", data);
       const clientId = params.clientId;
+
   
       let logoUrl = null;
       let printLogoUrl = null;
@@ -252,16 +152,17 @@ export class SettingsService {
       for (const [key, value] of Object.entries(data)) {
         let val: any = value;
         
-        // For logo and print_logo, use the value from data but don't save the base64 content
-        if ((key === 'logo' && logoUrl) || (key === 'print_logo' && printLogoUrl)) {
-          // Skip these keys in the loop as we'll handle them separately
-          continue;
+        // For logo and print_logo, save the URLs instead of base64 data
+        if (key === 'logo' && logoUrl) {
+          val = logoUrl;
+        } else if (key === 'print_logo' && printLogoUrl) {
+          val = printLogoUrl;
         } else if (key === 'logo' || key === 'print_logo') {
           // Skip if we don't have URLs (this avoids saving base64 data directly)
           continue;
         }
   
-        // Save the current setting
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const savedSettings = await this.prisma.setting.upsert({
           where: {
             client_option_category: {
@@ -282,54 +183,11 @@ export class SettingsService {
             category: 'general',
           },
         });
-  
+
         console.log("savedSettings", savedSettings);
-      }
-  
-      // Now explicitly save the logo URLs outside the loop
-      if (logoUrl) {
-        const savedLogoSettings = await this.prisma.setting.upsert({
-          where: {
-            client_option_category: {
-              clientId,
-              option: 'logo',
-              category: 'general',
-            },
-          },
-          update: {
-            value: logoUrl,
-          },
-          create: {
-            clientId,
-            option: 'logo',
-            value: logoUrl,
-            category: 'general',
-          },
-        });
-        console.log("savedLogoSettings", savedLogoSettings);
-      }
-  
-      if (printLogoUrl) {
-        const savedPrintLogoSettings = await this.prisma.setting.upsert({
-          where: {
-            client_option_category: {
-              clientId,
-              option: 'print_logo',
-              category: 'general',
-            },
-          },
-          update: {
-            value: printLogoUrl,
-          },
-          create: {
-            clientId,
-            option: 'print_logo',
-            value: printLogoUrl,
-            category: 'general',
-          },
-        });
-        console.log("savedPrintLogoSettings", savedPrintLogoSettings);
-      }
+      };
+
+      
   
       return {
         success: true,
