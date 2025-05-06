@@ -53,6 +53,7 @@ async uploadFileToFirebase(
       action: 'read',
       expires: '01-01-2100', // Set a far future expiration date or customize as needed
     });
+    console.log(`File URL: ${url}`);
     return url;
   } catch (error) {
     console.error(`Error uploading file to Firebase:, error.message`);
