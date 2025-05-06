@@ -109,7 +109,6 @@ export class SettingsService {
       console.log("params", params);
        
       const data = JSON.parse(params.inputs);
-      
       console.log("data", data);
       const clientId = params.clientId;
 
@@ -164,7 +163,8 @@ export class SettingsService {
           continue;
         }
   
-        await this.prisma.setting.upsert({
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const savedSettings = await this.prisma.setting.upsert({
           where: {
             client_option_category: {
               clientId,
@@ -184,7 +184,11 @@ export class SettingsService {
             category: 'general',
           },
         });
-      }
+
+        console.log("savedSettings", savedSettings);
+      };
+
+      
   
       return {
         success: true,
