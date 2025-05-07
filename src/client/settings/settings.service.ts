@@ -43,7 +43,7 @@ export class SettingsService {
       }
 
       // Define the folder and file name for the image in Firebase
-    const folderName = 'settings'; // Example: folder to store promotion images
+    const folderName = 'promotion'; // Example: folder to store promotion images
     const fileName = `${Date.now()}_uploaded-file`;
 
       console.log("data-logo", data.logo);
