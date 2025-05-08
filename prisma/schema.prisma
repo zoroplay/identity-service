@@ -106,7 +106,7 @@ model Setting {
   clientId  Int      @map("client_id")
   client    Client   @relation(fields: [clientId], references: [id])
   option    String
-  value     String
+  value     String   @db.LongText
   category  String
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

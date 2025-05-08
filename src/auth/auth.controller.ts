@@ -9,6 +9,7 @@ import {
 import {
   ChangePasswordRequest,
   CreateUserRequest,
+  GetClientRequest,
   GetUserByUsernameRequest,
   GetUserDetailsRequest,
   GetUserDetailsResponse,
@@ -20,6 +21,7 @@ import {
   SessionRequest,
   UpdateUserRequest,
   ValidateClientResponse,
+  ValidateGroupCodeRequest,
   ValidateResponse,
   XpressLoginRequest,
 } from '../proto/identity.pb';
@@ -105,5 +107,10 @@ export class AuthController {
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'ValidateBet')
   validateBet(data: PlaceBetRequest) {
     return this.settingService.validateBet(data);
+  }
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'validateGroupCode')
+  validateGroupCode(data: GetClientRequest) {
+    return this.authService.validateGroupCode(data);
   }
 }
