@@ -9,6 +9,7 @@ import {
 import {
   ChangePasswordRequest,
   CommonResponseObj,
+  GetClientRequest,
   GetUserByUsernameRequest,
   GetUserByUsernameResponse,
   LoginResponse,
@@ -18,6 +19,8 @@ import {
   UpdateUserRequest,
   UpdateUserResponse,
   ValidateClientResponse,
+  ValidateGroupCodeRequest,
+  ValidateGroupCodeResponse,
   ValidateResponse,
   XpressLoginRequest,
   XpressLoginResponse,
@@ -808,6 +811,30 @@ export class AuthService {
         data: null,
       };
     }
+  }
+
+  public async validateGroupCode({
+    id,
+  }: GetClientRequest): Promise<ValidateGroupCodeResponse> {
+    const client: Client = await this.prisma.client.findFirst({
+      where: { id },
+    });
+
+    if (!client) {
+      return {
+        status: HttpStatus.NOT_FOUND,
+        error: 'Client not found',
+        clientId: null,
+        groupName: '',
+      };
+    }
+
+    return {
+      status: HttpStatus.OK,
+      error: null,
+      clientId: client.id,
+      groupName: client.groupName,
+    };
   }
   
   private getStartOfDay(date: Date) {
