@@ -1,19 +1,14 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
 import { GrpcMethod } from '@nestjs/microservices';
-import {
-  GetPaymentDataRequest,
-  GetStatesRequest,
-  IDENTITY_SERVICE_NAME,
-  SingleItemRequest,
-} from './proto/identity.pb';
+import { GetPaymentDataRequest, GetStatesRequest, IDENTITY_SERVICE_NAME, SingleItemRequest } from './proto/identity.pb';
 import { TrackierService } from './user/trackier/trackier.service';
 
 @Controller()
 export class AppController {
   constructor(
     private readonly appService: AppService,
-    private readonly trackierService: TrackierService,
+    private readonly trackierService: TrackierService
   ) {}
 
   @GrpcMethod('AUTH_SERVICE', 'getAccessRefreshTokens')

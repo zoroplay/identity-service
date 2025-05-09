@@ -7,13 +7,11 @@ import { WalletModule } from 'src/wallet/wallet.module';
 import { CommissionService } from './commission.service';
 import { RetailBonusService } from './retail.bonus.service';
 import { BettingModule } from 'src/betting/betting.module';
-import { GoWalletModule } from 'src/go-wallet/go-wallet.module';
 
 @Module({
   imports: [
     WalletModule,
-    BettingModule,
-    GoWalletModule
+    BettingModule
   ],
   controllers: [RetailController],
   providers: [CommissionService, RetailBonusService, RetailService, PrismaService, JwtService],

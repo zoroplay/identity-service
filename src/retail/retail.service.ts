@@ -8,7 +8,6 @@ import { GetAgentUsersRequest } from 'src/proto/retail.pb';
 import { WalletService } from 'src/wallet/wallet.service';
 import { CommissionService } from './commission.service';
 import { BettingService } from 'src/betting/betting.service';
-import { GoWalletService } from 'src/go-wallet/go-wallet.service';
 
 @Injectable()
 export class RetailService {
@@ -16,7 +15,6 @@ export class RetailService {
         private prisma: PrismaService,
         private jwtService: JwtService,
         private readonly walletService: WalletService,
-            private readonly goWalletService: GoWalletService,
         private readonly commissionService: CommissionService,
         private readonly bettingService: BettingService,
     ) {}
@@ -148,7 +146,7 @@ export class RetailService {
 
             if(users.length) {
               for (const user of users) {
-                const balanceRes = await this.goWalletService.getWallet({
+                const balanceRes = await this.walletService.getWallet({
                     userId: user.id,
                     clientId: user.clientid,
                   });
@@ -237,7 +235,7 @@ export class RetailService {
                 agent.balance = balance
               }
             } else {
-              const balanceRes = await this.goWalletService.getWallet({
+              const balanceRes = await this.walletService.getWallet({
                 userId: agent.id,
                 clientId,
               });
