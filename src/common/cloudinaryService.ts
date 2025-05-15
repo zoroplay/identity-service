@@ -112,6 +112,7 @@ async uploadObject(
   filename?: string, // Optional filename parameter
 ): Promise<{ url: string }> {
   try {
+    console.log('base64Data', base64Data);
     // Handle if base64Data is an object instead of a string
     let processedData = base64Data;
     
