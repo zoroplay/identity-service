@@ -11,6 +11,7 @@ import { TrackierService } from 'src/user/trackier/trackier.service';
 import { SettingsService } from 'src/client/settings/settings.service';
 import { CommissionService } from 'src/retail/commission.service';
 import { FirebaseService } from 'src/common/firebaseUpload';
+import { CloudinaryService } from 'src/common/cloudinaryService';
 
 @Module({
   imports: [
@@ -22,6 +23,6 @@ import { FirebaseService } from 'src/common/firebaseUpload';
     BonusModule
   ],
   controllers: [AuthController],
-  providers: [AuthService, CommissionService, JwtService, JwtStrategy, PrismaService, SettingsService, TrackierService, FirebaseService],
+  providers: [AuthService, CommissionService, JwtService, JwtStrategy, PrismaService, SettingsService, TrackierService, FirebaseService, CloudinaryService],
 })
 export class AuthModule { }
