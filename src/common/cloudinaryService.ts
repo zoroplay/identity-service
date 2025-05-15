@@ -73,6 +73,7 @@ export class CloudinaryService {
   filename?: string, // Optional filename parameter
 ): Promise<{ url: string }> {
   try {
+    console.log('base64Data', base64Data);
     // Check if base64Data is valid
     if (!base64Data || typeof base64Data !== 'string' || !base64Data.includes('base64')) {
       console.log('Invalid base64 data provided');
