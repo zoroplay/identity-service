@@ -3,6 +3,7 @@
 /* eslint-disable prettier/prettier */
 import { HttpStatus, Injectable } from '@nestjs/common';
 import * as dayjs from 'dayjs';
+import { CloudinaryService } from 'src/common/cloudinaryService';
 import { FirebaseService } from 'src/common/firebaseUpload';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
@@ -25,6 +26,7 @@ export class SettingsService {
     private readonly walletService: WalletService,
     private readonly commissionService: CommissionService,
     private readonly firebaseService: FirebaseService,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   async saveSettings(params: SettingsRequest): Promise<CommonResponseObj> {
@@ -35,33 +37,24 @@ export class SettingsService {
       console.log("data", data);
       const clientId = params.clientId;
 
-      if(data.logo && data.print_logo) {
-        if (data.logo.startsWith('data:image/png;base64,')|| data.print_logo.startsWith('data:image/png;base64,')) {
-          data.logo = data.logo.replace(/^data:image\/\w+;base64,/, '');
-          data.print_logo = data.print_logo.replace(/^data:image\/\w+;base64,/, '');
-        }
-      }
+      // if(data.logo && data.print_logo) {
+      //   if (data.logo.startsWith('data:image/png;base64,')|| data.print_logo.startsWith('data:image/png;base64,')) {
+      //     data.logo = data.logo.replace(/^data:image\/\w+;base64,/, '');
+      //     data.print_logo = data.print_logo.replace(/^data:image\/\w+;base64,/, '');
+      //   }
+      // }
 
       // Define the folder and file name for the image in Firebase
-    const folderName = 'promotion'; // Example: folder to store promotion images
-    const fileName = `${Date.now()}_uploaded-file`;
+    // const folderName = 'promotion'; // Example: folder to store promotion images
+    // const fileName = `${Date.now()}_uploaded-file`;
 
-      console.log("data-logo", data.logo);
-      console.log("data-print_logo", data.print_logo);
+      // console.log("data-logo", data.logo);
+      // console.log("data-print_logo", data.print_logo);
 
-      const logoImg = await this.firebaseService.uploadFileToFirebase(
-        folderName,
-        fileName,
-        data.logo,
-      );
+      const logoImg = await this.cloudinaryService.uploadObject(data.logo);
+      const printLogoImg = await this.cloudinaryService.uploadObject(data.print_logo);
 
-      const printLogoImg = await this.firebaseService.uploadFileToFirebase(
-        folderName,
-        fileName,
-        data.print_logo,
-      );
-
-      const dataObject = { ...data, logo: logoImg, print_logo: printLogoImg };
+      const dataObject = { ...data, logo: logoImg.url, print_logo: printLogoImg.url };
       console.log("dataObject", dataObject);
 
 
