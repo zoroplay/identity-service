@@ -37,6 +37,9 @@ export class SettingsService {
       console.log("data", data);
       const clientId = params.clientId;
 
+      console.log('data-logo', data.logo);
+      console.log('data-logo2', (data.logo).toString());
+
       // if(data.logo && data.print_logo) {
       //   if (data.logo.startsWith('data:image/png;base64,')|| data.print_logo.startsWith('data:image/png;base64,')) {
       //     data.logo = data.logo.replace(/^data:image\/\w+;base64,/, '');
