@@ -51,8 +51,8 @@ export class SettingsService {
       // console.log("data-logo", data.logo);
       // console.log("data-print_logo", data.print_logo);
 
-      const logoImg = await this.cloudinaryService.uploadObject(data.logo);
-      const printLogoImg = await this.cloudinaryService.uploadObject(data.print_logo);
+      const logoImg = await this.cloudinaryService.uploadObject((data.logo).toString());
+      const printLogoImg = await this.cloudinaryService.uploadObject((data.print_logo).toString());
 
       const dataObject = { ...data, logo: logoImg.url, print_logo: printLogoImg.url };
       console.log("dataObject", dataObject);
