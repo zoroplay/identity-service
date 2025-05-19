@@ -29,76 +29,206 @@ export class SettingsService {
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
-  async saveSettings(params: SettingsRequest): Promise<CommonResponseObj> {
-    try {
-      console.log("params", params);
+  // async saveSettings(params: SettingsRequest): Promise<CommonResponseObj> {
+  //   try {
+  //     console.log("params", params);
        
-      const data = JSON.parse(params.inputs);
-      console.log("data", data);
-      const clientId = params.clientId;
+  //     const data = JSON.parse(params.inputs);
+  //     console.log("data", data);
+  //     const clientId = params.clientId;
 
-      console.log('data-logo', data.logo);
-      console.log('data-logo2', (data.logo).toString());
+  //     console.log('data-logo', data.logo);
+  //     console.log('data-logo2', (data.logo).toString());
 
-      // if(data.logo && data.print_logo) {
-      //   if (data.logo.startsWith('data:image/png;base64,')|| data.print_logo.startsWith('data:image/png;base64,')) {
-      //     data.logo = data.logo.replace(/^data:image\/\w+;base64,/, '');
-      //     data.print_logo = data.print_logo.replace(/^data:image\/\w+;base64,/, '');
-      //   }
-      // }
+  //     // if(data.logo && data.print_logo) {
+  //     //   if (data.logo.startsWith('data:image/png;base64,')|| data.print_logo.startsWith('data:image/png;base64,')) {
+  //     //     data.logo = data.logo.replace(/^data:image\/\w+;base64,/, '');
+  //     //     data.print_logo = data.print_logo.replace(/^data:image\/\w+;base64,/, '');
+  //     //   }
+  //     // }
 
-      // Define the folder and file name for the image in Firebase
-    // const folderName = 'promotion'; // Example: folder to store promotion images
-    // const fileName = `${Date.now()}_uploaded-file`;
+  //     // Define the folder and file name for the image in Firebase
+  //   // const folderName = 'promotion'; // Example: folder to store promotion images
+  //   // const fileName = `${Date.now()}_uploaded-file`;
 
-      // console.log("data-logo", data.logo);
-      // console.log("data-print_logo", data.print_logo);
+  //     // console.log("data-logo", data.logo);
+  //     // console.log("data-print_logo", data.print_logo);
 
-      const logoImg = await this.cloudinaryService.uploadObject((data.logo).toString());
-      const printLogoImg = await this.cloudinaryService.uploadObject((data.print_logo).toString());
+  //     const logoImg = await this.cloudinaryService.uploadObject((data.logo).toString());
+  //     const printLogoImg = await this.cloudinaryService.uploadObject((data.print_logo).toString());
 
-      const dataObject = { ...data, logo: logoImg.url, print_logo: printLogoImg.url };
-      console.log("dataObject", dataObject);
+  //     const dataObject = { ...data, logo: logoImg.url, print_logo: printLogoImg.url };
+  //     console.log("dataObject", dataObject);
 
 
-      for (const [key, value] of Object.entries(dataObject)) {
-        console.log(`Key: ${key}, Value: ${value}`);
-        const val: any = value;
-          await this.prisma.setting.upsert({
-            where: {
-              client_option_category: {
-                clientId,
-                option: key,
-                category: 'general',
-              },
-            },
-            // update existing
-            update: {
-              value: val,
-            },
-            // new record
-            create: {
+  //     for (const [key, value] of Object.entries(dataObject)) {
+  //       console.log(`Key: ${key}, Value: ${value}`);
+  //       const val: any = value;
+  //         await this.prisma.setting.upsert({
+  //           where: {
+  //             client_option_category: {
+  //               clientId,
+  //               option: key,
+  //               category: 'general',
+  //             },
+  //           },
+  //           // update existing
+  //           update: {
+  //             value: val,
+  //           },
+  //           // new record
+  //           create: {
+  //             clientId,
+  //             option: key,
+  //             value: val,
+  //             category: 'general',
+  //           },
+  //         });
+  //     }
+  //     return {
+  //       success: true,
+  //       status: HttpStatus.OK,
+  //       message: 'Saved successfully',
+  //     };
+  //   } catch (e) {
+  //     console.log("error", e.message);
+  //     return {
+  //       success: false,
+  //       status: HttpStatus.INTERNAL_SERVER_ERROR,
+  //       message: `Something went wrong: ${e.message}`,
+  //     };
+  //   }
+  // }
+
+ async saveSettings(params: SettingsRequest): Promise<CommonResponseObj> {
+  try {
+    console.log("params", params);
+     
+    const data = JSON.parse(params.inputs);
+    console.log("data", data);
+    const clientId = params.clientId;
+
+    // Method 1: Use JSON.stringify to see the full object structure
+    console.log('data.logo (JSON):', JSON.stringify(data.logo, null, 2));
+    console.log('data.print_logo (JSON):', JSON.stringify(data.print_logo, null, 2));
+
+    // Method 2: Use console.log with the object directly (works well in most environments)
+    console.log('data.logo (direct):', data.logo);
+    console.log('data.print_logo (direct):', data.print_logo);
+
+    // Method 3: Check the type and properties
+    console.log('typeof data.logo:', typeof data.logo);
+    console.log('data.logo keys:', Object.keys(data.logo || {}));
+    console.log('typeof data.print_logo:', typeof data.print_logo);
+    console.log('data.print_logo keys:', Object.keys(data.print_logo || {}));
+
+    // Method 4: Use console.dir for detailed inspection (Node.js)
+    console.dir(data.logo, { depth: null });
+    console.dir(data.print_logo, { depth: null });
+
+    // Method 5: Inspect specific properties if you suspect the structure
+    if (data.logo && typeof data.logo === 'object') {
+      console.log('logo.buffer:', data.logo.buffer);
+      console.log('logo.data:', data.logo.data);
+      console.log('logo.originalname:', data.logo.originalname);
+      console.log('logo.mimetype:', data.logo.mimetype);
+      // Add other properties you might expect
+    }
+
+    // Function to check if value is empty or invalid
+    const isValidImage = (value: any): boolean => {
+      if (!value) return false;
+      if (typeof value === 'string' && value.trim() === '') return false;
+      if (typeof value === 'object' && Object.keys(value).length === 0) return false;
+      return true;
+    };
+
+    // Only process images if they exist and are valid
+    let logoUrl = data.logo; // Keep original value as fallback
+    let printLogoUrl = data.print_logo; // Keep original value as fallback
+
+    if (isValidImage(data.logo)) {
+      try {
+        // Convert to base64 if it's a buffer
+        let logoData = data.logo;
+        
+        if (data.logo && typeof data.logo === 'object' && data.logo.buffer) {
+          logoData = `data:${data.logo.mimetype};base64,${data.logo.buffer.toString('base64')}`;
+          console.log('Converted logo to base64');
+        }
+
+        const logoImg = await this.cloudinaryService.uploadObject(logoData);
+        logoUrl = logoImg.url;
+        console.log('Logo uploaded successfully:', logoUrl);
+      } catch (logoError) {
+        console.warn('Failed to upload logo:', logoError.message);
+        // Keep original logo value or set to null if you prefer
+      }
+    } else {
+      console.log('Logo not provided or invalid, skipping upload');
+    }
+
+    if (isValidImage(data.print_logo)) {
+      try {
+        // Convert to base64 if it's a buffer
+        let printLogoData = data.print_logo;
+        
+        if (data.print_logo && typeof data.print_logo === 'object' && data.print_logo.buffer) {
+          printLogoData = `data:${data.print_logo.mimetype};base64,${data.print_logo.buffer.toString('base64')}`;
+          console.log('Converted print_logo to base64');
+        }
+
+        const printLogoImg = await this.cloudinaryService.uploadObject(printLogoData);
+        printLogoUrl = printLogoImg.url;
+        console.log('Print logo uploaded successfully:', printLogoUrl);
+      } catch (printLogoError) {
+        console.warn('Failed to upload print logo:', printLogoError.message);
+        // Keep original print_logo value or set to null if you prefer
+      }
+    } else {
+      console.log('Print logo not provided or invalid, skipping upload');
+    }
+
+    // Create data object with processed or original values
+    const dataObject = { ...data, logo: logoUrl, print_logo: printLogoUrl };
+    console.log("dataObject", dataObject);
+
+    for (const [key, value] of Object.entries(dataObject)) {
+      console.log(`Key: ${key}, Value: ${value}`);
+      const val: any = value;
+        await this.prisma.setting.upsert({
+          where: {
+            client_option_category: {
               clientId,
               option: key,
-              value: val,
               category: 'general',
             },
-          });
-      }
-      return {
-        success: true,
-        status: HttpStatus.OK,
-        message: 'Saved successfully',
-      };
-    } catch (e) {
-      console.log("error", e.message);
-      return {
-        success: false,
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: `Something went wrong: ${e.message}`,
-      };
+          },
+          update: {
+            value: val,
+          },
+          create: {
+            clientId,
+            option: key,
+            value: val,
+            category: 'general',
+          },
+        });
     }
+    return {
+      success: true,
+      status: HttpStatus.OK,
+      message: 'Saved successfully',
+    };
+  } catch (e) {
+    console.log("error", e.message);
+    return {
+      success: false,
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: `Something went wrong: ${e.message}`,
+    };
   }
+}
 
   async saveRiskSettings(params: SettingsRequest): Promise<CommonResponseObj> {
     try {
