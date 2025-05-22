@@ -3,6 +3,7 @@
 /* eslint-disable prettier/prettier */
 import { HttpStatus, Injectable } from '@nestjs/common';
 import * as dayjs from 'dayjs';
+import { BettingService } from 'src/betting/betting.service';
 import { FirebaseService } from 'src/common/firebaseUpload';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
@@ -25,6 +26,7 @@ export class SettingsService {
     private readonly walletService: WalletService,
     private readonly commissionService: CommissionService,
     private readonly firebaseService: FirebaseService,
+    private readonly bettingService: BettingService
   ) {}
 
   async saveSettings(params: SettingsRequest): Promise<CommonResponseObj> {
@@ -89,6 +91,9 @@ export class SettingsService {
             },
           });
       }
+      // send data to betting service
+      await this.bettingService.saveRiskSetting(params);
+      
       return {
         success: true,
         status: HttpStatus.OK,
@@ -245,6 +250,9 @@ export class SettingsService {
       if (setting.option === 'single_odd_length_' + period) {
         data.SingleTicketLenght = setting.value;
       }
+      if (setting.option === 'single_max_winning_' + period) {
+        data.SingleMaxWinning = setting.value;
+      }
       if (setting.option === 'combi_odd_length_' + period) {
         data.MaxCombinationOddLength = setting.value;
       }
@@ -302,6 +310,22 @@ export class SettingsService {
 
       if (setting.option === 'excise_tax') {
         data.exciseTax = setting.value;
+      }
+
+      if (setting.option === 'combi_min_day') {
+        data.comboMinStake = setting.value;
+      }
+
+      if (setting.option === 'combi_max_day') {
+        data.comboMaxStake = setting.value;
+      }
+
+      if (setting.option === 'single_max_day') {
+        data.singleMaxStake = setting.value;
+      }
+
+      if (setting.option === 'single_min_day') {
+        data.singleMinStake = setting.value;
       }
 
       if (setting.option === 'wth_tax') {

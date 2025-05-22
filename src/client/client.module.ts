@@ -6,9 +6,10 @@ import { SettingsService } from './settings/settings.service';
 import { WalletModule } from 'src/wallet/wallet.module';
 import { CommissionService } from 'src/retail/commission.service';
 import { FirebaseService } from 'src/common/firebaseUpload';
+import { BettingModule } from 'src/betting/betting.module';
 
 @Module({
-  imports: [WalletModule],
+  imports: [BettingModule, WalletModule],
   controllers: [ClientController],
   providers: [ClientService, CommissionService, PrismaService, SettingsService, FirebaseService],
   exports: [SettingsService]
