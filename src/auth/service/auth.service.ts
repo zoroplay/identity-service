@@ -33,6 +33,9 @@ import {
   ValidateRequestDto,
 } from '../auth.dto';
 import { JwtService } from './jwt.service';
+import * as dayjs from 'dayjs';
+import { generateString } from 'src/common/helpers';
+import { GoWalletService } from 'src/go-wallet/go-wallet.service';
 
 @Injectable()
 export class AuthService {
@@ -41,6 +44,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
     private readonly walletService: WalletService,
+    private readonly goWalletService: GoWalletService,
     private readonly bonusService: BonusService,
     private trackierService: TrackierService,
   ) {}
@@ -655,7 +659,7 @@ public async register({
       });
 
       //get user wallet
-      const balanceRes = await this.walletService.getWallet({
+      const balanceRes = await this.goWalletService.getWallet({
         userId: user.id,
         clientId,
       });
@@ -725,7 +729,7 @@ public async register({
         },
       });
       if (user) {
-        const balanceRes = await this.walletService.getWallet({
+        const balanceRes = await this.goWalletService.getWallet({
           userId: user.id,
           clientId,
         });
@@ -1009,7 +1013,7 @@ public async register({
           group = `${user.client.groupName}_${user.agentUser.agent.username}`;
         }
         //get user wallet
-        const balanceRes = await this.walletService.getWallet({
+        const balanceRes = await this.goWalletService.getWallet({
           userId: user.id,
           clientId,
         });
@@ -1066,7 +1070,7 @@ public async register({
 
       if (user) {
         //get user wallet
-        const balanceRes = await this.walletService.getWallet({
+        const balanceRes = await this.goWalletService.getWallet({
           userId: user.id,
           clientId,
         });
@@ -1140,7 +1144,7 @@ public async register({
         group = `${user.client.groupName}_${user.agentUser.agent.username}`;
       }
       //get user wallet
-      const balanceRes = await this.walletService.getWallet({
+      const balanceRes = await this.goWalletService.getWallet({
         userId: user.id,
         clientId,
       });
