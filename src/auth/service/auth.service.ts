@@ -33,8 +33,6 @@ import {
   ValidateRequestDto,
 } from '../auth.dto';
 import { JwtService } from './jwt.service';
-import * as dayjs from 'dayjs';
-import { generateString } from 'src/common/helpers';
 import { GoWalletService } from 'src/go-wallet/go-wallet.service';
 
 @Injectable()

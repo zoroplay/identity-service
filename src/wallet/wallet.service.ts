@@ -39,6 +39,15 @@ export class WalletService {
   public async fetchDepositRange(data: FetchDepositRangeRequest) {
     return await firstValueFrom(this.svc.fetchDepositRange(data));
   }
+
+  public async credit(data: CreditUserRequest) {
+    return firstValueFrom(this.svc.creditUser(data));
+  }
+
+  public getWallet(param: GetBalanceRequest) {
+    return firstValueFrom(this.svc.getBalance(param));
+  }
+
   public async fetchPlayerDeposit(data: FetchPlayerDepositRequest) {
     return firstValueFrom(this.svc.fetchPlayerDeposit(data));
   }
