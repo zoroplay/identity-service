@@ -1,10 +1,24 @@
 /* eslint-disable */
 import { GrpcMethod, GrpcStreamMethod } from "@nestjs/microservices";
+import { wrappers } from "protobufjs";
 import { Observable } from "rxjs";
+import { Struct } from "./google/protobuf/struct.pb";
 
 export const protobufPackage = "bonus";
 
+export interface CommonResponseObj {
+  status?: number | undefined;
+  success?: boolean | undefined;
+  message: string;
+  data?: { [key: string]: any } | undefined;
+}
+
 export interface CheckDepositBonusRequest {
+  clientId: number;
+  userId: number;
+}
+
+export interface BonusRequest {
   clientId: number;
   userId: number;
 }
@@ -20,6 +34,7 @@ export interface FirstDepositBonus {
   value: number;
   type: string;
   name: string;
+  gameId?: string | undefined;
 }
 
 export interface CreateReferralBonusRequest {
@@ -67,16 +82,22 @@ export interface CreateBonusRequest {
   applicableBetType: string;
   maximumWinning: number;
   bonusAmount: number;
-  status: number;
-  created: string;
-  updated: string;
-  id: number;
+  status?: number | undefined;
+  created?: string | undefined;
+  updated?: string | undefined;
+  id?: number | undefined;
   minimumLostGames: number;
   rolloverCount: number;
   name: string;
   minimumEntryAmount: number;
   maxAmount: number;
   product: string;
+  gameId: string[];
+  casinoSpinCount?: number | undefined;
+  providerId?: number | undefined;
+  bonusId?: number | undefined;
+  userIds: string[];
+  provider?: string | undefined;
 }
 
 export interface CreateBonusResponse {
@@ -87,6 +108,11 @@ export interface CreateBonusResponse {
 }
 
 export interface GetBonusRequest {
+  clientId: number;
+  bonusType?: string | undefined;
+}
+
+export interface GetAllBonusRequest {
   clientId: number;
 }
 
@@ -173,7 +199,7 @@ export interface UserBet {
   stake: number;
   totalOdds: number;
   bonusId: number;
-  betId?: number | undefined;
+  betId?: string | undefined;
 }
 
 export interface BetSlip {
@@ -254,6 +280,7 @@ export interface AllCampaignBonus {
 
 export interface GetBonusByClientID {
   clientId: number;
+  searchKey?: string | undefined;
 }
 
 export interface GetCampaignRequest {
@@ -269,7 +296,7 @@ export interface GetCampaignResponse {
 
 export interface PlaceBetResponse {
   success: boolean;
-  betId: number;
+  betId: string;
   status: number;
   statusDescription: string;
 }
@@ -317,15 +344,26 @@ export interface FetchReportResponse {
 
 export interface SettleBetRequest {
   clientId: number;
-  betId: number;
+  betId: string;
   status: number;
   amount?: number | undefined;
+}
+
+export interface SearchBonusResponse {
+  data: SearchBonusResponse_Bonus[];
+}
+
+export interface SearchBonusResponse_Bonus {
+  id: number;
+  name: string;
 }
 
 export interface EmptyResponse {
 }
 
 export const BONUS_PACKAGE_NAME = "bonus";
+
+wrappers[".google.protobuf.Struct"] = { fromObject: Struct.wrap, toObject: Struct.unwrap } as any;
 
 export interface BonusServiceClient {
   fetchBonusReport(request: FetchReportRequest): Observable<FetchReportResponse>;
@@ -340,15 +378,25 @@ export interface BonusServiceClient {
 
   checkDepositBonus(request: CheckDepositBonusRequest): Observable<CheckDepositBonusResponse>;
 
-  settleBet(request: SettleBetRequest): Observable<EmptyResponse>;
+  checkRegisterBonus(request: GetBonusRequest): Observable<CommonResponseObj>;
+
+  settleBet(request: SettleBetRequest): Observable<CommonResponseObj>;
+
+  searchBonus(request: GetBonusByClientID): Observable<SearchBonusResponse>;
+
+  getActiveUserBonus(request: CheckDepositBonusRequest): Observable<CommonResponseObj>;
 
   getBonus(request: GetBonusRequest): Observable<GetBonusResponse>;
+
+  getAllAwardedBonus(request: GetAllBonusRequest): Observable<CommonResponseObj>;
 
   deleteBonus(request: DeleteBonusRequest): Observable<BonusResponse>;
 
   getUserBonus(request: GetUserBonusRequest): Observable<GetUserBonusResponse>;
 
   awardBonus(request: AwardBonusRequest): Observable<UserBonusResponse>;
+
+  deactivateUserBonus(request: BonusRequest): Observable<CommonResponseObj>;
 
   placeBonusBet(request: UserBet): Observable<PlaceBetResponse>;
 
@@ -392,9 +440,25 @@ export interface BonusServiceController {
     request: CheckDepositBonusRequest,
   ): Promise<CheckDepositBonusResponse> | Observable<CheckDepositBonusResponse> | CheckDepositBonusResponse;
 
-  settleBet(request: SettleBetRequest): Promise<EmptyResponse> | Observable<EmptyResponse> | EmptyResponse;
+  checkRegisterBonus(
+    request: GetBonusRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
+  settleBet(request: SettleBetRequest): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
+  searchBonus(
+    request: GetBonusByClientID,
+  ): Promise<SearchBonusResponse> | Observable<SearchBonusResponse> | SearchBonusResponse;
+
+  getActiveUserBonus(
+    request: CheckDepositBonusRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
 
   getBonus(request: GetBonusRequest): Promise<GetBonusResponse> | Observable<GetBonusResponse> | GetBonusResponse;
+
+  getAllAwardedBonus(
+    request: GetAllBonusRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
 
   deleteBonus(request: DeleteBonusRequest): Promise<BonusResponse> | Observable<BonusResponse> | BonusResponse;
 
@@ -405,6 +469,10 @@ export interface BonusServiceController {
   awardBonus(
     request: AwardBonusRequest,
   ): Promise<UserBonusResponse> | Observable<UserBonusResponse> | UserBonusResponse;
+
+  deactivateUserBonus(
+    request: BonusRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
 
   placeBonusBet(request: UserBet): Promise<PlaceBetResponse> | Observable<PlaceBetResponse> | PlaceBetResponse;
 
@@ -444,11 +512,16 @@ export function BonusServiceControllerMethods() {
       "getCampaign",
       "validateBetSelections",
       "checkDepositBonus",
+      "checkRegisterBonus",
       "settleBet",
+      "searchBonus",
+      "getActiveUserBonus",
       "getBonus",
+      "getAllAwardedBonus",
       "deleteBonus",
       "getUserBonus",
       "awardBonus",
+      "deactivateUserBonus",
       "placeBonusBet",
       "updateBonusStatus",
       "createCampaignBonus",
