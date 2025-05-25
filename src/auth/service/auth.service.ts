@@ -472,20 +472,6 @@ public async register({
       });
 
       console.log("bonusRes", bonusRes);
-
-      if (bonusRes.status) {
-        await this.walletService.credit({
-          userId: newUser.id,
-          clientId,
-          amount: bonusRes.bonus.amount.toString(),
-          source: 'registration_bonus',
-          description: 'registration bonus',
-          username: newUser.username,
-          wallet: 'sport-bonus',
-          subject: 'registration bonus',
-          channel: 'bonus',
-        });
-      }
     }
 
     // --- Promo bonus ---
