@@ -53,45 +53,100 @@ export class AuditLogService {
    */
   async getAllLogs(payload: GetAllLogsRequest): Promise<GetAllLogsResponse> {
     try {
-      const { clientId, userName, page = 1 } = payload;
-      const perPage = 50; // Default number of logs per page
+      const { clientId, userName, auditQuery } = payload;
       const whereClause: any = {};
 
-      // Add clientId filter if provided
+      // Add clientId and userName filters if provided
       if (clientId) whereClause.clientId = clientId;
       if (userName) whereClause.userName = userName;
 
+      // Process auditQuery filters if they exist
+      if (auditQuery) {
+        const {
+          page = 1, // default to page 1 if not provided
+          perPage = 50,
+          startDate,
+          endDate,
+          username,
+          platform,
+          ipAddress,
+        } = auditQuery;
+
+        // Add timestamp filter if dates are provided
+        if (startDate || endDate) {
+          whereClause.timestamp = {};
+          if (startDate) {
+            whereClause.timestamp.gte = new Date(startDate);
+          }
+          if (endDate) {
+            whereClause.timestamp.lte = new Date(endDate);
+          }
+        }
+
+        // Add other filters if they exist
+        if (username) whereClause.userName = username;
+        if (platform) whereClause.platform = platform;
+        if (ipAddress) whereClause.ipAddress = ipAddress;
+
+        const [totalCount, logs] = await Promise.all([
+          this.prisma.auditLog.count({
+            where: whereClause,
+          }),
+          this.prisma.auditLog.findMany({
+            where: whereClause,
+            skip: (page - 1) * perPage,
+            take: perPage,
+            orderBy: { timestamp: 'desc' },
+          }),
+        ]);
+
+        const total = totalCount;
+        const totalPages = Math.ceil(totalCount / perPage);
+        const currentPage = page;
+        const itemsPerPage = perPage;
+
+        return {
+          logs: logs.map((log) => ({
+            ...log,
+            additionalInfo: this.parseAdditionalInfo(log.additionalInfo),
+            timestamp: log.timestamp.toISOString(),
+            userName: log.userName || 'Unknown',
+          })),
+          meta: { total, totalPages, currentPage, itemsPerPage },
+        };
+      }
+
+      // If no auditQuery is provided, return all logs without filtering
       const [totalCount, logs] = await Promise.all([
         this.prisma.auditLog.count({
           where: whereClause,
         }),
         this.prisma.auditLog.findMany({
           where: whereClause,
-          skip: (page - 1) * perPage,
-          take: perPage,
           orderBy: { timestamp: 'desc' },
         }),
       ]);
-
-      const total = totalCount;
-      const totalPages = Math.ceil(totalCount / perPage);
-      const currentPage = page;
-      const itemsPerPage = perPage;
 
       return {
         logs: logs.map((log) => ({
           ...log,
           additionalInfo: this.parseAdditionalInfo(log.additionalInfo),
           timestamp: log.timestamp.toISOString(),
-          userName: log.userName || 'Unknown', // Ensure userName is included
+          userName: log.userName || 'Unknown',
         })),
-        meta: { total, totalPages, currentPage, itemsPerPage },
+        meta: {
+          total: totalCount,
+          totalPages: 1,
+          currentPage: 1,
+          itemsPerPage: totalCount,
+        },
       };
     } catch (error) {
       console.error('Error retrieving all logs:', error.message);
       // throw new InternalServerErrorException('Failed to retrieve logs.');
     }
   }
+
   private parseAdditionalInfo(info: string | null): any {
     try {
       return info ? JSON.parse(info) : {};

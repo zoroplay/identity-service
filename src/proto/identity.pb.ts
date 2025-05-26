@@ -49,6 +49,16 @@ export interface CreateLogResponse {
   message: string;
 }
 
+export interface AuditQuery {
+  startDate?: string | undefined;
+  endDate?: string | undefined;
+  page?: number | undefined;
+  perPage?: number | undefined;
+  username?: string | undefined;
+  platform?: string | undefined;
+  ipAddress?: string | undefined;
+}
+
 /** GetAllLogs */
 export interface GetAllLogsRequest {
   clientId?: number | undefined;
@@ -62,6 +72,7 @@ export interface GetAllLogsRequest {
   platform: string;
   endpoint: string;
   method: string;
+  auditQuery: AuditQuery | undefined;
 }
 
 /** GetAllLogsResponse */
@@ -580,6 +591,11 @@ export interface UserInfo {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  lossCount: number;
+  betCount: number;
+  stakeAmount: number;
+  lastPlayed: string;
+  totalBalance: number;
 }
 
 export interface UserData {
