@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { Inject, Injectable } from "@nestjs/common";
 import { ClientGrpc } from "@nestjs/microservices";
-import { Observable, firstValueFrom } from "rxjs";
+import { firstValueFrom } from "rxjs";
 
 import {
   CreateWalletRequest,

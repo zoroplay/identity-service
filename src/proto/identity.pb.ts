@@ -62,6 +62,8 @@ export interface GetAllLogsRequest {
   platform: string;
   endpoint: string;
   method: string;
+  startDate: string;
+  endDate: string;
 }
 
 /** GetAllLogsResponse */
@@ -580,6 +582,11 @@ export interface UserInfo {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  lossCount: number;
+  betCount: number;
+  stakeAmount: number;
+  lastPlayed: string;
+  totalBalance: number;
 }
 
 export interface UserData {
