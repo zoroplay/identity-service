@@ -3303,7 +3303,7 @@ cloneable-readable@^1.0.0:
 
 cloudinary@^2.6.1:
   version "2.6.1"
-  resolved "https://registry.yarnpkg.com/cloudinary/-/cloudinary-2.6.1.tgz#19859befb47ca88d356cd9cad5185067bf34f004"
+  resolved "https://registry.npmjs.org/cloudinary/-/cloudinary-2.6.1.tgz"
   integrity sha512-Dt7o3p4VzxYoTi+EqWkVQmGy6WiXIyMcG5Gbr9kPR/EQ+jZa+3FFzlDKfDx1uDsaB1aTR1gYeO6wZqrgLFaByQ==
   dependencies:
     lodash "^4.17.21"
@@ -8766,7 +8766,7 @@ safe-buffer@~5.1.0, safe-buffer@~5.1.1:
 
 "sbe-service-proto@github:zoroplay/sbe-service-proto":
   version "1.0.0"
-  resolved "git+ssh://git@github.com/zoroplay/sbe-service-proto.git#98d15b210eff213a09357abe39040f6fd11c76c2"
+  resolved "git+ssh://git@github.com/zoroplay/sbe-service-proto.git#8a63fc3581a88c1e4f59aad27945828433755de3"
 
 schema-utils@^3.1.1, schema-utils@^3.2.0:
   version "3.3.0"

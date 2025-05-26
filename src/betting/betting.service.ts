@@ -1,33 +1,42 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
-import { BETTING_SERVICE_NAME, BettingServiceClient, SettingsById, protobufPackage } from 'src/proto/betting.pb';
+import {
+  BETTING_SERVICE_NAME,
+  BettingServiceClient,
+  SettingsById,
+  protobufPackage,
+} from 'src/proto/betting.pb';
 
 @Injectable()
 export class BettingService {
-    private svc: BettingServiceClient;
+  private svc: BettingServiceClient;
 
-    @Inject(protobufPackage)
-    private readonly client: ClientGrpc;
+  @Inject(protobufPackage)
+  private readonly client: ClientGrpc;
 
-    public onModuleInit(): void {
-        this.svc = this.client.getService<BettingServiceClient>(BETTING_SERVICE_NAME);
-    }
+  public onModuleInit(): void {
+    this.svc =
+      this.client.getService<BettingServiceClient>(BETTING_SERVICE_NAME);
+  }
 
-    public deletePlayerData(data: SettingsById) {
-        return  firstValueFrom(this.svc.deletePlayerData(data));
-    }
+  public deletePlayerData(data: SettingsById) {
+    return firstValueFrom(this.svc.deletePlayerData(data));
+  }
 
-    public getSalesReport(data) {
-        return  firstValueFrom(this.svc.getTotalSalesReport(data));
-    }
+  public getSalesReport(data) {
+    return firstValueFrom(this.svc.getTotalSalesReport(data));
+  }
 
-    public saveSetting(data) {
-        return firstValueFrom(this.svc.saveSettings(data))
-    }
+  public saveSetting(data) {
+    return firstValueFrom(this.svc.saveSettings(data));
+  }
 
-    public saveRiskSetting(data) {
-        return firstValueFrom(this.svc.saveRiskSettings(data))
-    }
+  public saveRiskSetting(data) {
+    return firstValueFrom(this.svc.saveRiskSettings(data));
+  }
 
+  public lossCount(data) {
+    return firstValueFrom(this.svc.betHistory(data));
+  }
 }
