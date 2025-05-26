@@ -745,6 +745,8 @@ export interface CommonResponseArray {
 }
 
 export interface PlayerWalletData {
+  success: any;
+  data: any;
   sportBalance: number;
   totalDeposits: number;
   sportBonusBalance: number;
