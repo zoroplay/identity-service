@@ -460,6 +460,9 @@ export interface BetHistory {
 }
 
 export interface BetHistoryResponse {
+  success: boolean;
+  status: number;
+  data: any;
   bets: BetHistory[];
   /** Last pagination page */
   lastPage: number;

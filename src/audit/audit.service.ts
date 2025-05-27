@@ -1,7 +1,7 @@
-import { Injectable, InternalServerErrorException, Get } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { GetAllLogsRequest, GetAllLogsResponse } from 'src/proto/identity.pb';
-import { parse, isValid, format } from 'date-fns';
+import { parse, isValid } from 'date-fns';
 
 interface AuditLogPayload {
   userId: number;
