@@ -24,9 +24,19 @@ import { GoWalletModule } from 'src/go-wallet/go-wallet.module';
     GoWalletModule,
     BettingModule,
     WalletModule,
-    BonusModule
+    BonusModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, CommissionService, JwtService, JwtStrategy, PrismaService, SettingsService, TrackierService, FirebaseService, CloudinaryService],
+  providers: [
+    AuthService,
+    CommissionService,
+    JwtService,
+    JwtStrategy,
+    PrismaService,
+    SettingsService,
+    TrackierService,
+    FirebaseService,
+    CloudinaryService,
+  ],
 })
-export class AuthModule { }
+export class AuthModule {}

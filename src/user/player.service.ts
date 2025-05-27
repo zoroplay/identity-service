@@ -283,6 +283,7 @@ export class PlayerService {
     FetchDto: FetchPlayerFilterRequest,
     page: number,
   ) {
+    console.log('I GOT HEAR');
     try {
       const limit = 100;
 

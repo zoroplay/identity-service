@@ -23,7 +23,7 @@ import {
   ValidateGroupCodeResponse,
   ValidateResponse,
   XpressLoginRequest,
-  XpressLoginResponse
+  XpressLoginResponse,
 } from 'src/proto/identity.pb';
 import { TrackierService } from 'src/user/trackier/trackier.service';
 import { WalletService } from 'src/wallet/wallet.service';
@@ -147,8 +147,8 @@ export class AuthService {
   //             promoCode,
   //           });
   //         }
-  //       } 
-        
+  //       }
+
   //       if ((trackingToken && trackingToken !== '') || (promoCode && promoCode !== '')) {
   //         try {
   //           const trackREs: any = await this.trackierService.createCustomer({
@@ -160,7 +160,7 @@ export class AuthService {
   //           });
   //           // console.log(trackREs?.data)
 
-  //           // update 
+  //           // update
   //           if (trackREs.data.success) {
   //             const trackData = trackREs.data.data;
   //             // update user data
@@ -195,8 +195,6 @@ export class AuthService {
   //         auth.trustBalance = trustBalance;
   //       }
 
-        
-
   //       auth.token = this.jwtService.generateToken(auth);
   //       auth.firstName = '';
   //       auth.lastName = '';
@@ -226,350 +224,348 @@ export class AuthService {
   //   }
   // }
 
-//   public async register({
-//   clientId,
-//   username,
-//   password,
-//   phoneNumber,
-//   promoCode,
-//   trackingToken,
-// }: RegisterRequestDto): Promise<RegisterResponse> {
-//   try {
-//     const existingUser = await this.prisma.user.findFirst({
-//       where: { username, clientId },
-//     });
+  //   public async register({
+  //   clientId,
+  //   username,
+  //   password,
+  //   phoneNumber,
+  //   promoCode,
+  //   trackingToken,
+  // }: RegisterRequestDto): Promise<RegisterResponse> {
+  //   try {
+  //     const existingUser = await this.prisma.user.findFirst({
+  //       where: { username, clientId },
+  //     });
 
-//     if (existingUser) {
-//       return {
-//         status: HttpStatus.CONFLICT,
-//         error: 'Username/Phone number already exists',
-//         data: null,
-//         success: true,
-//       };
-//     }
+  //     if (existingUser) {
+  //       return {
+  //         status: HttpStatus.CONFLICT,
+  //         error: 'Username/Phone number already exists',
+  //         data: null,
+  //         success: true,
+  //       };
+  //     }
 
-//     const role = await this.prisma.role.findFirst({
-//       where: { name: 'Player' },
-//     });
+  //     const role = await this.prisma.role.findFirst({
+  //       where: { name: 'Player' },
+  //     });
 
-//     // --- CREATE USER INSIDE TRANSACTION ---
-//     const newUser = await this.prisma.$transaction(async (prisma) => {
-//       return prisma.user.create({
-//         data: {
-//           username,
-//           clientId,
-//           code: Math.floor(100000 + Math.random() * 900000).toString(),
-//           password: this.jwtService.encodePassword(password),
-//           roleId: role.id,
-//           userDetails: {
-//             create: { phone: phoneNumber },
-//           },
-//         },
-//       });
-//     });
+  //     // --- CREATE USER INSIDE TRANSACTION ---
+  //     const newUser = await this.prisma.$transaction(async (prisma) => {
+  //       return prisma.user.create({
+  //         data: {
+  //           username,
+  //           clientId,
+  //           code: Math.floor(100000 + Math.random() * 900000).toString(),
+  //           password: this.jwtService.encodePassword(password),
+  //           roleId: role.id,
+  //           userDetails: {
+  //             create: { phone: phoneNumber },
+  //           },
+  //         },
+  //       });
+  //     });
 
-//     // --- CREATE WALLET ---
-//     const walletRes = await this.walletService.createWallet({
-//       userId: newUser.id,
-//       username: newUser.username,
-//       clientId,
-//       amount: 0,
-//     });
+  //     // --- CREATE WALLET ---
+  //     const walletRes = await this.walletService.createWallet({
+  //       userId: newUser.id,
+  //       username: newUser.username,
+  //       clientId,
+  //       amount: 0,
+  //     });
 
-//     const auth: any = { ...newUser };
+  //     const auth: any = { ...newUser };
 
-//     // --- CHECK REGISTRATION BONUS ---
-//     const regBonus = await this.bonusService.checkRegisterBonus({
-//       clientId,
-//       bonusType: 'registration',
-//     });
+  //     // --- CHECK REGISTRATION BONUS ---
+  //     const regBonus = await this.bonusService.checkRegisterBonus({
+  //       clientId,
+  //       bonusType: 'registration',
+  //     });
 
-//     if (regBonus.success && regBonus.data.status === 1) {
-//       const bonusRes = await this.bonusService.awardBonus({
-//         clientId,
-//         userId: newUser.id.toString(),
-//         username: newUser.username,
-//         bonusId: regBonus.data.id,
-//         amount: regBonus.data.bonusAmount,
-//         baseValue: 0,
-//       });
+  //     if (regBonus.success && regBonus.data.status === 1) {
+  //       const bonusRes = await this.bonusService.awardBonus({
+  //         clientId,
+  //         userId: newUser.id.toString(),
+  //         username: newUser.username,
+  //         bonusId: regBonus.data.id,
+  //         amount: regBonus.data.bonusAmount,
+  //         baseValue: 0,
+  //       });
 
-//       if(bonusRes.status) {
-//         await this.walletService.credit({
-//           userId: newUser.id,
-//           clientId: clientId,
-//           amount: bonusRes.bonus.amount.toString(),
-//           source: 'registration_bonus',
-//           description: 'registration bonus',
-//           username: newUser.username,
-//           wallet: 'sport-bonus',
-//           subject: 'registration bonus',
-//           channel: 'bonus'
-//   })
+  //       if(bonusRes.status) {
+  //         await this.walletService.credit({
+  //           userId: newUser.id,
+  //           clientId: clientId,
+  //           amount: bonusRes.bonus.amount.toString(),
+  //           source: 'registration_bonus',
+  //           description: 'registration bonus',
+  //           username: newUser.username,
+  //           wallet: 'sport-bonus',
+  //           subject: 'registration bonus',
+  //           channel: 'bonus'
+  //   })
 
-//       }
-//     }
+  //       }
+  //     }
 
-//     // --- APPLY PROMO BONUS IF PROVIDED ---
-//     if (promoCode) {
-//       const promoBonus = await this.bonusService.getBonusCampaign({
-//         promoCode,
-//         clientId,
-//       });
+  //     // --- APPLY PROMO BONUS IF PROVIDED ---
+  //     if (promoCode) {
+  //       const promoBonus = await this.bonusService.getBonusCampaign({
+  //         promoCode,
+  //         clientId,
+  //       });
 
-//       if (promoBonus.success) {
-//         await this.bonusService.awardBonus({
-//           clientId,
-//           userId: newUser.id.toString(),
-//           username: newUser.username,
-//           bonusId: promoBonus.data.bonus.id,
-//           amount: promoBonus.data.bonus.bonusAmount,
-//           baseValue: 0,
-//           promoCode,
-//         });
-//       }
-//     }
+  //       if (promoBonus.success) {
+  //         await this.bonusService.awardBonus({
+  //           clientId,
+  //           userId: newUser.id.toString(),
+  //           username: newUser.username,
+  //           bonusId: promoBonus.data.bonus.id,
+  //           amount: promoBonus.data.bonus.bonusAmount,
+  //           baseValue: 0,
+  //           promoCode,
+  //         });
+  //       }
+  //     }
 
-//     // --- TRACKIER INTEGRATION ---
-//     if (promoCode || trackingToken) {
-//       try {
-//         const trackRes: any = await this.trackierService.createCustomer({
-//           customerId: newUser.username,
-//           customerName: newUser.username,
-//           trackingToken: trackingToken || '',
-//           promoCode: promoCode || '',
-//           clientId,
-//         });
+  //     // --- TRACKIER INTEGRATION ---
+  //     if (promoCode || trackingToken) {
+  //       try {
+  //         const trackRes: any = await this.trackierService.createCustomer({
+  //           customerId: newUser.username,
+  //           customerName: newUser.username,
+  //           trackingToken: trackingToken || '',
+  //           promoCode: promoCode || '',
+  //           clientId,
+  //         });
 
-//         if (trackRes?.data?.success) {
-//           await this.prisma.user.update({
-//             where: { id: newUser.id },
-//             data: { trackierId: trackRes.data.data.hash_id },
-//           });
-//         }
-//       } catch (err) {
-//         console.log('Trackier Error:', err);
-//       }
-//     }
+  //         if (trackRes?.data?.success) {
+  //           await this.prisma.user.update({
+  //             where: { id: newUser.id },
+  //             data: { trackierId: trackRes.data.data.hash_id },
+  //           });
+  //         }
+  //       } catch (err) {
+  //         console.log('Trackier Error:', err);
+  //       }
+  //     }
 
-//     if (walletRes.success) {
-//       const {
-//         balance,
-//         availableBalance,
-//         sportBonusBalance,
-//         casinoBonusBalance,
-//         virtualBonusBalance,
-//         trustBalance,
-//       } = walletRes.data;
+  //     if (walletRes.success) {
+  //       const {
+  //         balance,
+  //         availableBalance,
+  //         sportBonusBalance,
+  //         casinoBonusBalance,
+  //         virtualBonusBalance,
+  //         trustBalance,
+  //       } = walletRes.data;
 
-//       Object.assign(auth, {
-//         balance,
-//         availableBalance,
-//         sportBonusBalance,
-//         casinoBonusBalance,
-//         virtualBonusBalance,
-//         trustBalance,
-//       });
-//     }
+  //       Object.assign(auth, {
+  //         balance,
+  //         availableBalance,
+  //         sportBonusBalance,
+  //         casinoBonusBalance,
+  //         virtualBonusBalance,
+  //         trustBalance,
+  //       });
+  //     }
 
-//     auth.token = this.jwtService.generateToken(auth);
-//     auth.firstName = '';
-//     auth.lastName = '';
-//     auth.email = '';
-//     auth.phone = phoneNumber;
-//     auth.role = role.name;
-//     auth.roleId = role.id;
+  //     auth.token = this.jwtService.generateToken(auth);
+  //     auth.firstName = '';
+  //     auth.lastName = '';
+  //     auth.email = '';
+  //     auth.phone = phoneNumber;
+  //     auth.role = role.name;
+  //     auth.roleId = role.id;
 
-//     delete auth.password;
+  //     delete auth.password;
 
-//     return {
-//       success: true,
-//       status: HttpStatus.CREATED,
-//       error: null,
-//       data: auth,
-//     };
-//   } catch (err) {
-//     console.error(err);
-//     return {
-//       success: false,
-//       status: HttpStatus.BAD_REQUEST,
-//       error: err.message,
-//       data: null,
-//     };
-//   }
-// }
+  //     return {
+  //       success: true,
+  //       status: HttpStatus.CREATED,
+  //       error: null,
+  //       data: auth,
+  //     };
+  //   } catch (err) {
+  //     console.error(err);
+  //     return {
+  //       success: false,
+  //       status: HttpStatus.BAD_REQUEST,
+  //       error: err.message,
+  //       data: null,
+  //     };
+  //   }
+  // }
 
-public async register({
-  clientId,
-  username,
-  password,
-  phoneNumber,
-  promoCode,
-  trackingToken,
-}: RegisterRequestDto): Promise<RegisterResponse> {
-  try {
-    const existingUser = await this.prisma.user.findFirst({
-      where: { username, clientId },
-    });
+  public async register({
+    clientId,
+    username,
+    password,
+    phoneNumber,
+    promoCode,
+    trackingToken,
+  }: RegisterRequestDto): Promise<RegisterResponse> {
+    try {
+      const existingUser = await this.prisma.user.findFirst({
+        where: { username, clientId },
+      });
 
-    if (existingUser) {
-      return {
-        status: HttpStatus.CONFLICT,
-        error: 'Username/Phone number already exists',
-        data: null,
-        success: true,
-      };
-    }
+      if (existingUser) {
+        return {
+          status: HttpStatus.CONFLICT,
+          error: 'Username/Phone number already exists',
+          data: null,
+          success: true,
+        };
+      }
 
-    const role = await this.prisma.role.findFirst({
-      where: { name: 'Player' },
-    });
+      const role = await this.prisma.role.findFirst({
+        where: { name: 'Player' },
+      });
 
-    const newUser = await this.prisma.$transaction((prisma) =>
-      prisma.user.create({
-        data: {
-          username,
-          clientId,
-          code: Math.floor(100000 + Math.random() * 900000).toString(),
-          password: this.jwtService.encodePassword(password),
-          roleId: role.id,
-          userDetails: {
-            create: { phone: phoneNumber },
+      const newUser = await this.prisma.$transaction((prisma) =>
+        prisma.user.create({
+          data: {
+            username,
+            clientId,
+            code: Math.floor(100000 + Math.random() * 900000).toString(),
+            password: this.jwtService.encodePassword(password),
+            roleId: role.id,
+            userDetails: {
+              create: { phone: phoneNumber },
+            },
           },
-        },
-      })
-    );
+        }),
+      );
 
-    // --- Create wallet ---
-    await this.walletService.createWallet({
-      userId: newUser.id,
-      username: newUser.username,
-      clientId,
-      amount: 0,
-    });
-
-    const auth: any = { ...newUser };
-
-    // --- Registration bonus ---
-    const regBonus = await this.bonusService.checkRegisterBonus({
-      clientId,
-      bonusType: 'registration',
-    });
-
-    console.log("regBonus", regBonus);
-    const bonusAmount = parseFloat(regBonus.data.bonus_amount);
-
-    console.log("bonusAmount", bonusAmount);
-
-    if (regBonus.success && regBonus.data.status === 1) {
-      const bonusRes = await this.bonusService.awardBonus({
-        clientId,
-        userId: newUser.id.toString(),
+      // --- Create wallet ---
+      await this.walletService.createWallet({
+        userId: newUser.id,
         username: newUser.username,
-        bonusId: regBonus.data.id,
-        amount: bonusAmount,
-        baseValue: 0,
-      });
-
-      console.log("bonusRes", bonusRes);
-    }
-
-    // --- Promo bonus ---
-    if (promoCode) {
-      const promoBonus = await this.bonusService.getBonusCampaign({
-        promoCode,
         clientId,
+        amount: 0,
       });
 
-      if (promoBonus.success) {
-        await this.bonusService.awardBonus({
+      const auth: any = { ...newUser };
+
+      // --- Registration bonus ---
+      const regBonus = await this.bonusService.checkRegisterBonus({
+        clientId,
+        bonusType: 'registration',
+      });
+
+      console.log('regBonus', regBonus);
+      const bonusAmount = parseFloat(regBonus.data.bonus_amount);
+
+      console.log('bonusAmount', bonusAmount);
+
+      if (regBonus.success && regBonus.data.status === 1) {
+        const bonusRes = await this.bonusService.awardBonus({
           clientId,
           userId: newUser.id.toString(),
           username: newUser.username,
-          bonusId: promoBonus.data.bonus.id,
-          amount: promoBonus.data.bonus.bonusAmount,
+          bonusId: regBonus.data.id,
+          amount: bonusAmount,
           baseValue: 0,
-          promoCode,
         });
-      }
-    }
 
-    // --- Tracking (Trackier) ---
-    if (promoCode || trackingToken) {
-      try {
-        const trackRes: any = await this.trackierService.createCustomer({
-          customerId: newUser.username,
-          customerName: newUser.username,
-          trackingToken: trackingToken || '',
-          promoCode: promoCode || '',
+        console.log('bonusRes', bonusRes);
+      }
+
+      // --- Promo bonus ---
+      if (promoCode) {
+        const promoBonus = await this.bonusService.getBonusCampaign({
+          promoCode,
           clientId,
         });
 
-        if (trackRes?.data?.success) {
-          await this.prisma.user.update({
-            where: { id: newUser.id },
-            data: { trackierId: trackRes.data.data.hash_id },
+        if (promoBonus.success) {
+          await this.bonusService.awardBonus({
+            clientId,
+            userId: newUser.id.toString(),
+            username: newUser.username,
+            bonusId: promoBonus.data.bonus.id,
+            amount: promoBonus.data.bonus.bonusAmount,
+            baseValue: 0,
+            promoCode,
           });
         }
-      } catch (err) {
-        console.log('Trackier Error:', err);
       }
-    }
 
-    // --- Fetch updated wallet balances ---
-    const walletRes = await this.walletService.getWallet({
-      userId: newUser.id,
-      clientId,
-    });
+      // --- Tracking (Trackier) ---
+      if (promoCode || trackingToken) {
+        try {
+          const trackRes: any = await this.trackierService.createCustomer({
+            customerId: newUser.username,
+            customerName: newUser.username,
+            trackingToken: trackingToken || '',
+            promoCode: promoCode || '',
+            clientId,
+          });
 
-    if (walletRes.success) {
-      const {
-        balance,
-        availableBalance,
-        sportBonusBalance,
-        casinoBonusBalance,
-        virtualBonusBalance,
-        trustBalance,
-      } = walletRes.data;
+          if (trackRes?.data?.success) {
+            await this.prisma.user.update({
+              where: { id: newUser.id },
+              data: { trackierId: trackRes.data.data.hash_id },
+            });
+          }
+        } catch (err) {
+          console.log('Trackier Error:', err);
+        }
+      }
 
-      Object.assign(auth, {
-        balance,
-        availableBalance,
-        sportBonusBalance,
-        casinoBonusBalance,
-        virtualBonusBalance,
-        trustBalance,
+      // --- Fetch updated wallet balances ---
+      const walletRes = await this.walletService.getWallet({
+        userId: newUser.id,
+        clientId,
       });
+
+      if (walletRes.success) {
+        const {
+          balance,
+          availableBalance,
+          sportBonusBalance,
+          casinoBonusBalance,
+          virtualBonusBalance,
+          trustBalance,
+        } = walletRes.data;
+
+        Object.assign(auth, {
+          balance,
+          availableBalance,
+          sportBonusBalance,
+          casinoBonusBalance,
+          virtualBonusBalance,
+          trustBalance,
+        });
+      }
+
+      auth.token = this.jwtService.generateToken(auth);
+      auth.firstName = '';
+      auth.lastName = '';
+      auth.email = '';
+      auth.phone = phoneNumber;
+      auth.role = role.name;
+      auth.roleId = role.id;
+
+      delete auth.password;
+
+      return {
+        success: true,
+        status: HttpStatus.CREATED,
+        error: null,
+        data: auth,
+      };
+    } catch (err) {
+      console.error(err);
+      return {
+        success: false,
+        status: HttpStatus.BAD_REQUEST,
+        error: err.message,
+        data: null,
+      };
     }
-
-    auth.token = this.jwtService.generateToken(auth);
-    auth.firstName = '';
-    auth.lastName = '';
-    auth.email = '';
-    auth.phone = phoneNumber;
-    auth.role = role.name;
-    auth.roleId = role.id;
-
-    delete auth.password;
-
-    return {
-      success: true,
-      status: HttpStatus.CREATED,
-      error: null,
-      data: auth,
-    };
-  } catch (err) {
-    console.error(err);
-    return {
-      success: false,
-      status: HttpStatus.BAD_REQUEST,
-      error: err.message,
-      data: null,
-    };
   }
-}
-
-
 
   public async login({
     clientId,
@@ -590,6 +586,8 @@ public async register({
           },
         },
       });
+
+      console.log(clientId, username, password);
 
       if (!user) {
         return {
@@ -643,7 +641,8 @@ public async register({
       });
 
       //get user wallet
-      const balanceRes = await this.goWalletService.getWallet({
+      //TODO:  change to go wallet service
+      const balanceRes = await this.walletService.getWallet({
         userId: user.id,
         clientId,
       });
@@ -684,7 +683,7 @@ public async register({
 
       delete auth.password;
       //save oauth details
-      await this.jwtService.saveToken(auth.id, auth.clientId, auth.token)
+      await this.jwtService.saveToken(auth.id, auth.clientId, auth.token);
 
       return { success: true, status: HttpStatus.OK, error: null, data: auth };
     } catch (err) {
@@ -936,7 +935,11 @@ public async register({
       };
     }
 
-    const oauth = await this.jwtService.validateToken(token, auth.id, auth.clientId);
+    const oauth = await this.jwtService.validateToken(
+      token,
+      auth.id,
+      auth.clientId,
+    );
 
     if (!oauth) {
       return {
@@ -1017,7 +1020,7 @@ public async register({
           balance: balanceRes.data.availableBalance,
           group,
           currency: user.client.currency,
-          country: user.client.country
+          country: user.client.country,
         };
         return { status: true, code: HttpStatus.OK, message: 'success', data };
       } else {
@@ -1212,7 +1215,7 @@ public async register({
       groupName: client.groupName,
     };
   }
-  
+
   private getStartOfDay(date: Date) {
     const start = new Date(date);
     start.setHours(0, 0, 0, 0); // Set hours, minutes, seconds, and milliseconds to zero
