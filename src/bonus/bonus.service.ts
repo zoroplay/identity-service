@@ -25,6 +25,10 @@ export class BonusService {
     return firstValueFrom(this.svc.getCampaign(data));
   }
 
+  public checkRegisterBonus(data: GetBonusRequest) {
+    return firstValueFrom(this.svc.checkRegisterBonus(data));
+  }
+
   public async awardBonus(data: AwardBonusRequest) {
     console.log('Award Bonus');
     return firstValueFrom(this.svc.awardBonus(data));

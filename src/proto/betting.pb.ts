@@ -6,6 +6,40 @@ import { Struct } from "./google/protobuf/struct.pb";
 
 export const protobufPackage = "betting";
 
+export interface ValidateSelectionRequest {
+  events: ValidateSelectionRequest_Selections[];
+}
+
+export interface ValidateSelectionRequest_Selections {
+  matchId: number;
+  marketId: string;
+  outcomeId: string;
+  specifier: string;
+}
+
+export interface GetRiskSettingRequest {
+  clientId: number;
+  userId: number;
+}
+
+export interface GetSettingsRequest {
+  clientId: number;
+  category: string;
+}
+
+export interface SettingsRequest {
+  clientId: number;
+  inputs: string;
+  category?: string | undefined;
+  period?: string | undefined;
+}
+
+export interface UserRiskSettingsRequest {
+  userId: number;
+  inputs: string;
+  period: string;
+}
+
 export interface GetTicketsRequest {
   userId: number;
   clientId: number;
@@ -21,6 +55,7 @@ export interface GetTicketsRequest {
   betType?: string | undefined;
   amountRange?: string | undefined;
   groupType?: string | undefined;
+  viewType?: string | undefined;
 }
 
 export interface GetCommissionsRequest {
@@ -52,6 +87,14 @@ export interface CommonResponseObj {
   success?: boolean | undefined;
   message: string;
   data?: { [key: string]: any } | undefined;
+  errors?: string | undefined;
+}
+
+export interface CommonResponseArray {
+  status?: number | undefined;
+  success?: boolean | undefined;
+  message: string;
+  data: { [key: string]: any }[];
   errors?: string | undefined;
 }
 
@@ -161,6 +204,9 @@ export interface PlaceCasinoBetRequest {
   source?: string | undefined;
   cashierTransactionId?: string | undefined;
   username?: string | undefined;
+  betType?: string | undefined;
+  bonusId?: number | undefined;
+  roundDetails?: number | undefined;
 }
 
 export interface CreditCasinoBetRequest {
@@ -232,6 +278,7 @@ export interface GamingActivityRequest {
   clientID: number;
   displayType: string;
   userId?: number | undefined;
+  ticketType?: number | undefined;
 }
 
 export interface GamingActivityResponse {
@@ -247,6 +294,7 @@ export interface UpdateBetRequest {
   status: string;
   entityType: string;
   clientId: number;
+  selectionId?: number | undefined;
 }
 
 export interface UpdateBetResponse {
@@ -282,6 +330,7 @@ export interface PlaceBetRequest {
   isBooking: number;
   bonusId?: number | undefined;
   useBonus?: boolean | undefined;
+  userRole?: string | undefined;
 }
 
 export interface BetSlip {
@@ -308,6 +357,8 @@ export interface BetSlip {
   eventDate: string;
   eventPrefix: string;
   isBonus?: boolean | undefined;
+  id?: number | undefined;
+  displayName?: string | undefined;
 }
 
 export interface Combo {
@@ -330,6 +381,7 @@ export interface PlaceBetResponse {
   status: number;
   message: string;
   data?: BetHistory | undefined;
+  events?: string | undefined;
 }
 
 export interface BetHistoryRequest {
@@ -367,6 +419,13 @@ export interface BetSlipHistory {
   eventDate: string;
   selectionId: string;
   eventPrefix: string;
+  score: string;
+  htScore: string;
+  id: number;
+  currentOdds: number;
+  eventTime: string;
+  matchStatus: string;
+  isLive: number;
 }
 
 export interface BetHistory {
@@ -393,9 +452,17 @@ export interface BetHistory {
   events: string;
   markets: string;
   betCategoryDesc: string;
+  isBonusBet?: boolean | undefined;
+  pendingGames?: number | undefined;
+  paidOut?: number | undefined;
+  paidAt?: string | undefined;
+  isSim?: boolean | undefined;
 }
 
 export interface BetHistoryResponse {
+  success: boolean;
+  status: number;
+  data: any;
   bets: BetHistory[];
   /** Last pagination page */
   lastPage: number;
@@ -503,6 +570,8 @@ export interface BettingServiceClient {
 
   betHistory(request: BetHistoryRequest): Observable<BetHistoryResponse>;
 
+  simulatedBetHistory(request: BetHistoryRequest): Observable<BetHistoryResponse>;
+
   findBet(request: FindBetRequest): Observable<CommonResponseObj>;
 
   updateBet(request: UpdateBetRequest): Observable<UpdateBetResponse>;
@@ -525,6 +594,8 @@ export interface BettingServiceClient {
 
   getSalesReport(request: SalesReportRequest): Observable<CommonResponseObj>;
 
+  getShopUserCommissions(request: SalesReportRequest): Observable<CommonResponseObj>;
+
   getTotalSalesReport(request: NetworkSalesRequest): Observable<CommonResponseObj>;
 
   deletePlayerData(request: SettingsById): Observable<CommonResponseObj>;
@@ -532,6 +603,26 @@ export interface BettingServiceClient {
   getCommissions(request: GetCommissionsRequest): Observable<CommonResponseObj>;
 
   ticketsReport(request: GetTicketsRequest): Observable<CommonResponseObj>;
+
+  taxReport(request: GetTicketsRequest): Observable<CommonResponseObj>;
+
+  getCodeHubTickets(request: GetTicketsRequest): Observable<CommonResponseObj>;
+
+  payoutTicket(request: BetID): Observable<CommonResponseObj>;
+
+  saveSettings(request: SettingsRequest): Observable<CommonResponseObj>;
+
+  saveRiskSettings(request: SettingsRequest): Observable<CommonResponseObj>;
+
+  saveUserRiskSettings(request: UserRiskSettingsRequest): Observable<CommonResponseObj>;
+
+  getSettings(request: GetSettingsRequest): Observable<CommonResponseArray>;
+
+  getGlobalVariables(request: GetSettingsRequest): Observable<CommonResponseObj>;
+
+  getUserRiskSettings(request: GetRiskSettingRequest): Observable<CommonResponseObj>;
+
+  validateSelections(request: ValidateSelectionRequest): Observable<CommonResponseObj>;
 }
 
 export interface BettingServiceController {
@@ -575,6 +666,10 @@ export interface BettingServiceController {
     request: BetHistoryRequest,
   ): Promise<BetHistoryResponse> | Observable<BetHistoryResponse> | BetHistoryResponse;
 
+  simulatedBetHistory(
+    request: BetHistoryRequest,
+  ): Promise<BetHistoryResponse> | Observable<BetHistoryResponse> | BetHistoryResponse;
+
   findBet(request: FindBetRequest): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
 
   updateBet(request: UpdateBetRequest): Promise<UpdateBetResponse> | Observable<UpdateBetResponse> | UpdateBetResponse;
@@ -611,6 +706,10 @@ export interface BettingServiceController {
     request: SalesReportRequest,
   ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
 
+  getShopUserCommissions(
+    request: SalesReportRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
   getTotalSalesReport(
     request: NetworkSalesRequest,
   ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
@@ -625,6 +724,42 @@ export interface BettingServiceController {
 
   ticketsReport(
     request: GetTicketsRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
+  taxReport(request: GetTicketsRequest): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
+  getCodeHubTickets(
+    request: GetTicketsRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
+  payoutTicket(request: BetID): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
+  saveSettings(
+    request: SettingsRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
+  saveRiskSettings(
+    request: SettingsRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
+  saveUserRiskSettings(
+    request: UserRiskSettingsRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
+  getSettings(
+    request: GetSettingsRequest,
+  ): Promise<CommonResponseArray> | Observable<CommonResponseArray> | CommonResponseArray;
+
+  getGlobalVariables(
+    request: GetSettingsRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
+  getUserRiskSettings(
+    request: GetRiskSettingRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
+  validateSelections(
+    request: ValidateSelectionRequest,
   ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
 }
 
@@ -644,6 +779,7 @@ export function BettingServiceControllerMethods() {
       "settleVirtualBet",
       "cancelCasinoBet",
       "betHistory",
+      "simulatedBetHistory",
       "findBet",
       "updateBet",
       "getProbabilityFromBetId",
@@ -655,10 +791,21 @@ export function BettingServiceControllerMethods() {
       "getRetailBets",
       "getRetailVBets",
       "getSalesReport",
+      "getShopUserCommissions",
       "getTotalSalesReport",
       "deletePlayerData",
       "getCommissions",
       "ticketsReport",
+      "taxReport",
+      "getCodeHubTickets",
+      "payoutTicket",
+      "saveSettings",
+      "saveRiskSettings",
+      "saveUserRiskSettings",
+      "getSettings",
+      "getGlobalVariables",
+      "getUserRiskSettings",
+      "validateSelections",
     ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);

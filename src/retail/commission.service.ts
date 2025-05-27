@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { handleError, handleResponse } from 'src/common/helpers';
+import { GoWalletService } from 'src/go-wallet/go-wallet.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AssignUserCommissionProfile, CalculateCommissionRequest, CommissionProfile, CommonResponseArray, CommonResponseObj, CreateUserRequest, GetCommissionsRequest, MetaData, SingleItemRequest } from 'src/proto/identity.pb';
 import { WalletService } from 'src/wallet/wallet.service';
@@ -9,7 +10,8 @@ import { WalletService } from 'src/wallet/wallet.service';
 export class CommissionService {
     constructor (
         private prisma: PrismaService,
-        private readonly walletService: WalletService
+        private readonly walletService: WalletService,
+        private readonly goWalletService: GoWalletService
     ) {}
     
     async getCommissionProfiles({
@@ -420,7 +422,7 @@ export class CommissionService {
             }
           })
           // credit user
-          await this.walletService.credit({
+          await this.goWalletService.credit({
             amount: ''+commission,
             userId,
             clientId,
