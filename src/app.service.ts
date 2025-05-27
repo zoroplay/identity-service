@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
-import { GetPaymentDataRequest, GetPaymentDataResponse } from './proto/identity.pb';
+import {
+  GetPaymentDataRequest,
+  GetPaymentDataResponse,
+} from './proto/identity.pb';
 import { PrismaService } from './prisma/prisma.service';
 import { Timeout } from '@nestjs/schedule';
 import { WalletService } from './wallet/wallet.service';
@@ -29,28 +32,33 @@ export class AppService {
     });
   }
 
-  async getPaymentData(data: GetPaymentDataRequest): Promise<GetPaymentDataResponse> {
-    try { 
-      const client = await this.prisma.client.findUnique({where: {id: data.clientId}});
-      
-      if (!client) return {username: '', email:'', callbackUrl: '', siteUrl: ''};
+  async getPaymentData(
+    data: GetPaymentDataRequest,
+  ): Promise<GetPaymentDataResponse> {
+    try {
+      const client = await this.prisma.client.findUnique({
+        where: { id: data.clientId },
+      });
+
+      if (!client)
+        return { username: '', email: '', callbackUrl: '', siteUrl: '' };
 
       const user = await this.prisma.user.findFirst({
-        where: {id: data.userId},
-        include: {userDetails: true}
+        where: { id: data.userId },
+        include: { userDetails: true },
       });
-      
-      if (!user) return {username: '', email:'', callbackUrl: '', siteUrl: ''};
-      
-      return {
-        username: user.username, 
-        email: user.userDetails.email, 
-        callbackUrl: client[`${data.source}Url`],
-        siteUrl: client.apiUrl
-      };
 
+      if (!user)
+        return { username: '', email: '', callbackUrl: '', siteUrl: '' };
+
+      return {
+        username: user.username,
+        email: user.userDetails.email,
+        callbackUrl: client[`${data.source}Url`],
+        siteUrl: client.apiUrl,
+      };
     } catch (e) {
-      return {username: '', email:'', callbackUrl: '', siteUrl: ''};
+      return { username: '', email: '', callbackUrl: '', siteUrl: '' };
     }
   }
 
@@ -62,12 +70,11 @@ export class AppService {
   async getStatesByCountry(countryId) {
     const states = await this.prisma.state.findMany({
       where: {
-        countryId
-      }
-    })
+        countryId,
+      },
+    });
     return states;
   }
-
 
   // @Timeout(11000)
   // async importUsers() {
@@ -95,7 +102,7 @@ export class AppService {
   //                 data: {
   //                     username: user.username,
   //                     clientId: client.id,
-  //                     code: user.code, // 6 digit random identifier for 
+  //                     code: user.code, // 6 digit random identifier for
   //                     password: user.password || this.jwtService.encodePassword(user.username),
   //                     roleId: role.id,
   //                     userDetails: {
@@ -117,13 +124,12 @@ export class AppService {
   //                   amount: user.available_balance || 0,
   //                   bonus: user.bonus_balance || 0,
   //                 }).toPromise();
-                
 
   //               console.log(`user ${user.username} saved`)
   //             } else {
   //               console.log(`user ${user.username} exists`)
   //             }
-          
+
   //           }
   //         }
   //       }
@@ -132,6 +138,4 @@ export class AppService {
   //     console.log(e.message);
   //   }
   // }
-  
-  
 }
