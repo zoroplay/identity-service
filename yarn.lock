@@ -9087,7 +9087,11 @@ safe-buffer@~5.1.1:
 
 "sbe-service-proto@github:zoroplay/sbe-service-proto":
   version "1.0.0"
+<<<<<<< HEAD
   resolved "git+ssh://git@github.com/zoroplay/sbe-service-proto.git#d925daaeb52bef41af03db120a5ce582b1a98b50"
+=======
+  resolved "git+ssh://git@github.com/zoroplay/sbe-service-proto.git#8a63fc3581a88c1e4f59aad27945828433755de3"
+>>>>>>> origin/staging
 
 schema-utils@^3.1.1, schema-utils@^3.2.0:
   version "3.3.0"
