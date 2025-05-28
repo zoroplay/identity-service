@@ -97,13 +97,13 @@ export class PlayerService {
 
   async fetchBetRange(FetchBetRangeDto: FetchBetRangeRequest, page) {
     try {
-      let limit = 100;
+      const limit = 100;
 
       const betRange$ =
         await this.walletService.fetchBetRange(FetchBetRangeDto);
 
       console.log(betRange$.data);
-      let data = [];
+      const data = [];
       if (betRange$.success && betRange$.data.length > 0) {
         const userIds = betRange$.data.map((deposit: any) => {
           return Number(deposit.userId);
@@ -160,7 +160,7 @@ export class PlayerService {
     page,
   ) {
     try {
-      let limit = 100;
+      const limit = 100;
 
       const deposits = await this.walletService.fetchDepositCount({
         startDate: FetchDepositCountDto.startDate,
@@ -169,7 +169,7 @@ export class PlayerService {
         count: FetchDepositCountDto.depositCount,
       });
 
-      let data = [];
+      const data = [];
       if (deposits.success && deposits.data.length > 0) {
         const userIds = deposits.data.map((deposit: any) => {
           return Number(deposit.userId);
@@ -222,12 +222,14 @@ export class PlayerService {
     page,
   ) {
     try {
-      let limit = 100;
+      const limit = 100;
 
       const depositRange =
         await this.walletService.fetchDepositRange(FetchDepositRangeDto);
 
-      let data = [];
+      console.log('RANGE', depositRange);
+
+      const data = [];
       if (depositRange.success && depositRange.data.length > 0) {
         const userIds = depositRange.data.map((deposit: any) => {
           return Number(deposit.userId);
@@ -286,26 +288,56 @@ export class PlayerService {
     try {
       const limit = 100;
 
-      const betLosses = await this.bettingService.lossCount(FetchDto);
+      // Fetch all bets
+      const betLosses = await this.bettingService.listBetHistory({
+        status: 1,
+        from: FetchDto.startDate,
+        to: FetchDto.endDate,
+        clientId: FetchDto.clientId,
+        page: FetchDto.page,
+      });
 
       const data = [];
 
-      if (betLosses.status === 2 && betLosses.data.length > 0) {
-        let filteredLosses = betLosses.data;
+      // Validate response
+      if (
+        betLosses?.bets &&
+        Array.isArray(betLosses.bets) &&
+        betLosses.bets.length > 0
+      ) {
+        // Group lost bets only
+        const lossMap: Record<number, { userId: number; lossCount: number }> =
+          {};
 
+        for (const bet of betLosses.bets) {
+          // Only count if bet is lost
+          if (bet.statusCode === 2) {
+            const userId = Number(bet.userId);
+            if (!lossMap[userId]) {
+              lossMap[userId] = { userId, lossCount: 1 };
+            } else {
+              lossMap[userId].lossCount += 1;
+            }
+          }
+        }
+
+        let filteredLosses = Object.values(lossMap);
+
+        // Filter by min/max loss count if provided
         if (
           typeof FetchDto.minAmount === 'number' &&
           typeof FetchDto.maxAmount === 'number'
         ) {
-          filteredLosses = betLosses.data.filter(
-            (loss: any) =>
+          filteredLosses = filteredLosses.filter(
+            (loss) =>
               loss.lossCount >= FetchDto.minAmount &&
               loss.lossCount <= FetchDto.maxAmount,
           );
         }
 
-        const userIds = filteredLosses.map((loss: any) => Number(loss.userId));
+        const userIds = filteredLosses.map((loss) => loss.userId);
 
+        // Fetch users
         const users = await this.prisma.user.findMany({
           where: {
             id: { in: userIds },
@@ -319,38 +351,34 @@ export class PlayerService {
           skip: (page - 1) * limit,
         });
 
+        // Compose final result
         for (const user of users) {
-          const match = filteredLosses.find(
-            (loss: any) => loss.userId === user.id,
-          );
+          const match = filteredLosses.find((loss) => loss.userId === user.id);
 
           data.push({
             id: user.id,
             code: user.code,
             username: user.username,
-            email: user.userDetails.email,
-            firstName: user.userDetails.firstName,
-            lastName: user.userDetails.lastName,
-            phoneNumber: user.userDetails.phone,
+            email: user.userDetails?.email,
+            firstName: user.userDetails?.firstName,
+            lastName: user.userDetails?.lastName,
+            phoneNumber: user.userDetails?.phone,
             registered: user.createdAt,
-            country: user.userDetails.country,
-            currency: user.userDetails.currency,
+            country: user.userDetails?.country,
+            currency: user.userDetails?.currency,
             status: user.status,
             verified: user.verified,
             lossCount: match?.lossCount || 0,
-            balance: 0,
-            role: user.role.name,
+            balance: 0, // optional
+            role: user.role?.name,
             lastLogin: user.lastLogin,
           });
         }
       }
 
-      return {
-        status: 0,
-        success: true,
-        data,
-      };
+      return paginateResponse([data, data.length], page, limit);
     } catch (error) {
+      console.error('Fetch error:', error);
       return {
         status: 404,
         success: false,
@@ -364,31 +392,56 @@ export class PlayerService {
     FetchDto: FetchPlayerFilterRequest,
     page: number,
   ) {
+    console.log('COUNT');
     try {
       const limit = 100;
 
       // Call a new microservice function to get all bet counts per user
-      const betCounts = await this.bettingService.lossCount(FetchDto);
+      const betCounts = await this.bettingService.listBetHistory({
+        status: 1,
+        // from: FetchDto.startDate,
+        // to: FetchDto.endDate,
+        clientId: FetchDto.clientId,
+        page: FetchDto.page,
+      });
 
       const data = [];
 
-      if (betCounts.status && betCounts.data.length > 0) {
-        let filtered = betCounts.data;
+      // Validate that we have bets
+      if (
+        betCounts?.bets &&
+        Array.isArray(betCounts.bets) &&
+        betCounts.bets.length > 0
+      ) {
+        const betMap: Record<number, { userId: number; betCount: number }> = {};
 
-        // Filter by min/max bet count if provided
+        // Count total bets per user
+        for (const bet of betCounts.bets) {
+          const userId = Number(bet.userId);
+          if (!betMap[userId]) {
+            betMap[userId] = { userId, betCount: 1 };
+          } else {
+            betMap[userId].betCount += 1;
+          }
+        }
+
+        let filtered = Object.values(betMap);
+
+        // Apply min/max bet count filter if provided
         if (
           typeof FetchDto.minAmount === 'number' &&
           typeof FetchDto.maxAmount === 'number'
         ) {
-          filtered = betCounts.data.filter(
-            (item: any) =>
+          filtered = filtered.filter(
+            (item) =>
               item.betCount >= FetchDto.minAmount &&
               item.betCount <= FetchDto.maxAmount,
           );
         }
 
-        const userIds = filtered.map((item: any) => Number(item.userId));
+        const userIds = filtered.map((item) => item.userId);
 
+        // Fetch full user details
         const users = await this.prisma.user.findMany({
           where: {
             id: { in: userIds },
@@ -402,35 +455,32 @@ export class PlayerService {
           skip: (page - 1) * limit,
         });
 
+        // Build final result
         for (const user of users) {
-          const match = filtered.find((item: any) => item.userId === user.id);
+          const match = filtered.find((item) => item.userId === user.id);
 
           data.push({
             id: user.id,
             code: user.code,
             username: user.username,
-            email: user.userDetails.email,
-            firstName: user.userDetails.firstName,
-            lastName: user.userDetails.lastName,
-            phoneNumber: user.userDetails.phone,
+            email: user.userDetails?.email || null,
+            firstName: user.userDetails?.firstName || null,
+            lastName: user.userDetails?.lastName || null,
+            phoneNumber: user.userDetails?.phone || null,
             registered: user.createdAt,
-            country: user.userDetails.country,
-            currency: user.userDetails.currency,
+            country: user.userDetails?.country || null,
+            currency: user.userDetails?.currency || null,
             status: user.status,
             verified: user.verified,
             betCount: match?.betCount || 0,
             balance: 0,
-            role: user.role.name,
+            role: user.role?.name || null,
             lastLogin: user.lastLogin,
           });
         }
       }
 
-      return {
-        status: 0,
-        success: true,
-        data,
-      };
+      return paginateResponse([data, data.length], page, limit);
     } catch (error) {
       return {
         status: 404,
@@ -448,7 +498,38 @@ export class PlayerService {
     try {
       const limit = 100;
 
-      // Step 1: Get all users for the client
+      // Step 1: Get bet histories from bettingService
+      const betResponse = await this.bettingService.listBetHistory({
+        status: 1,
+        // from: FetchDto.startDate,
+        // to: FetchDto.endDate,
+        clientId: FetchDto.clientId,
+        page: FetchDto.page,
+      });
+
+      console.log('BET RESPONSE', betResponse.bets);
+
+      if (!betResponse?.bets || !Array.isArray(betResponse.bets)) {
+        return {
+          success: false,
+          status: 400,
+          message: 'Invalid bet history data',
+          data: [],
+        };
+      }
+
+      // Step 2: Build map of total stake per userId
+      const stakeMap: Record<number, number> = {};
+
+      for (const bet of betResponse.bets) {
+        const userId = Number(bet.userId);
+        if (!stakeMap[userId]) {
+          stakeMap[userId] = 0;
+        }
+        stakeMap[userId] += bet.stake;
+      }
+
+      // Step 3: Get all users for the client
       const users = await this.prisma.user.findMany({
         where: {
           clientId: FetchDto.clientId,
@@ -459,25 +540,14 @@ export class PlayerService {
         },
       });
 
-      // Step 2: Get bet histories from bettingService
-      const betResponse = await this.bettingService.lossCount(FetchDto);
-
-      // Step 3: Build map of total stake per userId
-      const stakeMap: Record<number, number> = {};
-
-      for (const bet of betResponse.bets) {
-        if (!stakeMap[bet.userId]) {
-          stakeMap[bet.userId] = 0;
-        }
-        stakeMap[bet.userId] += bet.stake;
-      }
-
       // Step 4: Filter users by stake amount criteria
       const filteredUsers = users.filter((user) => {
         const totalStake = stakeMap[user.id] || 0;
 
-        if (FetchDto.minAmount && totalStake < FetchDto.minAmount) return false;
-        if (FetchDto.maxAmount && totalStake > FetchDto.maxAmount) return false;
+        if (FetchDto.minAmount !== undefined && totalStake < FetchDto.minAmount)
+          return false;
+        if (FetchDto.maxAmount !== undefined && totalStake > FetchDto.maxAmount)
+          return false;
 
         return true;
       });
@@ -511,6 +581,12 @@ export class PlayerService {
         success: true,
         status: 0,
         data,
+        meta: {
+          total: filteredUsers.length,
+          page,
+          limit,
+          totalPages: Math.ceil(filteredUsers.length / limit),
+        },
       };
     } catch (error) {
       return {
@@ -518,6 +594,7 @@ export class PlayerService {
         status: 500,
         message: 'Error fetching players by bet amount',
         error: error.message,
+        data: [],
       };
     }
   }
@@ -529,28 +606,57 @@ export class PlayerService {
     try {
       const limit = 100;
 
-      const betActivity: any = await this.bettingService.lossCount(FetchDto);
+      // Step 1: Get bet history
+      const betActivity = await this.bettingService.listBetHistory({
+        status: 1, // optional: remove if you want all bets
+        clientId: FetchDto.clientId,
+        page: FetchDto.page,
+      });
+
+      console.log('ACTIVITY', betActivity);
 
       const data = [];
 
-      if (betActivity.data && betActivity.data.length > 0) {
-        let filtered = betActivity.data;
+      // Step 2: Validate bet history structure
+      if (
+        betActivity?.bets &&
+        Array.isArray(betActivity.bets) &&
+        betActivity.bets.length > 0
+      ) {
+        // Step 3: Group bets by userId and find last played date
+        const lastPlayedMap: Record<number, Date> = {};
 
-        if (
-          typeof FetchDto.minAmount === 'number' &&
-          typeof FetchDto.maxAmount === 'number'
-        ) {
-          const min = new Date(FetchDto.minAmount);
-          const max = new Date(FetchDto.maxAmount);
+        for (const bet of betActivity.bets) {
+          const userId = Number(bet.userId);
+          const betDate = new Date(bet.created); // assuming `created` is the bet timestamp
 
-          filtered = filtered.filter((entry: any) => {
-            const playedDate = new Date(entry.lastPlayed);
-            return playedDate >= min && playedDate <= max;
+          if (!lastPlayedMap[userId] || betDate > lastPlayedMap[userId]) {
+            lastPlayedMap[userId] = betDate;
+          }
+        }
+
+        // Convert map to array of { userId, lastPlayed }
+        let filtered = Object.entries(lastPlayedMap).map(
+          ([userId, lastPlayed]) => ({
+            userId: Number(userId),
+            lastPlayed,
+          }),
+        );
+
+        // Step 4: Apply date range filter using startDate / endDate
+        if (FetchDto.startDate && FetchDto.endDate) {
+          const startDate = new Date(FetchDto.startDate);
+          const endDate = new Date(FetchDto.endDate);
+
+          filtered = filtered.filter((entry) => {
+            const playedDate = entry.lastPlayed;
+            return playedDate >= startDate && playedDate <= endDate;
           });
         }
 
-        const userIds = filtered.map((entry: any) => Number(entry.userId));
+        const userIds = filtered.map((entry) => entry.userId);
 
+        // Step 5: Get user details
         const users = await this.prisma.user.findMany({
           where: {
             id: { in: userIds },
@@ -564,34 +670,32 @@ export class PlayerService {
           skip: (page - 1) * limit,
         });
 
+        // Step 6: Build final result
         for (const user of users) {
-          const match = filtered.find((entry: any) => entry.userId === user.id);
+          const match = filtered.find((entry) => entry.userId === user.id);
 
           data.push({
             id: user.id,
             code: user.code,
             username: user.username,
-            email: user.userDetails.email,
-            firstName: user.userDetails.firstName,
-            lastName: user.userDetails.lastName,
-            phoneNumber: user.userDetails.phone,
+            email: user.userDetails?.email || null,
+            firstName: user.userDetails?.firstName || null,
+            lastName: user.userDetails?.lastName || null,
+            phoneNumber: user.userDetails?.phone || null,
             registered: user.createdAt,
-            country: user.userDetails.country,
-            currency: user.userDetails.currency,
+            country: user.userDetails?.country || null,
+            currency: user.userDetails?.currency || null,
             status: user.status,
             verified: user.verified,
             lastPlayed: match?.lastPlayed || null,
-            role: user.role.name,
+            role: user.role?.name || null,
             lastLogin: user.lastLogin,
           });
         }
       }
 
-      return {
-        status: 0,
-        success: true,
-        data,
-      };
+      // Step 7: Return paginated response
+      return paginateResponse([data, data.length], page, limit);
     } catch (error) {
       return {
         status: 404,
@@ -625,17 +729,38 @@ export class PlayerService {
       const data = [];
 
       for (const user of users) {
-        // ✅ Pass userId and clientId to getWalletSummary
-        const walletRes = await this.walletService.getWalletSummary({
-          userId: user.id,
-          clientId: FetchDto.clientId,
-        });
+        let walletRes;
+        try {
+          walletRes = await this.walletService.getWallet({
+            clientId: FetchDto.clientId,
+            userId: user.id,
+          });
 
-        if (!walletRes.success || !walletRes.data) continue;
+          console.log('WALLETS', walletRes);
+
+          if (!walletRes?.success || !walletRes?.data) {
+            throw new Error('Invalid wallet response');
+          }
+        } catch (err) {
+          console.error(
+            `Failed to fetch wallet for userId ${user.id}:`,
+            err.message,
+          );
+          walletRes = {
+            success: false,
+            data: {
+              balance: 0,
+              availableBalance: 0,
+              trustBalance: 0,
+              sportBonusBalance: 0,
+              virtualBonusBalance: 0,
+              casinoBonusBalance: 0,
+            },
+          };
+        }
 
         const wallet = walletRes.data;
 
-        // ✅ Sum all wallet balances
         const totalBalance =
           wallet.balance +
           wallet.availableBalance +
@@ -676,11 +801,7 @@ export class PlayerService {
         );
       }
 
-      return {
-        status: 0,
-        success: true,
-        data: filteredData,
-      };
+      return paginateResponse([filteredData, filteredData.length], page, limit);
     } catch (error) {
       return {
         status: 404,
@@ -702,10 +823,10 @@ export class PlayerService {
       let startDate: Date;
       let endDate: Date;
 
-      if (FetchDto.minAmount && FetchDto.maxAmount) {
+      if (FetchDto.startDate && FetchDto.endDate) {
         // Use provided range
-        startDate = new Date(FetchDto.minAmount);
-        endDate = new Date(FetchDto.maxAmount);
+        startDate = new Date(FetchDto.startDate);
+        endDate = new Date(FetchDto.endDate);
         // Extend end date to end of the day
         endDate.setHours(23, 59, 59, 999);
       } else {
@@ -748,11 +869,7 @@ export class PlayerService {
         lastLogin: user.lastLogin,
       }));
 
-      return {
-        status: 0,
-        success: true,
-        data,
-      };
+      return paginateResponse([data, data.length], page, limit);
     } catch (error) {
       return {
         status: 404,
@@ -769,7 +886,7 @@ export class PlayerService {
     clientId,
     page,
   }: FetchPlayerFilterRequest) {
-    let limit = 100;
+    const limit = 100;
     try {
       const role = await this.prisma.role.findFirst({
         where: { name: 'Player' },
@@ -892,12 +1009,10 @@ export class PlayerService {
 
           if (balanceRes.success) {
             const {
-              balance,
               availableBalance,
               sportBonusBalance,
               casinoBonusBalance,
               virtualBonusBalance,
-              trustBalance,
             } = balanceRes.data;
             userObject.balance = availableBalance;
             user.bonus =
@@ -916,10 +1031,6 @@ export class PlayerService {
 
   async onlinePlayerReports({
     clientId,
-    username,
-    country,
-    state,
-    source,
     page,
     limit,
   }: OnlinePlayersRequest): Promise<PlayersListResponse> {
@@ -929,7 +1040,7 @@ export class PlayerService {
       from = 1,
       to = perPage,
       last_page = 0;
-    let data = [];
+    const data = [];
 
     // get player role
     const role = await this.prisma.role.findFirst({
@@ -948,6 +1059,7 @@ export class PlayerService {
         totalPages++;
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       last_page = totalPages;
     }
 
@@ -960,7 +1072,7 @@ export class PlayerService {
     }
 
     if (offset > total) {
-      let a = currentPage * perPage;
+      const a = currentPage * perPage;
 
       if (a > total) {
         offset = (currentPage - 1) * perPage;
@@ -974,7 +1086,7 @@ export class PlayerService {
 
     // left_records = total - offset
 
-    let off = offset - 1;
+    const off = offset - 1;
 
     if (off > 0) {
       offset = off;
@@ -982,7 +1094,7 @@ export class PlayerService {
 
     console.log(offset, 'offset');
 
-    let sql = `SELECT u.id, u.username, u.code, u.created_at, u.status, u.verified,
+    const sql = `SELECT u.id, u.username, u.code, u.created_at, u.status, u.verified,
     d.email, d.phone, d.firstName, d.lastName, d.country, d.currency, u.last_login
     FROM users u 
     LEFT JOIN user_details d ON u.id = d.user_id
@@ -1020,12 +1132,10 @@ export class PlayerService {
 
         if (balanceRes.success) {
           const {
-            balance,
             availableBalance,
             sportBonusBalance,
             casinoBonusBalance,
             virtualBonusBalance,
-            trustBalance,
           } = balanceRes.data;
           userObject.balance = availableBalance;
           user.bonus =
@@ -1052,7 +1162,7 @@ export class PlayerService {
       from = 1,
       to = perPage,
       last_page = 0;
-    let data = [];
+    const data = [];
 
     // get player role
     const role = await this.prisma.role.findFirst({
@@ -1098,6 +1208,7 @@ export class PlayerService {
         totalPages++;
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       last_page = totalPages;
     }
 
@@ -1110,7 +1221,7 @@ export class PlayerService {
     }
 
     if (offset > total) {
-      let a = currentPage * perPage;
+      const a = currentPage * perPage;
 
       if (a > total) {
         offset = (currentPage - 1) * perPage;
@@ -1122,7 +1233,7 @@ export class PlayerService {
     from = offset + 1;
     to = from + perPage;
     // left_records = total - offset
-    let off = offset - 1;
+    const off = offset - 1;
 
     if (off > 0) {
       offset = off;
@@ -1194,12 +1305,10 @@ export class PlayerService {
 
         if (balanceRes.success) {
           const {
-            balance,
             availableBalance,
             sportBonusBalance,
             casinoBonusBalance,
             virtualBonusBalance,
-            trustBalance,
           } = balanceRes.data;
           userObject.balance = availableBalance;
           user.bonus =
@@ -1214,7 +1323,7 @@ export class PlayerService {
 
   async getPlayerData({ clientId, userId }): Promise<GetPlayerDataResponse> {
     try {
-      let userDetails: any = await this.prisma.user.findUnique({
+      const userDetails: any = await this.prisma.user.findUnique({
         where: { id: userId, clientId },
         include: {
           userDetails: true,
@@ -1243,7 +1352,7 @@ export class PlayerService {
         userId,
       });
 
-      let data: any = {
+      const data: any = {
         user,
         wallet,
         lastLogin: {

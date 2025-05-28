@@ -36,7 +36,7 @@ export class BettingService {
     return firstValueFrom(this.svc.saveRiskSettings(data));
   }
 
-  public lossCount(data) {
+  public listBetHistory(data) {
     return firstValueFrom(this.svc.betHistory(data));
   }
 }
