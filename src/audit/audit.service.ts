@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { GetAllLogsRequest, GetAllLogsResponse } from 'src/proto/identity.pb';
 import { parse, isValid } from 'date-fns';
@@ -82,21 +82,19 @@ export class AuditLogService {
         whereClause.timestamp = {};
 
         if (startDate) {
-          const normalizedStart = this.normalizeDate(startDate);
+          const normalizedStart = this.normalizeDate(startDate, true); // true = start of day
           if (!normalizedStart) {
-            return {
-              ...defaultResponse,
-            };
+            console.error('Invalid startDate format:', startDate);
+            return defaultResponse;
           }
           whereClause.timestamp.gte = normalizedStart;
         }
 
         if (endDate) {
-          const normalizedEnd = this.normalizeDate(endDate);
+          const normalizedEnd = this.normalizeDate(endDate, false); // false = end of day
           if (!normalizedEnd) {
-            return {
-              ...defaultResponse,
-            };
+            console.error('Invalid endDate format:', endDate);
+            return defaultResponse;
           }
           whereClause.timestamp.lte = normalizedEnd;
         }
@@ -112,8 +110,8 @@ export class AuditLogService {
       }
       if (platform) {
         whereClause.additionalInfo = {
-          // OR for partial matching if additionalInfo contains multiple fields
-          ...(platform && { contains: `"platform":"${platform}"` }),
+          contains: `"platform":"${platform}"`,
+          // mode: 'insensitive',w
         };
       }
 
@@ -145,38 +143,57 @@ export class AuditLogService {
         };
       } catch (dbError) {
         console.error('Database error:', dbError);
-        return {
-          ...defaultResponse,
-        };
+        return defaultResponse;
       }
     } catch (error) {
       console.error('Unexpected error:', error);
-      return {
-        ...defaultResponse,
-      };
+      return defaultResponse;
     }
   }
 
-  private normalizeDate = (dateString: string): Date | null => {
+  private normalizeDate = (
+    dateString: string,
+    isStartOfDay: boolean,
+  ): Date | null => {
     try {
-      // Try common formats (add more as needed)
-      const formatsToTry = [
-        'yyyy-MM-dd HH:mm:ss', // 2025-05-20 00:00:00
-        'dd-MM-yyyy HH:mm:ss', // 20-05-2025 00:00:00
-        'MM-dd-yyyy HH:mm:ss', // 05-20-2025 00:00:00
-        'yyyy-MM-dd', // 2025-05-20
-        "yyyy-MM-dd'T'HH:mm:ss'Z'", // ISO with Z
-        "yyyy-MM-dd'T'HH:mm:ss.SSSX", // ISO with milliseconds
-      ];
+      // Remove timezone indicators if present
+      const cleanDateString = dateString.replace(/[TZ]/g, ' ').trim();
 
-      for (const fmt of formatsToTry) {
-        const parsed = parse(dateString, fmt, new Date());
-        if (isValid(parsed)) return parsed;
+      // Try parsing with moment or similar library
+      let date = new Date(cleanDateString);
+
+      // If invalid, try common formats
+      if (isNaN(date.getTime())) {
+        // Try with date-fns parse
+        const formats = [
+          'yyyy-MM-dd HH:mm:ss',
+          'dd-MM-yyyy HH:mm:ss',
+          'yyyy-MM-dd',
+          'dd-MM-yyyy',
+          'MM/dd/yyyy',
+          'yyyy/MM/dd',
+        ];
+
+        for (const format of formats) {
+          const parsed = parse(cleanDateString, format, new Date());
+          if (isValid(parsed)) {
+            date = parsed;
+            break;
+          }
+        }
       }
 
-      // Fallback to native Date (will handle some other cases)
-      const fallback = new Date(dateString);
-      return isValid(fallback) ? fallback : null;
+      // Still invalid? Return null
+      if (isNaN(date.getTime())) return null;
+
+      // Adjust to start/end of day
+      if (isStartOfDay) {
+        date.setHours(0, 0, 0, 0);
+      } else {
+        date.setHours(23, 59, 59, 999);
+      }
+
+      return date;
     } catch {
       return null;
     }

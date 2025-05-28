@@ -5,7 +5,6 @@ import { firstValueFrom } from "rxjs";
 
 import {
   CreateWalletRequest,
-  CreditUserRequest,
   FetchBetRangeRequest,
   FetchDepositCountRequest,
   FetchDepositRangeRequest,
