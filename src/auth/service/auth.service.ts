@@ -1060,7 +1060,7 @@ public async register({
           clientId,
         });
 
-        console.log("balanceRe", balanceRe);
+        console.log("balanceRes", balanceRes);
 
         const data = {
           playerId: user.id,
