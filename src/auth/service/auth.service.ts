@@ -642,8 +642,14 @@ public async register({
         },
       });
 
-      //get user wallet
-      const balanceRes = await this.goWalletService.getWallet({
+      //get user wallet  :TODO: change before push
+      // const balanceRes = await this.goWalletService.getWallet({
+      //   userId: user.id,
+      //   clientId,
+      // });
+
+       //get user wallet
+      const balanceRes = await this.walletService.getWallet({
         userId: user.id,
         clientId,
       });

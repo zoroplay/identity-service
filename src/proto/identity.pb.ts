@@ -49,6 +49,16 @@ export interface CreateLogResponse {
   message: string;
 }
 
+export interface AuditQuery {
+  startDate?: string | undefined;
+  endDate?: string | undefined;
+  page?: number | undefined;
+  perPage?: number | undefined;
+  username?: string | undefined;
+  platform?: string | undefined;
+  ipAddress?: string | undefined;
+}
+
 /** GetAllLogs */
 export interface GetAllLogsRequest {
   clientId?: number | undefined;
@@ -62,8 +72,7 @@ export interface GetAllLogsRequest {
   platform: string;
   endpoint: string;
   method: string;
-  startDate: string;
-  endDate: string;
+  auditQuery: AuditQuery | undefined;
 }
 
 /** GetAllLogsResponse */
@@ -1080,6 +1089,7 @@ export interface XpressLoginResponse_XpressData {
   sessionId: string;
   group: string;
   currency: string;
+  country?: string | undefined;
 }
 
 export interface EmptyRequest {
@@ -1218,6 +1228,8 @@ export interface IdentityServiceClient {
   getUserIdandName(request: GetUserIdNameRequest): Observable<GetUserIdNameResponse>;
 
   getUserRiskSettings(request: GetRiskSettingRequest): Observable<CommonResponseObj>;
+
+  fetchPlayerLosersByBetCount(request: FetchPlayerFilterRequest): Observable<PaginationResponse>;
 
   /** retail services */
 
@@ -1487,6 +1499,10 @@ export interface IdentityServiceController {
     request: GetRiskSettingRequest,
   ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
 
+  fetchPlayerLosersByBetCount(
+    request: FetchPlayerFilterRequest,
+  ): Promise<PaginationResponse> | Observable<PaginationResponse> | PaginationResponse;
+
   /** retail services */
 
   listAgentUsers(
@@ -1651,6 +1667,7 @@ export function IdentityServiceControllerMethods() {
       "getWithdrawalSettings",
       "getUserIdandName",
       "getUserRiskSettings",
+      "fetchPlayerLosersByBetCount",
       "listAgentUsers",
       "listAgents",
       "getAgentUser",

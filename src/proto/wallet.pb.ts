@@ -6,12 +6,180 @@ import { Struct } from "./google/protobuf/struct.pb";
 
 export const protobufPackage = "wallet";
 
+export interface CorapayWebhookRequest {
+  clientId: number;
+  authHeader: string;
+  callbackData: { [key: string]: any } | undefined;
+}
+
+export interface CorapayResponse {
+  statusCode: number;
+  success: boolean;
+  message: string;
+}
+
+export interface OpayRequest {
+  clientId: number;
+  sha512: string;
+  rawBody: { [key: string]: any } | undefined;
+}
+
+export interface OpayResponse {
+  statusCode: number;
+  success: boolean;
+  message: string;
+}
+
+export interface ShopUsersSummaryRequest {
+  clientId: number;
+  rangeZ: string;
+  from: string;
+  to: string;
+}
+
+export interface ShopUserSummary {
+  userId: number;
+  numberOfDeposits: number;
+  totalDeposits: number;
+  numberOfWithdrawals: number;
+  totalWithdrawals: number;
+}
+
+export interface ShopUsersSummaryResponse {
+  data: ShopUserSummary[];
+  success: boolean;
+  status: number;
+  message: string;
+}
+
+export interface GetShopUserWalletSummaryRequest {
+  clientId: number;
+  dateRange: string;
+}
+
+export interface GetShopUserWalletSummaryResponse {
+  /** Indicates success or failure of the request */
+  success: boolean;
+  /** HTTP status code (e.g., 200 for success, 500 for error) */
+  status: number;
+  /** Message with success/error information */
+  message: string;
+  /** Array of the summary data for each agent user */
+  data: DailyTotals[];
+}
+
+export interface DailyTotals {
+  /** User ID (as a string) */
+  userId: string;
+  /** Total deposit amount for the specified range */
+  totalDepositAmount: number;
+  /** Total withdrawal amount for the specified range */
+  totalWithdrawalAmount: number;
+}
+
+export interface SummaryRequest {
+  clientId: number;
+  /** optional: "day", "week", "month", "year" */
+  range: string;
+  /** optional ISO string */
+  from: string;
+  /** optional ISO string */
+  to: string;
+}
+
+export interface TrxSummaryRequest {
+  /** "day", "week", "month", "year" */
+  rangeZ: string;
+  /** Optional ISO date */
+  from: string;
+  /** Optional ISO date */
+  to: string;
+  /** Defaults to 1 */
+  page: number;
+  /** Defaults to 10 */
+  pageSize: number;
+}
+
+export interface SummaryResponse {
+  /** Indicates success or failure of the request */
+  success: boolean;
+  /** HTTP status code (e.g., 200 for success, 500 for error) */
+  status: number;
+  message: string;
+  totalDeposit: number;
+  totalWithdrawal: number;
+}
+
+export interface MtnmomoRequest {
+  amount: string;
+  externalId: string;
+  status: string;
+  clientId: number;
+}
+
+export interface TigoW2aRequest {
+  txnId: string;
+  msisdn: string;
+  amount: string;
+  customerReferenceId: string;
+  senderName: string;
+  clientId: number;
+}
+
+export interface TigoW2aResponse {
+  success: boolean;
+  refId: string;
+  message: string;
+}
+
+export interface PawapayRequest {
+  clientId: number;
+  status: string;
+  depositId: string;
+}
+
+export interface PawapayResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface FlutterwaveWebhookRequest {
+  clientId: number;
+  txRef: string;
+  event: string;
+  body: string;
+  flutterwaveKey: string;
+}
+
+export interface TigoWebhookRequest {
+  clientId: number;
+  reference: string;
+  event: string;
+  body: string;
+  Status: boolean;
+}
+
+export interface TigoResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface KoraPayWebhookRequest {
+  clientId: number;
+  reference: string;
+  event: string;
+  body: string;
+  korapayKey: string;
+}
+
 export interface PawapayToolkitRequest {
   action: string;
+  clientId: number;
 }
 
 export interface PawapayPredCorrRequest {
   phoneNumber: string;
+  clientId: number;
 }
 
 export interface CreatePawapayRequest {
@@ -20,7 +188,34 @@ export interface CreatePawapayRequest {
   source: string;
   amount: number;
   action: string;
+  operator: string;
   depositId?: string | undefined;
+}
+
+export interface FetchUsersWithdrawalRequest {
+  userId: number;
+  clientId: number;
+  pending?: boolean | undefined;
+}
+
+export interface WayaBankRequest {
+  userId: number;
+  clientId: number;
+}
+
+export interface StkTransactionRequest {
+  clientId: number;
+  amount: string;
+  msisdn: string;
+  trxCode: string;
+  trxDate: string;
+  refId: string;
+}
+
+export interface StkRegisterUrlRequest {
+  action: string;
+  url: string;
+  clientId: number;
 }
 
 export interface WayaQuickRequest {
@@ -35,14 +230,17 @@ export interface CreateBulkPawapayRequest {
   clientId: number;
   source: string;
   amount: number[];
+  operator: string;
 }
 
 export interface FetchPawapayRequest {
   action: string;
   actionId: string;
+  clientId: number;
 }
 
 export interface PawapayCountryRequest {
+  clientId: number;
   country: string;
 }
 
@@ -584,6 +782,15 @@ export interface Transaction {
   link?: string | undefined;
 }
 
+export interface SearchTransactionsRequest {
+  clientId: number;
+  userId: number;
+  accountNumber: string;
+  page: number;
+  size: number;
+  fromDate: string;
+}
+
 export interface VerifyBankAccountRequest {
   clientId: number;
   userId: number;
@@ -670,6 +877,10 @@ export interface ListWithdrawalRequests {
   to: string;
   status: number;
   userId: number;
+  username: string;
+  bankName: string;
+  page: number;
+  limit: number;
 }
 
 export interface ListWithdrawalRequestResponse {
@@ -677,6 +888,10 @@ export interface ListWithdrawalRequestResponse {
   status: number;
   message: string;
   data: WithdrawalRequest[];
+  totalAmount: number;
+  total: number;
+  page: number;
+  limit: number;
 }
 
 export interface WithdrawalRequest {
@@ -745,8 +960,6 @@ export interface CommonResponseArray {
 }
 
 export interface PlayerWalletData {
-  success: any;
-  data: any;
   sportBalance: number;
   totalDeposits: number;
   sportBonusBalance: number;
@@ -770,6 +983,7 @@ export interface ListDepositRequests {
   paymentMethod: string;
   status: number;
   username: string;
+  bank: string;
   transactionId: string;
   page: number;
 }
@@ -781,6 +995,7 @@ export interface PaginationResponse {
   nextPage: number;
   prevPage: number;
   lastPage: number;
+  totalAmount: number;
   data: { [key: string]: any }[];
 }
 
@@ -807,6 +1022,10 @@ export interface WalletServiceClient {
   cashbookFetchReport(request: FetchReportRequest): Observable<FetchReportResponse>;
 
   cashbookHandleReport(request: HandleReportRequest): Observable<LastApprovedResponseObj>;
+
+  cashbookFetchMonthlyShopReport(request: FetchReportRequest): Observable<CommonResponseObj>;
+
+  currentReport(request: FetchReportRequest): Observable<CommonResponseObj>;
 
   cashbookApproveExpense(request: CashbookApproveExpenseRequest): Observable<ExpenseSingleResponse>;
 
@@ -866,7 +1085,7 @@ export interface WalletServiceClient {
 
   handlePawaPayResendCallback(request: FetchPawapayRequest): Observable<CommonResponseObj>;
 
-  handlePawaPayBalances(request: EmptyRequest): Observable<CommonResponseArray>;
+  handlePawaPayBalances(request: PawapayCountryRequest): Observable<CommonResponseArray>;
 
   handlePawaPayCountryBalances(request: PawapayCountryRequest): Observable<CommonResponseArray>;
 
@@ -874,11 +1093,25 @@ export interface WalletServiceClient {
 
   handlePawaPayToolkit(request: PawapayToolkitRequest): Observable<CommonResponseArray>;
 
-  handlePawaPayActiveConf(request: EmptyRequest): Observable<CommonResponseObj>;
+  handlePawaPayActiveConf(request: PawapayCountryRequest): Observable<CommonResponseObj>;
+
+  createVirtualAccount(request: WayaBankRequest): Observable<CommonResponseObj>;
+
+  wayabankAccountEnquiry(request: WayaBankRequest): Observable<CommonResponseObj>;
+
+  stkDepositNotification(request: StkTransactionRequest): Observable<CommonResponseObj>;
+
+  stkWithdrawNotification(request: StkTransactionRequest): Observable<CommonResponseObj>;
+
+  stkStatusNotification(request: StkTransactionRequest): Observable<CommonResponseObj>;
+
+  stkRegisterUrl(request: StkRegisterUrlRequest): Observable<CommonResponseObj>;
 
   handleWayaQuickInit(request: WayaQuickRequest): Observable<CommonResponseObj>;
 
   handleWayaQuickVerify(request: WayaQuickRequest): Observable<CommonResponseObj>;
+
+  fetchUsersWithdrawal(request: FetchUsersWithdrawalRequest): Observable<CommonResponseArray>;
 
   getBalance(request: GetBalanceRequest): Observable<WalletResponse>;
 
@@ -955,6 +1188,28 @@ export interface WalletServiceClient {
   processShopWithdrawal(request: ProcessRetailTransaction): Observable<CommonResponseObj>;
 
   debitAgentBalance(request: DebitUserRequest): Observable<CommonResponseObj>;
+
+  getTransactionSummary(request: SummaryRequest): Observable<SummaryResponse>;
+
+  shopTransactionSummary(request: GetShopUserWalletSummaryRequest): Observable<GetShopUserWalletSummaryResponse>;
+
+  shopUsersSummary(request: ShopUsersSummaryRequest): Observable<ShopUsersSummaryResponse>;
+
+  flutterWaveWebhook(request: FlutterwaveWebhookRequest): Observable<WebhookResponse>;
+
+  korapayWebhook(request: KoraPayWebhookRequest): Observable<WebhookResponse>;
+
+  tigoWebhook(request: TigoWebhookRequest): Observable<TigoResponse>;
+
+  tigoW2A(request: TigoW2aRequest): Observable<TigoW2aResponse>;
+
+  pawapayCallback(request: PawapayRequest): Observable<PawapayResponse>;
+
+  mtnmomoCallback(request: MtnmomoRequest): Observable<WebhookResponse>;
+
+  opayCallback(request: OpayRequest): Observable<OpayResponse>;
+
+  corapayWebhook(request: CorapayWebhookRequest): Observable<CorapayResponse>;
 }
 
 export interface WalletServiceController {
@@ -977,6 +1232,14 @@ export interface WalletServiceController {
   cashbookHandleReport(
     request: HandleReportRequest,
   ): Promise<LastApprovedResponseObj> | Observable<LastApprovedResponseObj> | LastApprovedResponseObj;
+
+  cashbookFetchMonthlyShopReport(
+    request: FetchReportRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
+  currentReport(
+    request: FetchReportRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
 
   cashbookApproveExpense(
     request: CashbookApproveExpenseRequest,
@@ -1095,7 +1358,7 @@ export interface WalletServiceController {
   ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
 
   handlePawaPayBalances(
-    request: EmptyRequest,
+    request: PawapayCountryRequest,
   ): Promise<CommonResponseArray> | Observable<CommonResponseArray> | CommonResponseArray;
 
   handlePawaPayCountryBalances(
@@ -1111,7 +1374,31 @@ export interface WalletServiceController {
   ): Promise<CommonResponseArray> | Observable<CommonResponseArray> | CommonResponseArray;
 
   handlePawaPayActiveConf(
-    request: EmptyRequest,
+    request: PawapayCountryRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
+  createVirtualAccount(
+    request: WayaBankRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
+  wayabankAccountEnquiry(
+    request: WayaBankRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
+  stkDepositNotification(
+    request: StkTransactionRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
+  stkWithdrawNotification(
+    request: StkTransactionRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
+  stkStatusNotification(
+    request: StkTransactionRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
+  stkRegisterUrl(
+    request: StkRegisterUrlRequest,
   ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
 
   handleWayaQuickInit(
@@ -1121,6 +1408,10 @@ export interface WalletServiceController {
   handleWayaQuickVerify(
     request: WayaQuickRequest,
   ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
+  fetchUsersWithdrawal(
+    request: FetchUsersWithdrawalRequest,
+  ): Promise<CommonResponseArray> | Observable<CommonResponseArray> | CommonResponseArray;
 
   getBalance(request: GetBalanceRequest): Promise<WalletResponse> | Observable<WalletResponse> | WalletResponse;
 
@@ -1259,6 +1550,43 @@ export interface WalletServiceController {
   debitAgentBalance(
     request: DebitUserRequest,
   ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
+  getTransactionSummary(
+    request: SummaryRequest,
+  ): Promise<SummaryResponse> | Observable<SummaryResponse> | SummaryResponse;
+
+  shopTransactionSummary(
+    request: GetShopUserWalletSummaryRequest,
+  ):
+    | Promise<GetShopUserWalletSummaryResponse>
+    | Observable<GetShopUserWalletSummaryResponse>
+    | GetShopUserWalletSummaryResponse;
+
+  shopUsersSummary(
+    request: ShopUsersSummaryRequest,
+  ): Promise<ShopUsersSummaryResponse> | Observable<ShopUsersSummaryResponse> | ShopUsersSummaryResponse;
+
+  flutterWaveWebhook(
+    request: FlutterwaveWebhookRequest,
+  ): Promise<WebhookResponse> | Observable<WebhookResponse> | WebhookResponse;
+
+  korapayWebhook(
+    request: KoraPayWebhookRequest,
+  ): Promise<WebhookResponse> | Observable<WebhookResponse> | WebhookResponse;
+
+  tigoWebhook(request: TigoWebhookRequest): Promise<TigoResponse> | Observable<TigoResponse> | TigoResponse;
+
+  tigoW2A(request: TigoW2aRequest): Promise<TigoW2aResponse> | Observable<TigoW2aResponse> | TigoW2aResponse;
+
+  pawapayCallback(request: PawapayRequest): Promise<PawapayResponse> | Observable<PawapayResponse> | PawapayResponse;
+
+  mtnmomoCallback(request: MtnmomoRequest): Promise<WebhookResponse> | Observable<WebhookResponse> | WebhookResponse;
+
+  opayCallback(request: OpayRequest): Promise<OpayResponse> | Observable<OpayResponse> | OpayResponse;
+
+  corapayWebhook(
+    request: CorapayWebhookRequest,
+  ): Promise<CorapayResponse> | Observable<CorapayResponse> | CorapayResponse;
 }
 
 export function WalletServiceControllerMethods() {
@@ -1269,6 +1597,8 @@ export function WalletServiceControllerMethods() {
       "cashbookFetchSalesReport",
       "cashbookFetchReport",
       "cashbookHandleReport",
+      "cashbookFetchMonthlyShopReport",
+      "currentReport",
       "cashbookApproveExpense",
       "cashbookCreateExpense",
       "cashbookFindAllExpense",
@@ -1303,8 +1633,15 @@ export function WalletServiceControllerMethods() {
       "handlePawaPayPredCorr",
       "handlePawaPayToolkit",
       "handlePawaPayActiveConf",
+      "createVirtualAccount",
+      "wayabankAccountEnquiry",
+      "stkDepositNotification",
+      "stkWithdrawNotification",
+      "stkStatusNotification",
+      "stkRegisterUrl",
       "handleWayaQuickInit",
       "handleWayaQuickVerify",
+      "fetchUsersWithdrawal",
       "getBalance",
       "createWallet",
       "fetchBetRange",
@@ -1342,6 +1679,17 @@ export function WalletServiceControllerMethods() {
       "validateWithdrawalCode",
       "processShopWithdrawal",
       "debitAgentBalance",
+      "getTransactionSummary",
+      "shopTransactionSummary",
+      "shopUsersSummary",
+      "flutterWaveWebhook",
+      "korapayWebhook",
+      "tigoWebhook",
+      "tigoW2A",
+      "pawapayCallback",
+      "mtnmomoCallback",
+      "opayCallback",
+      "corapayWebhook",
     ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
