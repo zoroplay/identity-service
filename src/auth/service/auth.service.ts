@@ -1017,6 +1017,7 @@ public async register({
           balance: balanceRes.data.availableBalance,
           group,
           currency: user.client.currency,
+          country: user.client.country,
         };
         return { status: true, code: HttpStatus.OK, message: 'success', data };
       } else {
@@ -1069,6 +1070,7 @@ public async register({
           virtualBalance: balanceRes.data.virtualBonusBalance,
           group: null,
           currency: user.client.currency,
+          country: user.client.country
         };
 
         return {
