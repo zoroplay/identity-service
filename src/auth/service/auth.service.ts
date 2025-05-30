@@ -1070,6 +1070,7 @@ public async register({
           virtualBalance: balanceRes.data.virtualBonusBalance,
           group: null,
           currency: user.client.currency,
+          country: user.client.country,
         };
 
         return {
