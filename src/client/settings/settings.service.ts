@@ -36,7 +36,7 @@ export class SettingsService {
       const data = JSON.parse(params.inputs);
       // console.log("data", data);
       const clientId = params.clientId;
-      let logoImg, printLogoImg;
+      let logoImg = "", printLogoImg = "";
       // Define the folder and file name for the image in Firebase
       const folderName = 'uploads'; // Example: folder to store promotion images
       const fileName  = `${Date.now()}_uploaded-file`;
