@@ -1017,6 +1017,7 @@ public async register({
           balance: balanceRes.data.availableBalance,
           group,
           currency: user.client.currency,
+          country: user.client.country
         };
         return { status: true, code: HttpStatus.OK, message: 'success', data };
       } else {
@@ -1058,6 +1059,8 @@ public async register({
           userId: user.id,
           clientId,
         });
+
+        console.log("balanceRes", balanceRes);
 
         const data = {
           playerId: user.id,

@@ -6,18 +6,18 @@ import { User } from '@prisma/client';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-    @Inject(JwtService)
-    private readonly jwtService: JwtService;
+  @Inject(JwtService)
+  private readonly jwtService: JwtService;
 
-    constructor() {
-        super({
-            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-            secretOrKey: 'dev',
-            ignoreExpiration: true,
-        });
-    }
+  constructor() {
+    super({
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      secretOrKey: 'dev',
+      ignoreExpiration: true,
+    });
+  }
 
-    private validate(token: string): Promise<User | never> {
-        return this.jwtService.validateUser(token);
-    }
+  public validate(token: string): Promise<User | never> {
+    return this.jwtService.validateUser(token);
+  }
 }
