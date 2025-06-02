@@ -41,33 +41,33 @@ export class SettingsService {
       const folderName = 'uploads'; // Example: folder to store promotion images
       const fileName  = `${Date.now()}_uploaded-file`;
 
-      if(data.logo) {
-        if (data.logo.startsWith('data:image/png;base64,')) {
-          data.logo = data.logo.replace(/^data:image\/\w+;base64,/, '');
+      // if(data.logo) {
+      //   if (data.logo.startsWith('data:image/png;base64,')) {
+      //     data.logo = data.logo.replace(/^data:image\/\w+;base64,/, '');
           
-          console.log("data-logo", data.logo);
+      //     console.log("data-logo", data.logo);
 
-          logoImg = await this.firebaseService.uploadFileToFirebase(
-            folderName,
-            fileName,
-            data.logo,
-          );
-        }
-      }
+      //     logoImg = await this.firebaseService.uploadFileToFirebase(
+      //       folderName,
+      //       fileName,
+      //       data.logo,
+      //     );
+      //   }
+      // }
 
-      if (data.print_logo) {
-        if (data.print_logo.startsWith('data:image/png;base64,')) {
-          data.print_logo = data.print_logo.replace(/^data:image\/\w+;base64,/, '');
+      // if (data.print_logo) {
+      //   if (data.print_logo.startsWith('data:image/png;base64,')) {
+      //     data.print_logo = data.print_logo.replace(/^data:image\/\w+;base64,/, '');
 
-          console.log("data-logo", data.logo);
+      //     console.log("data-logo", data.logo);
 
-          printLogoImg = await this.firebaseService.uploadFileToFirebase(
-            folderName,
-            fileName,
-            data.print_logo,
-          );
-        }
-      }
+      //     printLogoImg = await this.firebaseService.uploadFileToFirebase(
+      //       folderName,
+      //       fileName,
+      //       data.print_logo,
+      //     );
+      //   }
+      // }
 
       const dataObject = { ...data, logo: logoImg, print_logo: printLogoImg };
       console.log("dataObject", dataObject);
