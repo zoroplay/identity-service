@@ -31,7 +31,7 @@ export class SettingsService {
 
   async saveSettings(params: SettingsRequest): Promise<CommonResponseObj> {
     try {
-      console.log("params", params);
+      // console.log("params", params);
        
       const data = JSON.parse(params.inputs);
       // console.log("data", data);
@@ -73,7 +73,7 @@ export class SettingsService {
       console.log("dataObject", dataObject);
 
       for (const [key, value] of Object.entries(dataObject)) {
-        console.log(`Key: ${key}, Value: ${value}`);
+        // console.log(`Key: ${key}, Value: ${value}`);
         const val: any = value;
           await this.prisma.setting.upsert({
             where: {
