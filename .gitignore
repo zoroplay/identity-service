@@ -1,10 +1,10 @@
 # compiled output
+.env
 /dist
 /node_modules
 package-lock.json
 yarn.lock
 
-.env
 # Logs
 logs
 *.log
