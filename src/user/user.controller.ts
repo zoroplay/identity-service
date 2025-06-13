@@ -48,8 +48,8 @@ export class UserController {
     return this.playerService.fetchPlayerFilter(FetchPlayerFilterDto);
   }
 
-  @GrpcMethod(IDENTITY_SERVICE_NAME, 'CreateAdmin')
-  CreateAdmin(createUserDto: CreateUserRequest) {
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'CreateAdminUser')
+  CreateAdminUser(createUserDto: CreateUserRequest) {
     return this.userService.saveAdminUser(createUserDto);
   }
 

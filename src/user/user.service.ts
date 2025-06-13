@@ -167,22 +167,29 @@ export class UserService {
   }
   async saveAdminUser(data: CreateUserRequest) {
     try {
-      let [role, user] = await Promise.all([
+      const [role, foundUser, client] = await Promise.all([
         this.prisma.role.findUnique({
           where: {
             id: data.roleId,
           },
         }),
-
         this.prisma.user.findFirst({
           where: {
             username: data.username,
             clientId: data.clientId,
           },
         }),
+        this.prisma.client.findUnique({
+          where: {
+            id: data.clientId,
+          },
+        }),
       ]);
-      if (!role) return handleError('The role specified does not exist', null);
+      let user = foundUser;
 
+      if (!client)
+        return handleError('The specified client does not exist', null);
+      if (!role) return handleError('The role specified does not exist', null);
       if (user)
         return handleError(`The Username specified already exists`, null);
 
@@ -193,7 +200,6 @@ export class UserService {
         data: {
           username: data.username,
           password: hashedPassword,
-          // code: Math.floor(100000 + Math.random() * 900000).toString().substring(0, 6), // 6 digit random identifier for
           roleId: data.roleId,
           clientId: data.clientId,
         },
@@ -296,7 +302,7 @@ export class UserService {
 
   async updateDetails(updateUserDto: UserDetailsDto) {
     try {
-      let [role, user] = await Promise.all([
+      const [role, user] = await Promise.all([
         this.prisma.role.findUnique({
           where: {
             id: updateUserDto.roleId,
