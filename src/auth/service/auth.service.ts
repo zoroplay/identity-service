@@ -292,15 +292,15 @@ export class AuthService {
       });
 
       //get user wallet
-      // const balanceRes = await this.goWalletService.getWallet({
-      //   userId: user.id,
-      //   clientId,
-      // });
-
-      const balanceRes = await this.walletService.getWallet({
+      const balanceRes = await this.goWalletService.getWallet({
         userId: user.id,
         clientId,
       });
+
+      // const balanceRes = await this.walletService.getWallet({
+      //   userId: user.id,
+      //   clientId,
+      // });
 
       if (balanceRes.success) {
         const {
