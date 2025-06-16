@@ -6,6 +6,24 @@ import { Struct } from "./google/protobuf/struct.pb";
 
 export const protobufPackage = "identity";
 
+export interface ClientIdRequest {
+  clientId: number;
+}
+
+export interface BasicUser {
+  id: number;
+  username: string;
+  role: string;
+  clientId: number;
+}
+
+export interface UsersResponse {
+  userInfos: BasicUser[];
+  message: string;
+  success: boolean;
+  status: number;
+}
+
 /** Additional Audit Info */
 export interface AdditionalInfo {
   browser: string;
@@ -1284,6 +1302,8 @@ export interface IdentityServiceClient {
   getAllLogs(request: GetAllLogsRequest): Observable<GetAllLogsResponse>;
 
   createLog(request: CreateLogRequest): Observable<CreateLogResponse>;
+
+  clintUsers(request: ClientIdRequest): Observable<UsersResponse>;
 }
 
 export interface IdentityServiceController {
@@ -1602,6 +1622,8 @@ export interface IdentityServiceController {
   ): Promise<GetAllLogsResponse> | Observable<GetAllLogsResponse> | GetAllLogsResponse;
 
   createLog(request: CreateLogRequest): Promise<CreateLogResponse> | Observable<CreateLogResponse> | CreateLogResponse;
+
+  clintUsers(request: ClientIdRequest): Promise<UsersResponse> | Observable<UsersResponse> | UsersResponse;
 }
 
 export function IdentityServiceControllerMethods() {
@@ -1694,6 +1716,7 @@ export function IdentityServiceControllerMethods() {
       "getTrackierKeys",
       "getAllLogs",
       "createLog",
+      "clintUsers",
     ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
