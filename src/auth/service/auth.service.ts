@@ -367,6 +367,8 @@ public async register({
           clientId,
         });
 
+        console.log("user-deets", user);
+
         const auth: any = { ...user };
         let group;
         if (user.role.name === 'Player') {
@@ -413,6 +415,8 @@ public async register({
 
         delete auth.password;
 
+        console.log("auth-deets", auth);
+
         return {
           success: true,
           status: HttpStatus.OK,
@@ -429,7 +433,7 @@ public async register({
         };
       }
     } catch (e) {
-      console.log('error occured');
+      console.log('error occured', e.message);
       return {
         success: false,
         status: 501,
