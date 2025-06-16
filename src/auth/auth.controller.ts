@@ -8,6 +8,7 @@ import {
 } from './auth.dto';
 import {
   ChangePasswordRequest,
+  ClientIdRequest,
   CreateUserRequest,
   GetClientRequest,
   GetUserByUsernameRequest,
@@ -112,5 +113,10 @@ export class AuthController {
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'validateGroupCode')
   validateGroupCode(data: GetClientRequest) {
     return this.authService.validateGroupCode(data);
+  }
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'ClintUsers')
+  getClintUsers(data: ClientIdRequest) {
+    return this.authService.clientUsers(data.clientId);
   }
 }
