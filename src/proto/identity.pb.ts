@@ -643,6 +643,7 @@ export interface UserData {
   dateOfBirth: string;
   status: number;
   group: string;
+  virtualToken?: string | undefined;
 }
 
 export interface CreateUserRequest {
