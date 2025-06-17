@@ -456,12 +456,12 @@ public async register({
       bonusType: 'registration',
     });
 
-    console.log("regBonus", regBonus);
-    const bonusAmount = parseFloat(regBonus.data.bonus_amount);
-
-    console.log("bonusAmount", bonusAmount);
-
     if (regBonus.success && regBonus.data.status === 1) {
+      console.log("regBonus", regBonus);
+      const bonusAmount = parseFloat(regBonus.data.bonus_amount);
+
+      console.log("bonusAmount", bonusAmount);
+
       const bonusRes = await this.bonusService.awardBonus({
         clientId,
         userId: newUser.id.toString(),
