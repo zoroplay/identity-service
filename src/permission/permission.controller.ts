@@ -1,47 +1,46 @@
 import { Controller } from '@nestjs/common';
-import { GrpcMethod, Payload } from '@nestjs/microservices';
+import { GrpcMethod } from '@nestjs/microservices';
 import { PermissionService } from './permission.service';
 import {
   AssignPermissionDto,
   CreatePermissionDto,
-  PERMISSION_SERVICE,
 } from './dto/create-permission.dto';
-import { UpdatePermissionDto } from './dto/update-permission.dto';
+// import { UpdatePermissionDto } from './dto/update-permission.dto';
+import { IDENTITY_SERVICE_NAME } from 'src/proto/identity.pb';
 
 @Controller()
 export class PermissionController {
   constructor(private readonly permissionService: PermissionService) {}
 
-  @GrpcMethod(PERMISSION_SERVICE, 'SavePermission')
-  SavePermission(payload: CreatePermissionDto) {
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'createPermission')
+  CreatePermission(payload: CreatePermissionDto) {
     return this.permissionService.create(payload);
   }
 
-  @GrpcMethod(PERMISSION_SERVICE, 'GetPermissions')
-  GetPermissions() {
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'findAllPermissions')
+  FindAllPermissions() {
     return this.permissionService.findAll();
   }
 
-  @GrpcMethod(PERMISSION_SERVICE, 'AssignPermissions')
-  AssignPermissions(payload: AssignPermissionDto) {
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'assignRolePermission')
+  AssignROlePermission(payload: AssignPermissionDto) {
     return this.permissionService.assignPermissions(payload);
   }
 
-  @GrpcMethod('findOnePermission')
-  findOne(@Payload() id: number) {
-    return this.permissionService.findOne(id);
-  }
+  // @GrpcMethod(IDENTITY_SERVICE_NAME, '')
+  // findOne(@Payload() id: number) {
+  //   return this.permissionService.findOne(id);
+  // }
 
-  @GrpcMethod(PERMISSION_SERVICE, 'updatePermission')
-  update(payload: UpdatePermissionDto) {
-    // return this.permissionService.update(
-    //   updatePermissionDto.id,
-    //   updatePermissionDto,
-    // );
-  }
-
-  @GrpcMethod(PERMISSION_SERVICE, 'DeletePermission')
-  DeletePermission(payload: CreatePermissionDto) {
-    return this.permissionService.remove(payload.permissionID);
+  // @GrpcMethod(IDENTITY_SERVICE_NAME, 'updatePermission')
+  // update(payload: UpdatePermissionDto) {
+  // return this.permissionService.update(
+  //   updatePermissionDto.id,
+  //   updatePermissionDto,
+  // );
+  // }
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'removePermission')
+  RemovePermission(payload: { permissionID: string }) {
+    return this.permissionService.remove(Number(payload.permissionID));
   }
 }

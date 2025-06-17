@@ -129,21 +129,23 @@ model Role {
 }
 
 model Permission {
-  id          Int      @id @default(autoincrement())
-  name        String
-  description String
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id             Int              @id @default(autoincrement())
+  name           String
+  description    String
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  RolePermission RolePermission[]
 
   @@map("permissions")
 }
 
 model RolePermission {
-  id           Int      @id @default(autoincrement())
-  roleID       Int      @map("role_id")
-  role         Role?    @relation(fields: [roleID], references: [id])
+  id           Int         @id @default(autoincrement())
+  roleID       Int         @map("role_id")
+  role         Role?       @relation(fields: [roleID], references: [id])
   permissionID Int
-  createdAt    DateTime @default(now())
+  permission   Permission? @relation(fields: [permissionID], references: [id])
+  createdAt    DateTime    @default(now())
 
   @@map("role_permissions")
 }
