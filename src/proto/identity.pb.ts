@@ -836,6 +836,7 @@ export interface PermissionRequest {
   name: string;
   description: string;
   permissionID: string;
+  roleID: string;
 }
 
 export interface GetPaymentDataRequest {
@@ -1304,6 +1305,8 @@ export interface IdentityServiceClient {
   createLog(request: CreateLogRequest): Observable<CreateLogResponse>;
 
   clintUsers(request: ClientIdRequest): Observable<UsersResponse>;
+
+  getPlayerStatistics(request: ClientIdRequest): Observable<CommonResponseObj>;
 }
 
 export interface IdentityServiceController {
@@ -1624,6 +1627,10 @@ export interface IdentityServiceController {
   createLog(request: CreateLogRequest): Promise<CreateLogResponse> | Observable<CreateLogResponse> | CreateLogResponse;
 
   clintUsers(request: ClientIdRequest): Promise<UsersResponse> | Observable<UsersResponse> | UsersResponse;
+
+  getPlayerStatistics(
+    request: ClientIdRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
 }
 
 export function IdentityServiceControllerMethods() {
@@ -1717,6 +1724,7 @@ export function IdentityServiceControllerMethods() {
       "getAllLogs",
       "createLog",
       "clintUsers",
+      "getPlayerStatistics",
     ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);

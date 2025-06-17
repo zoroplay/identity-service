@@ -410,7 +410,7 @@ export class AuthService {
         auth.authCode = user.auth_code;
         auth.status = user.status;
         auth.gender = user.userDetails.gender;
-        auth.virtualToken = user.virtual_token;
+        auth.virtualToken = user.virtualToken;
         auth.city = user.userDetails.city;
         auth.address = user.userDetails.address;
         auth.country = user.userDetails.country;

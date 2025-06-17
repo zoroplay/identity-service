@@ -13,6 +13,7 @@ import {
   GetUserIdNameResponse,
   CommonResponseObj,
   FindUserRequest,
+  ClientIdRequest,
 } from 'src/proto/identity.pb';
 import { WalletService } from 'src/wallet/wallet.service';
 import * as dayjs from 'dayjs';
@@ -1363,4 +1364,72 @@ export class PlayerService {
       return { success: false, message: 'Unable to complete request.' };
     }
   }
+
+  async getPlayerStatistics(payload: ClientIdRequest): Promise<CommonResponseObj> {
+  try {
+
+    const { clientId } = payload;
+    // Get player role
+    const role = await this.prisma.role.findFirst({
+      where: { name: 'Player' },
+    });
+
+    if (!role) {
+      throw new Error('Player role not found');
+    }
+
+    // Get current date in YYYY-MM-DD format
+    const now = new Date();
+    const today = now.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+    
+    // Get date 3 days ago in YYYY-MM-DD format
+    const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+    const threeDaysAgoStr = threeDaysAgo.toISOString().split('T')[0];
+
+    // 1. Online players: players with last login within the same day
+    const onlinePlayers = await this.prisma.user.count({
+      where: {
+        clientId,
+        roleId: role.id,
+        lastLogin: today,
+      },
+    });
+
+    // 2. New players: players with last login within 3 days
+    const newPlayers = await this.prisma.user.count({
+      where: {
+        clientId,
+        roleId: role.id,
+        lastLogin: {
+          gte: threeDaysAgoStr,
+        },
+      },
+    });
+
+    // 3. Total players: All players in the database for this client
+    const totalPlayers = await this.prisma.user.count({
+      where: {
+        clientId,
+        roleId: role.id,
+      },
+    });
+
+    const data =  {
+      onlinePlayers,
+      newPlayers,
+      totalPlayers,
+    };
+
+    return {
+       status: 1,
+       success: true,
+       message: 'Data fetched successfully',
+       data
+    }
+  } catch (error) {
+    console.error('Error getting player statistics:', error);
+    throw new Error(`Failed to get player statistics: ${error.message}`);
+  }
+}
+
 }

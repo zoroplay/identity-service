@@ -5,6 +5,7 @@ import { UserService } from './user.service';
 import { UserDetailsDto } from './dto/create-user.dto';
 import {
   AddToSegmentRequest,
+  ClientIdRequest,
   CreateUserRequest,
   DeleteItemRequest,
   FetchPlayerFilterRequest,
@@ -161,5 +162,10 @@ export class UserController {
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'FetchPlayerLosersByBetCount')
   fetchLosersByBetCount(payload: FetchPlayerFilterRequest) {
     return this.playerService.fetchLosersByBetCount(payload, payload.page);
+  }
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'getPlayerStatistics')
+  getPlayerStatistics(payload: ClientIdRequest) {
+    return this.playerService.getPlayerStatistics(payload);
   }
 }
