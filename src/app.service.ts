@@ -1,13 +1,14 @@
+/* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import axios from 'axios';
+import { JwtService } from './auth/service/jwt.service';
+import { PrismaService } from './prisma/prisma.service';
 import {
   GetPaymentDataRequest,
   GetPaymentDataResponse,
 } from './proto/identity.pb';
-import { PrismaService } from './prisma/prisma.service';
-import { Timeout } from '@nestjs/schedule';
 import { WalletService } from './wallet/wallet.service';
-import { JwtService } from './auth/service/jwt.service';
 
 @Injectable()
 export class AppService {
@@ -138,4 +139,64 @@ export class AppService {
   //     console.log(e.message);
   //   }
   // }
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+    async updateInactiveUsersStatus() {
+       try {
+          console.log('Starting inactive users status update job...');
+  
+        // Calculate the date 3 months ago from now
+        const threeMonthsAgo = new Date();
+        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+        
+        // Format date as YYYY-MM-DD to match lastLogin format
+        const threeMonthsAgoString = threeMonthsAgo.toISOString().split('T')[0];
+  
+        console.log(`Checking for users inactive since: ${threeMonthsAgoString}`);
+  
+        // Update users who haven't signed in for more than 3 months
+        // Assuming status: 1 = active, 0 = inactive (adjust as needed)
+        const updateResult = await this.prisma.user.updateMany({
+          where: {
+            AND: [
+              {
+                OR: [
+                  {
+                    lastLogin: {
+                      lt: threeMonthsAgoString, // lastLogin is older than 3 months
+                    },
+                  },
+                  {
+                    lastLogin: null, // Users who never logged in but were created > 3 months ago
+                    createdAt: {
+                      lt: threeMonthsAgo,
+                    },
+                  },
+                ],
+              },
+              {
+                status: {
+                  not: 2, // Only update users who are not already inactive
+                },
+              },
+            ],
+          },
+          data: {
+            status: 2, // Set to inactive
+            updatedAt: new Date(),
+          },
+        });
+  
+        console.log(
+          `Successfully updated ${updateResult.count} users to INACTIVE status`,
+        );
+  
+       } catch (error) {
+          console.log(
+          `Error updating inactive users status: ${error.message}`,
+          error.stack,
+        );
+       }
+        
+      }
 }
