@@ -840,6 +840,11 @@ export interface PermissionRequest {
   roleID: string;
 }
 
+export interface AssignRolePermissionRequest {
+  roleID: number;
+  permissionIDs: number[];
+}
+
 export interface GetPaymentDataRequest {
   clientId: number;
   userId: number;
@@ -1157,6 +1162,8 @@ export interface IdentityServiceClient {
 
   createPermission(request: PermissionRequest): Observable<CommonResponseObj>;
 
+  assignRolePermission(request: AssignRolePermissionRequest): Observable<CommonResponseObj>;
+
   findUser(request: FindUserRequest): Observable<CommonResponseObj>;
 
   saveRole(request: RoleRequest): Observable<SaveRoleResponse>;
@@ -1355,6 +1362,10 @@ export interface IdentityServiceController {
 
   createPermission(
     request: PermissionRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
+  assignRolePermission(
+    request: AssignRolePermissionRequest,
   ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
 
   findUser(request: FindUserRequest): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
@@ -1651,6 +1662,7 @@ export function IdentityServiceControllerMethods() {
       "getUserDetails",
       "createClient",
       "createPermission",
+      "assignRolePermission",
       "findUser",
       "saveRole",
       "getRoles",
