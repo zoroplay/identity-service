@@ -90,49 +90,54 @@ export class AppService {
           where: { name: 'Player' },
         });
 
-        let username = user['Phone Number'].substring(1);
-        const name = user.Name.split('  ');
-        console.log(`saving ${username}`)
+        if (user['Phone Number']) {
 
-        const isExist = await this.prisma.user.findFirst({
-          where: {
-            username
-          },
-        });
+          let username = user['Phone Number'].substring(1);
+          const name = user.Name.split('  ');
+          console.log(`saving ${username}`)
 
-        console.log(username, name[0], name[1], user.Balance, user.Email)
-
-        if (!isExist) {
-          const newUser = await this.prisma.user.create({
-            data: {
-                username,
-                clientId: 13,
-                code: Math.floor(100000 + Math.random() * 900000).toString(), // 6 digit random identifier for
-                password: this.jwtService.encodePassword(username),
-                roleId: role.id,
-                userDetails: {
-                    create: {
-                        phone: user['Phone Number'],
-                        firstName: name[0],
-                        lastName: name[1],
-                        email: user.Email
-                    }
-                }
+          const isExist = await this.prisma.user.findFirst({
+            where: {
+              username
             },
-          })
-
-          //create user wallet
-          await this.walletService.createWallet({
-            userId: newUser.id,
-            username,
-            clientId: 13,
-            amount: user.Balance || 0,
-            bonus: 0,
           });
 
-          console.log(`user ${username} saved`)
+          console.log(username, name[0], name[1], user.Balance, user.Email)
+
+          if (!isExist) {
+            const newUser = await this.prisma.user.create({
+              data: {
+                  username,
+                  clientId: 13,
+                  code: Math.floor(100000 + Math.random() * 900000).toString(), // 6 digit random identifier for
+                  password: this.jwtService.encodePassword(username),
+                  roleId: role.id,
+                  userDetails: {
+                      create: {
+                          phone: user['Phone Number'],
+                          firstName: name[0],
+                          lastName: name[1],
+                          email: user.Email
+                      }
+                  }
+              },
+            })
+
+            //create user wallet
+            await this.walletService.createWallet({
+              userId: newUser.id,
+              username,
+              clientId: 13,
+              amount: user.Balance || 0,
+              bonus: 0,
+            });
+
+            console.log(`user ${username} saved`)
+          } else {
+            console.log(`user ${username} exists`)
+          }
         } else {
-          console.log(`user ${username} exists`)
+          console.log('No phone number found')
         }
 
       }
