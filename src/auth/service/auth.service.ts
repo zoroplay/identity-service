@@ -1213,15 +1213,5 @@ public async register({
       groupName: client.groupName,
     };
   }
-  
-  private getStartOfDay(date: Date) {
-    const start = new Date(date);
-    start.setHours(0, 0, 0, 0); // Set hours, minutes, seconds, and milliseconds to zero
-    return start;
-  }
-  private getEndOfDay(date: Date) {
-    const end = new Date(date);
-    end.setHours(23, 59, 59, 999); // Set hours, minutes, seconds, and milliseconds to their maximum values
-    return end;
-  }
+
 }
