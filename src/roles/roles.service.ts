@@ -21,22 +21,20 @@ export class RolesService {
     try {
       // Validate incoming data
       const { name, description, roleType } = data;
-
       const isName = name.trim().length > 0;
       const isDescription = description.trim().length > 0;
       const isRoleType = roleType.trim().length > 0;
 
-      const isValidated = isName && isDescription && isRoleType;
-      if (isValidated) {
-        return handleError(
-          'Name, description, and roleType are required',
-          null,
-        );
-      }
-
       if (data.roleID) {
         return this.updateRole(data);
       } else {
+        const isValidated = isName && isDescription && isRoleType;
+        if (isValidated) {
+          return handleError(
+            'Name, description, and roleType are required',
+            null,
+          );
+        }
         return this.createNewRole(data);
       }
     } catch (error) {
