@@ -64,6 +64,16 @@ export class UserController {
     return this.userService.updateDetails(createUserDto);
   }
 
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'ListTestAccount')
+  ListTestAccount(data) {
+    return this.userService.listTestAccounts(data);
+  }
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'ToggleAccount')
+  ToggleAccount(data) {
+    return this.userService.toggleTestAccount(data);
+  }
+
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'findAllUser')
   findAll() {
     // return this.userService.findAll();

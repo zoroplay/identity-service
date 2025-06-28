@@ -38,6 +38,7 @@ model User {
   agentUsers         AgentUser[]                   @relation("agent")
   client             Client                        @relation(fields: [clientId], references: [id], onDelete: Cascade)
   clientId           Int
+  isTest             Boolean?                      @default(false) @map("is_test")
 
   @@map("users")
 }

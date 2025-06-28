@@ -17,6 +17,10 @@ import {
   HandleTransferRequest,
   SaveSegmentRequest,
   UploadPlayersToSegment,
+  ValidateTestRequest,
+  ValidateTestResponse,
+  ListTestAccountsRequest,
+  ListTestAccountsResponse,
 } from 'src/proto/identity.pb';
 import { PlayerSegment } from '@prisma/client';
 import { BonusService } from 'src/bonus/bonus.service';
@@ -296,7 +300,7 @@ export class UserService {
 
   async updateDetails(updateUserDto: UserDetailsDto) {
     try {
-      let [role, user] = await Promise.all([
+      const [role, user] = await Promise.all([
         this.prisma.role.findUnique({
           where: {
             id: updateUserDto.roleId,
@@ -715,5 +719,106 @@ export class UserService {
     }
   }
 
-  
+  private async fetchTestAccounts(clientId: number) {
+    return this.prisma.user.findMany({
+      where: {
+        clientId: clientId,
+        isTest: true, // Fetch only test accounts
+      },
+    });
+  }
+
+  async listTestAccounts(
+    data: ListTestAccountsRequest,
+  ): Promise<ListTestAccountsResponse> {
+    try {
+      const accounts = await this.fetchTestAccounts(Number(data.clientId));
+      // Map accounts to BasicUser[] with role as string
+      const basicAccounts = await Promise.all(
+        accounts.map(async (account) => {
+          // Fetch the role name using roleId
+          const role = await this.prisma.role.findUnique({
+            where: { id: account.roleId },
+            select: { name: true },
+          });
+          return {
+            id: account.id,
+            username: account.username,
+            role: role?.name || '',
+            clientId: account.clientId,
+          };
+        }),
+      );
+      return {
+        status: HttpStatus.OK,
+        success: true,
+        message: 'Test accounts fetched',
+        accounts: basicAccounts,
+        totals: basicAccounts.length,
+      };
+    } catch (error) {
+      return {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        success: false,
+        message: 'An error occured',
+        accounts: [],
+        totals: 0,
+      };
+    }
+  }
+
+  async toggleTestAccount(
+    data: ValidateTestRequest,
+  ): Promise<ValidateTestResponse> {
+    try {
+      const { accountId } = data;
+      if (!accountId) {
+        return {
+          status: 400,
+          success: false,
+          message: 'Account ID is required',
+          isTest: null,
+        };
+      }
+
+      const account = await this.prisma.user.findUnique({
+        where: {
+          id: data.accountId,
+        },
+      });
+
+      if (!account) {
+        return {
+          isTest: false,
+          status: HttpStatus.NOT_FOUND,
+          success: false,
+          message: `Account with ID ${data.accountId} does not exist`,
+        };
+      }
+
+      await this.prisma.user.update({
+        where: {
+          id: data.accountId,
+        },
+        data: {
+          isTest: !account.isTest, // Toggle the isTest field
+        },
+      });
+
+      return {
+        status: HttpStatus.OK,
+        success: true,
+        message: 'Test account toggled successfully',
+        isTest: !account.isTest, // Return the new state
+      };
+    } catch (error) {
+      console.log('reach here');
+      return {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        success: false,
+        message: 'An error occurred',
+        isTest: false,
+      };
+    }
+  }
 }
