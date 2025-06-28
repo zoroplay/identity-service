@@ -29,7 +29,7 @@ export class RolesService {
         return this.updateRole(data);
       } else {
         const isValidated = isName && isDescription && isRoleType;
-        if (isValidated) {
+        if (!isValidated) {
           return handleError(
             'Name, description, and roleType are required',
             null,
