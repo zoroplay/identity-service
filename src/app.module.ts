@@ -17,6 +17,9 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { TrackierService } from './user/trackier/trackier.service';
 import { AuditLogModule } from './audit/audit.module';
 import { GoWalletModule } from './go-wallet/go-wallet.module';
+import { BannerModule } from './banner/banner.module';
+import { PageModule } from 'src/content-page/page.module';
+import { MenuModule } from './site-menu/menu.module';
 
 @Global()
 @Module({
@@ -33,9 +36,14 @@ import { GoWalletModule } from './go-wallet/go-wallet.module';
     ScheduleModule.forRoot(),
     RetailModule,
     AuditLogModule,
-    GoWalletModule
+    GoWalletModule,
+    BannerModule,
+    PageModule,
+    MenuModule
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService, JwtService, TrackierService],
 })
+
+
 export class AppModule {}
