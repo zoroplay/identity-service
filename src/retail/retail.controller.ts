@@ -1,6 +1,29 @@
 import { Controller, HttpStatus } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
-import { AssignUserCommissionProfile, BonusGroupResponse, BonusGroups, CalculateCommissionRequest, CommissionProfile, CommonResponseArray, CommonResponseObj, CreateUserRequest, GetCommissionsRequest, GetNetworkSalesRequest, GetNormalRequest, IDENTITY_SERVICE_NAME, NormalResponse, PayNormalRequest, PayNormalResponse, PayoutCommissionRequest, PayPowerRequest, PowerBonusResponse, PowerRequest, PowerResponse, SingleItemRequest } from 'src/proto/identity.pb';
+import {
+  AssignUserCommissionProfile,
+  BonusGroupResponse,
+  BonusGroups,
+  CalculateCommissionRequest,
+  CommissionProfile,
+  CommonResponseArray,
+  CommonResponseObj,
+  CreateUserRequest,
+  GetCommissionsRequest,
+  GetNetworkSalesRequest,
+  GetNormalRequest,
+  IDENTITY_SERVICE_NAME,
+  NormalResponse,
+  PayNormalRequest,
+  PayNormalResponse,
+  PayoutCommissionRequest,
+  PayPowerRequest,
+  PowerBonusResponse,
+  PowerRequest,
+  PowerResponse,
+  SingleItemRequest,
+  UpdateUserRequest,
+} from 'src/proto/identity.pb';
 import { RetailService } from './retail.service';
 import { GetAgentUsersRequest } from 'src/proto/retail.pb';
 import { CommissionService } from './commission.service';
@@ -8,31 +31,38 @@ import { RetailBonusService } from './retail.bonus.service';
 
 @Controller('retail')
 export class RetailController {
+  constructor(
+    private readonly retailService: RetailService,
+    private readonly commissionService: CommissionService,
+    private readonly bonusService: RetailBonusService,
+  ) {}
 
-    constructor(
-      private readonly retailService: RetailService,
-      private readonly commissionService: CommissionService,
-      private readonly bonusService: RetailBonusService,
-    ) {}
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'CreateRetailUser')
+  createShopUser(createUserDto: CreateUserRequest) {
+    return this.retailService.createShopUser(createUserDto);
+  }
 
-    @GrpcMethod(IDENTITY_SERVICE_NAME, 'CreateRetailUser')
-    createShopUser(createUserDto: CreateUserRequest) {
-      return this.retailService.createShopUser(createUserDto);
-    }
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'UpdateRetailUser')
+  updateRetailUser(data: UpdateUserRequest) {
+    console.log('Update Retail User Data:', data);
+    return this.retailService.updateRetailUser(data);
+  }
 
-    @GrpcMethod(IDENTITY_SERVICE_NAME, 'ListAgentUsers')
-    ListAgentUsers(payload: GetAgentUsersRequest) {
-      return this.retailService.listAgentUsers(payload);
-    }
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'ListAgentUsers')
+  ListAgentUsers(payload: GetAgentUsersRequest) {
+    return this.retailService.listAgentUsers(payload);
+  }
 
-    @GrpcMethod(IDENTITY_SERVICE_NAME, 'ListAgents')
-    ListAgents(payload: GetAgentUsersRequest) {
-      return this.retailService.listAgents(payload);
-    }
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'ListAgents')
+  ListAgents(payload: GetAgentUsersRequest) {
+    return this.retailService.listAgents(payload);
+  }
 
-    // Get Commission Profiles
+  // Get Commission Profiles
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'getCommissionProfiles')
-  getCommissionProfiles(data: GetCommissionsRequest): CommonResponseArray | any {
+  getCommissionProfiles(
+    data: GetCommissionsRequest,
+  ): CommonResponseArray | any {
     try {
       console.log('getCommissionProfiles');
       console.log(data);
@@ -42,40 +72,34 @@ export class RetailController {
     }
   }
 
-   // Get Single Commission Profiles
-   @GrpcMethod(IDENTITY_SERVICE_NAME, 'getCommissionProfile')
-   getCommissionProfile(data: SingleItemRequest): CommonResponseObj | any {
-     try {
-       console.log('getCommissionProfiles');
-       console.log(data);
-       return this.commissionService.getCommissionProfile(data);
-     } catch (error) {
-       console.error(error.message);
-     }
-   }
+  // Get Single Commission Profiles
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'getCommissionProfile')
+  getCommissionProfile(data: SingleItemRequest): CommonResponseObj | any {
+    try {
+      console.log('getCommissionProfiles');
+      console.log(data);
+      return this.commissionService.getCommissionProfile(data);
+    } catch (error) {
+      console.error(error.message);
+    }
+  }
 
   // Create Commission Profile
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'createCommissionProfile')
-  createCommissionProfile(
-    data: CommissionProfile,
-  ): CommonResponseObj | any {
+  createCommissionProfile(data: CommissionProfile): CommonResponseObj | any {
     // console.log(data);
     return this.commissionService.createCommissionProfile(data);
   }
 
   // Update Commission Profile
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'updateCommissionProfile')
-  updateCommissionProfile(
-    data: CommissionProfile,
-  ): CommonResponseObj | any {
+  updateCommissionProfile(data: CommissionProfile): CommonResponseObj | any {
     console.log(data);
     return this.commissionService.updateCommissionProfile(data);
   }
 
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'deleteCommissionProfile')
-  deleteCommissionProfile(
-    data: SingleItemRequest,
-  ): CommonResponseObj | any {
+  deleteCommissionProfile(data: SingleItemRequest): CommonResponseObj | any {
     console.log(data);
     return this.commissionService.deleteCommissionProfile(data.itemId);
   }
@@ -173,17 +197,20 @@ export class RetailController {
 
   // Calculate Commission on Ticket
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'calculateCommission')
-  async calcualateCommission(data: CalculateCommissionRequest): Promise<CommonResponseObj | any> {
+  async calcualateCommission(
+    data: CalculateCommissionRequest,
+  ): Promise<CommonResponseObj | any> {
     // console.log(data);
-    const commission = await this.commissionService.calculateCommissionOnTicket(data);
+    const commission =
+      await this.commissionService.calculateCommissionOnTicket(data);
     return {
       success: true,
       status: HttpStatus.OK,
       message: 'commission calculated succesfully',
       data: {
-        commission
-      }
-    }
+        commission,
+      },
+    };
   }
 
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'payoutCommission')
@@ -204,5 +231,4 @@ export class RetailController {
     // console.log(data);
     return this.retailService.networkSalesReport(data);
   }
-    
 }
