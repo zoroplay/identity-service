@@ -22,9 +22,7 @@ import {
   ValidateClientResponse,
   ValidateResponse,
   ChangeUserTypeStatusRequest,
-  XpressLoginRequest,
-  GetUsersTypeRequest,
-  GetUsersTypeResponse,
+  XpressLoginRequest
 } from '../proto/identity.pb';
 import { AuthService } from './service/auth.service';
 import { SettingsService } from 'src/client/settings/settings.service';
@@ -54,11 +52,6 @@ export class AuthController {
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'UpdateUserDetails')
   UpdateUserDetails(payload: UpdateUserRequest): Promise<any> {
     return this.authService.updateUserDetails(payload);
-  }
-
-  @GrpcMethod(IDENTITY_SERVICE_NAME, 'GetUsers')
-  GetUsers(payload: GetUsersTypeRequest) {
-    return this.authService.getUsers(payload);
   }
 
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'ChangeUserTypeStatus')

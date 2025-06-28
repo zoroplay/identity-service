@@ -27,8 +27,6 @@ import {
   ValidateResponse,
   XpressLoginRequest,
   XpressLoginResponse,
-  GetUsersTypeRequest,
-  GetUsersTypeResponse,
 } from 'src/proto/identity.pb';
 import { TrackierService } from 'src/user/trackier/trackier.service';
 import { WalletService } from 'src/wallet/wallet.service';
@@ -289,7 +287,7 @@ export class AuthService {
       // update last login
       await this.prisma.user.update({
         data: {
-          lastLogin: dayjs().format('YYYY-MM-DD'),
+          lastLogin: dayjs().format('YYYY-MM-DD HH:mm:ss'),
           auth_code,
         },
         where: {
@@ -450,96 +448,6 @@ export class AuthService {
         status: 501,
         message: 'Internal error ' + e.message,
         data: null,
-      };
-    }
-  }
-
-  //  get users by type ==> ("pending", "active", "inactive", "locked", "frozen")
-  async getUsers({
-    userType,
-    page,
-    perPage = 50,
-    search,
-  }: GetUsersTypeRequest) {
-    try {
-      const where: any = {
-        clientId: 1, // Assuming clientId is always 1 for this example
-      };
-
-      if (userType) {
-        if (userType === 'pending') {
-          where.status = 0;
-        } else if (userType === 'active') {
-          where.status = 1;
-        } else if (userType === 'inactive') {
-          where.status = 2;
-        } else if (userType === 'frozen') {
-          where.status = 3;
-        } else if (userType === 'locked') {
-          where.status = 4;
-        }
-      }
-
-      if (search) {
-        where.OR = [
-          { username: { contains: search, mode: 'insensitive' } },
-          {
-            userDetails: {
-              firstName: { contains: search, mode: 'insensitive' },
-            },
-          },
-          {
-            userDetails: {
-              lastName: { contains: search, mode: 'insensitive' },
-            },
-          },
-        ];
-      }
-
-      const users = await this.prisma.user.findMany({
-        where,
-        include: { userDetails: true, role: true },
-        skip: (page - 1) * perPage,
-        take: perPage,
-      });
-
-      const totalUsers = await this.prisma.user.count({ where });
-      const totalPages = Math.ceil(totalUsers / perPage);
-
-      const mappedUsers = users.map((user) => ({
-        id: user.id,
-        username: user.username,
-        firstName: user.userDetails?.firstName || '',
-        lastName: user.userDetails?.lastName || '',
-        email: user.userDetails?.email || '',
-        phone: user.userDetails?.phone || '',
-        gender: user.userDetails?.gender || '',
-        dateOfBirth: user.userDetails?.date_of_birth || '',
-        country: user.userDetails?.country || '',
-        city: user.userDetails?.city || '',
-        address: user.userDetails?.address || '',
-        currency: user.userDetails?.currency || '',
-        role: user.role?.name || '',
-        roleId: user.role?.id || 0,
-        status: user.status,
-        registered: user.createdAt,
-      }));
-
-      return {
-        status: HttpStatus.OK,
-        success: true,
-        message: 'Users fetched successfully',
-        data: mappedUsers,
-        totalUsers: totalUsers,
-        totalPages: totalPages,
-      };
-    } catch (error) {
-      return {
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        success: false,
-        message: 'An error occurred while fetching users',
-        totalUsers: 0,
-        totalPages: 0,
       };
     }
   }

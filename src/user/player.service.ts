@@ -920,10 +920,11 @@ export class PlayerService {
     username,
     country,
     state,
-    source,
+    type,
     page,
     limit,
-  }: OnlinePlayersRequest): Promise<PlayersListResponse> {
+  }: OnlinePlayersRequest
+): Promise<PlayersListResponse> {
     const perPage = limit || 100;
     const currentPage = page || 1;
     let total = 0,
@@ -931,13 +932,38 @@ export class PlayerService {
       to = perPage,
       last_page = 0;
     let data = [];
+    let status;
 
     // get player role
     const role = await this.prisma.role.findFirst({
       where: { name: 'Player' },
     });
+    
+    const where: any = {
+      roleId: role.id, // Assuming clientId is always 1 for this example
+    };
+
+    if (type) {
+      if (type === 'pending') {
+        status = 0;
+      } else if (type === 'active') {
+        status = 1;
+      } else if (type === 'inactive') {
+        status = 2;
+      } else if (type === 'frozen') {
+        status = 3;
+      } else if (type === 'locked') {
+        status = 4;
+      }
+      where.status = status;
+    }
+
+    if (username && username !== '') {
+      where.username = { contains: username, mode: 'insensitive' }
+    }
+
     total = await this.prisma.user.count({
-      where: { roleId: role.id },
+      where,
     });
 
     if (total <= perPage) {
@@ -981,13 +1007,20 @@ export class PlayerService {
       offset = off;
     }
 
-    console.log(offset, 'offset');
-
     let sql = `SELECT u.id, u.username, u.code, u.created_at, u.status, u.verified,
     d.email, d.phone, d.firstName, d.lastName, d.country, d.currency, u.last_login
     FROM users u 
     LEFT JOIN user_details d ON u.id = d.user_id
-    WHERE u.clientId = ${clientId} AND u.role_id = ${role.id} LIMIT ${offset},${perPage}`;
+    WHERE u.clientId = ${clientId} AND u.role_id = ${role.id}`;
+
+    if (status) {
+      sql += ` AND u.status = ${status}`;
+    }
+
+    if (username && username !== '')
+      sql += ` AND LOWER(u.username) LIKE %${username.toLowerCase()}%`
+
+    sql += ` LIMIT ${offset},${perPage}`;
 
     const users: any = await this.prisma.$queryRawUnsafe(sql);
     if (users.length > 0) {
@@ -1014,7 +1047,7 @@ export class PlayerService {
           lastLogin: user.last_login,
         };
         //get user wallet
-        const balanceRes = await this.goWalletService.getWallet({
+        const balanceRes = await this.walletService.getWallet({
           userId: user.id,
           clientId,
         });
