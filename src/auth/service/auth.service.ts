@@ -35,7 +35,6 @@ import {
 import { JwtService } from './jwt.service';
 import { GoWalletService } from 'src/go-wallet/go-wallet.service';
 
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -104,8 +103,6 @@ export class AuthService {
         clientId,
         bonusType: 'registration',
       });
-
-      
 
       if (regBonus.success && regBonus.data.status === 1) {
         console.log('regBonus', regBonus);
@@ -224,7 +221,7 @@ export class AuthService {
     clientId,
     username,
     password,
-    source
+    source,
   }: LoginRequestDto): Promise<LoginResponse> {
     try {
       const user = await this.prisma.user.findFirst({
@@ -240,7 +237,6 @@ export class AuthService {
           },
         },
       });
-
 
       if (!user) {
         return {
@@ -379,7 +375,7 @@ export class AuthService {
           },
         },
       });
-      
+
       if (user) {
         const auth: any = { ...user };
 
@@ -405,7 +401,6 @@ export class AuthService {
             auth.virtualBonusBalance = virtualBonusBalance;
             auth.trustBalance = trustBalance;
           }
-
         }
 
         // console.log('user-deets', user);
@@ -417,7 +412,6 @@ export class AuthService {
           group = `${user.client.groupName}_${user.agentUser.agent.username}`;
         }
 
-        
         auth.token = this.jwtService.generateToken(auth);
         auth.firstName = user.userDetails.firstName;
         auth.lastName = user.userDetails.lastName;
@@ -573,6 +567,14 @@ export class AuthService {
         return { message: 'Incorrect old password', success: false };
       }
 
+      // check if new password is same as old password
+      if (param.oldPassword === param.password) {
+        return {
+          success: false,
+          message: 'New password cannot be the same as old password',
+        };
+      }
+
       await this.prisma.user.update({
         where: { id: param.userId },
         data: {
@@ -585,9 +587,7 @@ export class AuthService {
     }
   }
 
-  async resetPassword(
-    param: ResetPasswordRequest,
-  ): Promise<CommonResponseObj> {
+  async resetPassword(param: ResetPasswordRequest): Promise<CommonResponseObj> {
     try {
       //get user and compare password
       const user = await this.prisma.user.findFirst({
