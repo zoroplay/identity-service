@@ -1,3 +1,5 @@
+import { HttpStatus } from "@nestjs/common";
+
 /* eslint-disable prettier/prettier */
 export interface SuccessResponse {
   status: true;

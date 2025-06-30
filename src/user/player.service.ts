@@ -1047,7 +1047,7 @@ export class PlayerService {
           lastLogin: user.last_login,
         };
         //get user wallet
-        const balanceRes = await this.walletService.getWallet({
+        const balanceRes = await this.goWalletService.getWallet({
           userId: user.id,
           clientId,
         });

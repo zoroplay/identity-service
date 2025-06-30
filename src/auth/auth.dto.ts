@@ -10,6 +10,8 @@ export class LoginRequestDto {
 
     @IsString()
     public readonly password: string;
+
+    public readonly source: string;
 }
 
 export class RegisterRequestDto implements CreateUserRequest {

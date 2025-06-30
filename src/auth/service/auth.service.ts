@@ -19,9 +19,6 @@ import {
   ResetPasswordRequest,
   SessionRequest,
   UpdateUserRequest,
-  UpdateUserResponse,
-  UserInfo,
-  UsersResponse,
   ValidateClientResponse,
   ValidateGroupCodeResponse,
   ValidateResponse,
@@ -37,8 +34,7 @@ import {
 } from '../auth.dto';
 import { JwtService } from './jwt.service';
 import { GoWalletService } from 'src/go-wallet/go-wallet.service';
-import { register } from 'module';
-import { group } from 'console';
+
 
 @Injectable()
 export class AuthService {
@@ -228,6 +224,7 @@ export class AuthService {
     clientId,
     username,
     password,
+    source
   }: LoginRequestDto): Promise<LoginResponse> {
     try {
       const user = await this.prisma.user.findFirst({
@@ -244,6 +241,7 @@ export class AuthService {
         },
       });
 
+
       if (!user) {
         return {
           status: HttpStatus.NOT_FOUND,
@@ -252,6 +250,14 @@ export class AuthService {
           data: null,
         };
       }
+
+      if (source === 'admin' && user.role.type !== 'admin')
+        return {
+          status: HttpStatus.NOT_FOUND,
+          error: 'Unauthorized access',
+          success: false,
+          data: null,
+        };
 
       const isPasswordValid: boolean = this.jwtService.isPasswordValid(
         password,
@@ -278,6 +284,7 @@ export class AuthService {
       const auth: any = { ...user };
       const auth_code = generateString(40);
       let group;
+
       if (user.role.name === 'Player') {
         group = `${user.client.groupName}_Online`;
       } else if (user.role.name === 'Cashier') {
@@ -295,32 +302,34 @@ export class AuthService {
         },
       });
 
-      //get user wallet
-      const balanceRes = await this.goWalletService.getWallet({
-        userId: user.id,
-        clientId,
-      });
+      if (user.role.type !== 'admin') {
+        //get user wallet
+        const balanceRes = await this.goWalletService.getWallet({
+          userId: user.id,
+          clientId,
+        });
 
-      // const balanceRes = await this.walletService.getWallet({
-      //   userId: user.id,
-      //   clientId,
-      // });
+        // const balanceRes = await this.walletService.getWallet({
+        //   userId: user.id,
+        //   clientId,
+        // });
 
-      if (balanceRes.success) {
-        const {
-          balance,
-          availableBalance,
-          sportBonusBalance,
-          casinoBonusBalance,
-          virtualBonusBalance,
-          trustBalance,
-        } = balanceRes.data;
-        auth.balance = balance;
-        auth.availableBalance = availableBalance;
-        auth.sportBonusBalance = sportBonusBalance;
-        auth.casinoBonusBalance = casinoBonusBalance;
-        auth.virtualBonusBalance = virtualBonusBalance;
-        auth.trustBalance = trustBalance;
+        if (balanceRes.success) {
+          const {
+            balance,
+            availableBalance,
+            sportBonusBalance,
+            casinoBonusBalance,
+            virtualBonusBalance,
+            trustBalance,
+          } = balanceRes.data;
+          auth.balance = balance;
+          auth.availableBalance = availableBalance;
+          auth.sportBonusBalance = sportBonusBalance;
+          auth.casinoBonusBalance = casinoBonusBalance;
+          auth.virtualBonusBalance = virtualBonusBalance;
+          auth.trustBalance = trustBalance;
+        }
       }
 
       auth.token = this.jwtService.generateToken(auth);
@@ -370,15 +379,37 @@ export class AuthService {
           },
         },
       });
+      
       if (user) {
-        const balanceRes = await this.goWalletService.getWallet({
-          userId: user.id,
-          clientId,
-        });
-
-        console.log('user-deets', user);
-
         const auth: any = { ...user };
+
+        if (user.role.type !== 'admin') {
+          const balanceRes = await this.goWalletService.getWallet({
+            userId: user.id,
+            clientId,
+          });
+
+          if (balanceRes.success) {
+            const {
+              balance,
+              availableBalance,
+              sportBonusBalance,
+              casinoBonusBalance,
+              virtualBonusBalance,
+              trustBalance,
+            } = balanceRes.data;
+            auth.balance = balance;
+            auth.availableBalance = availableBalance;
+            auth.sportBonusBalance = sportBonusBalance;
+            auth.casinoBonusBalance = casinoBonusBalance;
+            auth.virtualBonusBalance = virtualBonusBalance;
+            auth.trustBalance = trustBalance;
+          }
+
+        }
+
+        // console.log('user-deets', user);
+
         let group;
         if (user.role.name === 'Player') {
           group = `${user.client.groupName}_Online`;
@@ -386,23 +417,7 @@ export class AuthService {
           group = `${user.client.groupName}_${user.agentUser.agent.username}`;
         }
 
-        if (balanceRes.success) {
-          const {
-            balance,
-            availableBalance,
-            sportBonusBalance,
-            casinoBonusBalance,
-            virtualBonusBalance,
-            trustBalance,
-          } = balanceRes.data;
-          auth.balance = balance;
-          auth.availableBalance = availableBalance;
-          auth.sportBonusBalance = sportBonusBalance;
-          auth.casinoBonusBalance = casinoBonusBalance;
-          auth.virtualBonusBalance = virtualBonusBalance;
-          auth.trustBalance = trustBalance;
-        }
-
+        
         auth.token = this.jwtService.generateToken(auth);
         auth.firstName = user.userDetails.firstName;
         auth.lastName = user.userDetails.lastName;
@@ -424,7 +439,7 @@ export class AuthService {
 
         delete auth.password;
 
-        console.log('auth-deets', auth);
+        // console.log('auth-deets', auth);
 
         return {
           success: true,
@@ -510,7 +525,7 @@ export class AuthService {
 
   async updateUserDetails(
     param: UpdateUserRequest,
-  ): Promise<UpdateUserResponse> {
+  ): Promise<CommonResponseObj> {
     try {
       await this.prisma.userDetails.update({
         where: { userId: param.userId },
@@ -541,7 +556,7 @@ export class AuthService {
 
   async updateUserPassword(
     param: ChangePasswordRequest,
-  ): Promise<UpdateUserResponse> {
+  ): Promise<CommonResponseObj> {
     try {
       //get user and compare password
       const user = await this.prisma.user.findUnique({
@@ -572,7 +587,7 @@ export class AuthService {
 
   async resetPassword(
     param: ResetPasswordRequest,
-  ): Promise<UpdateUserResponse> {
+  ): Promise<CommonResponseObj> {
     try {
       //get user and compare password
       const user = await this.prisma.user.findFirst({
@@ -950,7 +965,7 @@ export class AuthService {
     };
   }
 
-  async clientUsers(clientId: number): Promise<UsersResponse> {
+  async clientUsers(clientId: number): Promise<CommonResponseObj> {
     try {
       const user = await this.prisma.user.findMany({
         where: {
@@ -967,14 +982,14 @@ export class AuthService {
       }));
 
       return {
-        userInfos: userInfos,
+        data: userInfos,
         status: HttpStatus.OK,
         success: true,
         message: 'User fetched',
       };
     } catch (error) {
       return {
-        userInfos: [],
+        data: {},
         status: HttpStatus.INTERNAL_SERVER_ERROR,
         success: false,
         message: 'An error occured',

@@ -7,7 +7,7 @@ export interface RolePermissionDto {
 export class CreateRoleDto {
   name: string;
   description: string;
-  roleType: string;
+  type: string;
   roleID?: number;
   permissionsIds?: RolePermissionDto[];
 }

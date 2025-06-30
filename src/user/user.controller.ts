@@ -23,6 +23,7 @@ import {
   RegistrationReportRequest,
   SaveSegmentRequest,
   SearchPlayerRequest,
+  UpdateUserRequest,
   UploadPlayersToSegment,
 } from 'src/proto/identity.pb';
 import { PlayerService } from './player.service';
@@ -49,18 +50,18 @@ export class UserController {
     return this.playerService.fetchPlayerFilter(FetchPlayerFilterDto);
   }
 
-  @GrpcMethod(IDENTITY_SERVICE_NAME, 'CreateAdmin')
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'CreateAdminUser')
   CreateAdmin(createUserDto: CreateUserRequest) {
     return this.userService.saveAdminUser(createUserDto);
   }
 
-  @GrpcMethod(IDENTITY_SERVICE_NAME, 'GetAdmins')
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'GetAdminUsers')
   GetAdminUser(data) {
     return this.userService.getAdminUsers(data);
   }
 
-  @GrpcMethod(IDENTITY_SERVICE_NAME, 'updateDetails')
-  updateDetails(createUserDto: UserDetailsDto) {
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'UpdateDetails')
+  updateDetails(createUserDto: UpdateUserRequest) {
     return this.userService.updateDetails(createUserDto);
   }
 

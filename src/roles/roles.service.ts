@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
@@ -7,6 +7,7 @@ import {
   handleError,
   handleResponse,
 } from '../common/helpers';
+import { CommonResponseArray } from 'src/proto/identity.pb';
 
 @Injectable()
 export class RolesService {
@@ -20,25 +21,35 @@ export class RolesService {
   async create(data: CreateRoleDto): Promise<SuccessResponse | ErrorResponse> {
     try {
       // Validate incoming data
-      const { name, description, roleType } = data;
+      const { name, description, type } = data;
 
       const isName = name.trim().length > 0;
       const isDescription = description.trim().length > 0;
-      const isRoleType = roleType.trim().length > 0;
+      const isRoleType = type.trim().length > 0;
 
       const isValidated = isName && isDescription && isRoleType;
-      if (isValidated) {
+
+      if (!isValidated) {
         return handleError(
-          'Name, description, and roleType are required',
+          'Name, description, and Role Type are required',
           null,
         );
       }
 
-      if (data.roleID) {
-        return this.updateRole(data);
-      } else {
-        return this.createNewRole(data);
-      }
+      const role = await this.prisma.role.upsert({
+        where: { id: Number(data.roleID) },
+        create: {
+          name: data.name.trim(),
+          description: data.description.trim(),
+          type: data.type,
+        },
+        update: {
+          name: data.name.trim(),
+          description: data.description.trim(),
+          type: data.type,
+        }
+      });
+      return handleResponse(role, 'Role saved successfully');
     } catch (error) {
       console.error('Role operation failed:', error);
       return handleError('Failed to process role operation', error);
@@ -48,7 +59,7 @@ export class RolesService {
   /**
    * Retrieves all roles with their permissions
    */
-  async findAll(): Promise<SuccessResponse | ErrorResponse> {
+  async findAll(): Promise<CommonResponseArray> {
     try {
       const roles = await this.prisma.role.findMany({
         include: {
@@ -59,10 +70,20 @@ export class RolesService {
           },
         },
       });
-      return handleResponse(roles, 'Roles fetched successfully');
+      return {
+        success: false,
+        status: HttpStatus.OK,
+        message: "Roles fetched successfully",
+        data: roles,
+      };
     } catch (error) {
       console.error('Failed to fetch roles:', error);
-      return handleError('Failed to fetch roles', error);
+      return {
+        success: false,
+        status: HttpStatus.OK,
+        message: "Failed to fetch roles",
+        data: [],
+      };
     }
   }
 
@@ -156,69 +177,6 @@ export class RolesService {
     } catch (error) {
       console.error('Role deletion failed:', error);
       return handleError('Failed to delete role', error);
-    }
-  }
-
-  // Private helper methods
-  private async updateRole(
-    data: CreateRoleDto,
-  ): Promise<SuccessResponse | ErrorResponse> {
-    const existingRole = await this.prisma.role.findUnique({
-      where: { id: Number(data.roleID) },
-    });
-
-    if (!existingRole) {
-      return handleError(`Role with ID ${data.roleID} not found`, null);
-    }
-
-    try {
-      const role = await this.prisma.role.update({
-        where: { id: Number(data.roleID) },
-        data: {
-          name: data.name.trim(),
-          description: data.description.trim(),
-          type: data.roleType,
-        },
-      });
-      return handleResponse(role, 'Role updated successfully');
-    } catch (updateError) {
-      if (updateError.code === 'P2002') {
-        return handleError('A role with this name already exists', updateError);
-      }
-      throw updateError;
-    }
-  }
-
-  private async createNewRole(
-    data: CreateRoleDto,
-  ): Promise<SuccessResponse | ErrorResponse> {
-    try {
-      const role = await this.prisma.role.create({
-        data: {
-          name: data.name.trim(),
-          description: data.description.trim(),
-          type: data.roleType,
-          role_permissions: {
-            create:
-              data.permissionsIds?.map((permission) => ({
-                permissionID: Number(permission.id),
-              })) || [],
-          },
-        },
-        include: {
-          role_permissions: {
-            include: {
-              permission: true,
-            },
-          },
-        },
-      });
-      return handleResponse(role, 'Role created successfully');
-    } catch (createError) {
-      if (createError.code === 'P2002') {
-        return handleError('A role with this name already exists', createError);
-      }
-      throw createError;
     }
   }
 }

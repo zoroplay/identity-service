@@ -9,6 +9,7 @@ import { handleError, handleResponse } from 'src/common/helpers';
 @Injectable()
 export class PermissionService {
   constructor(private prisma: PrismaService) {}
+
   async assignPermissions(data: AssignPermissionDto) {
     try {
       const { roleID, permissionIDs } = data;
@@ -88,12 +89,15 @@ export class PermissionService {
 
   async create(data: CreatePermissionDto) {
     try {
+
       const validationError = this.validatePermissionData(data);
+
       if (validationError) {
         return handleError(validationError, null);
       }
 
       const existingPermission = await this.checkExistingPermission(data);
+
       if (existingPermission) {
         return handleError(
           `Permission with name ${data.name} already exists`,
@@ -106,11 +110,7 @@ export class PermissionService {
         : await this.createPermission(data);
 
       return handleResponse(
-        {
-          permissionID: permission.id,
-          permissionName: permission.name,
-          permissionDescription: permission.description,
-        },
+        permission,
         `Permission ${data.permissionID ? 'updated' : 'created'} successfully`,
       );
     } catch (error) {
@@ -129,7 +129,7 @@ export class PermissionService {
   }
 
   private validatePermissionData(data: CreatePermissionDto): string | null {
-    if (!data.name?.trim() || !data.description?.trim()) {
+    if (!data.name?.trim()) {
       return 'Name and description are required and cannot be empty';
     }
     return null;
@@ -149,7 +149,7 @@ export class PermissionService {
       where: { id: Number(data.permissionID) },
       data: {
         name: data.name.trim(),
-        description: data.description.trim(),
+        description: "", //data.description.trim() || '',
       },
     });
   }
@@ -158,7 +158,7 @@ export class PermissionService {
     return await this.prisma.permission.create({
       data: {
         name: data.name.trim(),
-        description: data.description.trim(),
+        description: data?.description?.trim(),
       },
     });
   }
@@ -166,13 +166,13 @@ export class PermissionService {
     try {
       // Fetch all permissions
       const permissions = await this.prisma.permission.findMany({
-        include: {
-          RolePermission: {
-            include: {
-              role: true,
-            },
-          },
-        },
+        // include: {
+        //   RolePermission: {
+        //     include: {
+        //       role: true,
+        //     },
+        //   },
+        // },
       });
 
       // Transform the dates to ISO strings and format the response
@@ -180,15 +180,15 @@ export class PermissionService {
         ...permission,
         createdAt: permission.createdAt.toISOString(),
         updatedAt: permission.updatedAt.toISOString(),
-        RolePermission: permission.RolePermission.map((rp) => ({
-          ...rp,
-          createdAt: rp.createdAt.toISOString(),
-          role: {
-            ...rp.role,
-            createdAt: rp.role.createdAt.toISOString(),
-            updatedAt: rp.role.updatedAt.toISOString(),
-          },
-        })),
+        // RolePermission: permission.RolePermission.map((rp) => ({
+        //   ...rp,
+        //   createdAt: rp.createdAt.toISOString(),
+        //   role: {
+        //     ...rp.role,
+        //     createdAt: rp.role.createdAt.toISOString(),
+        //     updatedAt: rp.role.updatedAt.toISOString(),
+        //   },
+        // })),
       }));
 
       return handleResponse(

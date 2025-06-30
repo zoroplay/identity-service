@@ -6,15 +6,6 @@ import { Struct } from "./google/protobuf/struct.pb";
 
 export const protobufPackage = "identity";
 
-export interface ClientIdRequest {
-  clientId: number;
-}
-
-export interface FindOneRequest {
-  clientId: number;
-  id: number;
-}
-
 export interface BasicUser {
   id: number;
   username: string;
@@ -22,11 +13,13 @@ export interface BasicUser {
   clientId: number;
 }
 
-export interface UsersResponse {
-  userInfos: BasicUser[];
-  message: string;
-  success: boolean;
-  status: number;
+export interface ClientIdRequest {
+  clientId: number;
+}
+
+export interface FindOneRequest {
+  clientId: number;
+  id: number;
 }
 
 /** Additional Audit Info */
@@ -759,6 +752,9 @@ export interface User {
   currency: string;
   phone: string;
   roleId: string;
+  username: string;
+  address: string;
+  state: string;
 }
 
 export interface RegisterResponse {
@@ -795,14 +791,26 @@ export interface GetUserDetailsResponse {
   data: UserData | undefined;
 }
 
-export interface UpdateUserResponse {
+/** Validate */
+export interface ValidateRequest {
+  token: string;
+}
+
+export interface ValidateTestRequest {
+  accountId: number;
+}
+
+export interface ValidateTestResponse {
+  isTest: boolean;
+  status: number;
   success: boolean;
   message: string;
 }
 
-/** Validate */
-export interface ValidateRequest {
-  token: string;
+export interface ListTestAccountsRequest {
+  clientId: number;
+  page?: number | undefined;
+  PerPage?: number | undefined;
 }
 
 export interface ValidateResponse {
@@ -857,7 +865,7 @@ export interface RemovePermissionRequest {
 export interface RoleRequest {
   name: string;
   description?: string | undefined;
-  roleType: string;
+  type: string;
   roleID?: string | undefined;
 }
 
@@ -883,7 +891,7 @@ export interface Role {
   id: number;
   name: string;
   description: string;
-  roleType: string;
+  type: string;
 }
 
 export interface PermissionRequest {
@@ -939,16 +947,6 @@ export interface CommonResponseObj {
   message: string;
   data?: { [key: string]: any } | undefined;
   errors?: string | undefined;
-}
-
-export interface DeleteResponse {
-  status: boolean;
-  message: string;
-}
-
-export interface GetUsersResponse {
-  status: boolean;
-  message: string;
 }
 
 export interface ClientData {
@@ -1210,6 +1208,10 @@ export interface IdentityServiceClient {
 
   validateClient(request: ValidateRequest): Observable<ValidateClientResponse>;
 
+  listTestAccount(request: ListTestAccountsRequest): Observable<CommonResponseObj>;
+
+  toggleAccount(request: ValidateTestRequest): Observable<ValidateTestResponse>;
+
   getUserDetails(request: GetUserDetailsRequest): Observable<GetUserDetailsResponse>;
 
   createClient(request: ClientRequest): Observable<CommonResponseObj>;
@@ -1222,11 +1224,11 @@ export interface IdentityServiceClient {
 
   saveRole(request: RoleRequest): Observable<SaveRoleResponse>;
 
-  getRoles(request: EmptyRequest): Observable<GetRolesResponse>;
+  getRoles(request: EmptyRequest): Observable<CommonResponseArray>;
 
   getAgencyRoles(request: EmptyRequest): Observable<GetRolesResponse>;
 
-  removeRole(request: RemoveRoleRequest): Observable<DeleteResponse>;
+  removeRole(request: RemoveRoleRequest): Observable<CommonResponseObj>;
 
   findAllPermissions(request: EmptyRequest): Observable<CommonResponseArray>;
 
@@ -1236,15 +1238,15 @@ export interface IdentityServiceClient {
 
   removePermission(request: RemovePermissionRequest): Observable<CommonResponseObj>;
 
-  updateDetails(request: User): Observable<CommonResponseObj>;
+  updateDetails(request: UpdateUserRequest): Observable<CommonResponseObj>;
 
   createRetailUser(request: CreateUserRequest): Observable<CommonResponseObj>;
 
-  updateRetailUser(request: UpdateUserRequest): Observable<UpdateUserResponse>;
+  updateRetailUser(request: UpdateUserRequest): Observable<CommonResponseObj>;
 
   createAdminUser(request: CreateUserRequest): Observable<CommonResponseObj>;
 
-  getAdminUsers(request: EmptyRequest): Observable<GetUsersResponse>;
+  getAdminUsers(request: ClientIdRequest): Observable<CommonResponseArray>;
 
   changeUserTypeStatus(request: ChangeUserTypeStatusRequest): Observable<CommonResponseObj>;
 
@@ -1254,7 +1256,7 @@ export interface IdentityServiceClient {
 
   searchPlayers(request: SearchPlayerRequest): Observable<SearchPlayerResponse>;
 
-  updateUserDetails(request: UpdateUserRequest): Observable<UpdateUserResponse>;
+  updateUserDetails(request: UpdateUserRequest): Observable<CommonResponseObj>;
 
   getUserByUsername(request: GetUserByUsernameRequest): Observable<GetUserByUsernameResponse>;
 
@@ -1266,13 +1268,13 @@ export interface IdentityServiceClient {
 
   getPlayerData(request: GetPlayerDataRequest): Observable<GetPlayerDataResponse>;
 
-  updatePlayerData(request: UpdatePlayerDataRequest): Observable<UpdateUserResponse>;
+  updatePlayerData(request: UpdatePlayerDataRequest): Observable<CommonResponseObj>;
 
   updatePlayerStatus(request: FindUserRequest): Observable<CommonResponseObj>;
 
-  changePassword(request: ChangePasswordRequest): Observable<UpdateUserResponse>;
+  changePassword(request: ChangePasswordRequest): Observable<CommonResponseObj>;
 
-  resetPassword(request: ResetPasswordRequest): Observable<UpdateUserResponse>;
+  resetPassword(request: ResetPasswordRequest): Observable<CommonResponseObj>;
 
   savePlayerSegment(request: SaveSegmentRequest): Observable<CommonResponseObj>;
 
@@ -1370,7 +1372,7 @@ export interface IdentityServiceClient {
 
   createLog(request: CreateLogRequest): Observable<CreateLogResponse>;
 
-  clintUsers(request: ClientIdRequest): Observable<UsersResponse>;
+  clintUsers(request: ClientIdRequest): Observable<CommonResponseArray>;
 
   getPlayerStatistics(request: ClientIdRequest): Observable<CommonResponseObj>;
 
@@ -1442,6 +1444,14 @@ export interface IdentityServiceController {
     request: ValidateRequest,
   ): Promise<ValidateClientResponse> | Observable<ValidateClientResponse> | ValidateClientResponse;
 
+  listTestAccount(
+    request: ListTestAccountsRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+
+  toggleAccount(
+    request: ValidateTestRequest,
+  ): Promise<ValidateTestResponse> | Observable<ValidateTestResponse> | ValidateTestResponse;
+
   getUserDetails(
     request: GetUserDetailsRequest,
   ): Promise<GetUserDetailsResponse> | Observable<GetUserDetailsResponse> | GetUserDetailsResponse;
@@ -1460,11 +1470,13 @@ export interface IdentityServiceController {
 
   saveRole(request: RoleRequest): Promise<SaveRoleResponse> | Observable<SaveRoleResponse> | SaveRoleResponse;
 
-  getRoles(request: EmptyRequest): Promise<GetRolesResponse> | Observable<GetRolesResponse> | GetRolesResponse;
+  getRoles(request: EmptyRequest): Promise<CommonResponseArray> | Observable<CommonResponseArray> | CommonResponseArray;
 
   getAgencyRoles(request: EmptyRequest): Promise<GetRolesResponse> | Observable<GetRolesResponse> | GetRolesResponse;
 
-  removeRole(request: RemoveRoleRequest): Promise<DeleteResponse> | Observable<DeleteResponse> | DeleteResponse;
+  removeRole(
+    request: RemoveRoleRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
 
   findAllPermissions(
     request: EmptyRequest,
@@ -1482,7 +1494,9 @@ export interface IdentityServiceController {
     request: RemovePermissionRequest,
   ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
 
-  updateDetails(request: User): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
+  updateDetails(
+    request: UpdateUserRequest,
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
 
   createRetailUser(
     request: CreateUserRequest,
@@ -1490,13 +1504,15 @@ export interface IdentityServiceController {
 
   updateRetailUser(
     request: UpdateUserRequest,
-  ): Promise<UpdateUserResponse> | Observable<UpdateUserResponse> | UpdateUserResponse;
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
 
   createAdminUser(
     request: CreateUserRequest,
   ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
 
-  getAdminUsers(request: EmptyRequest): Promise<GetUsersResponse> | Observable<GetUsersResponse> | GetUsersResponse;
+  getAdminUsers(
+    request: ClientIdRequest,
+  ): Promise<CommonResponseArray> | Observable<CommonResponseArray> | CommonResponseArray;
 
   changeUserTypeStatus(
     request: ChangeUserTypeStatusRequest,
@@ -1514,7 +1530,7 @@ export interface IdentityServiceController {
 
   updateUserDetails(
     request: UpdateUserRequest,
-  ): Promise<UpdateUserResponse> | Observable<UpdateUserResponse> | UpdateUserResponse;
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
 
   getUserByUsername(
     request: GetUserByUsernameRequest,
@@ -1538,7 +1554,7 @@ export interface IdentityServiceController {
 
   updatePlayerData(
     request: UpdatePlayerDataRequest,
-  ): Promise<UpdateUserResponse> | Observable<UpdateUserResponse> | UpdateUserResponse;
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
 
   updatePlayerStatus(
     request: FindUserRequest,
@@ -1546,11 +1562,11 @@ export interface IdentityServiceController {
 
   changePassword(
     request: ChangePasswordRequest,
-  ): Promise<UpdateUserResponse> | Observable<UpdateUserResponse> | UpdateUserResponse;
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
 
   resetPassword(
     request: ResetPasswordRequest,
-  ): Promise<UpdateUserResponse> | Observable<UpdateUserResponse> | UpdateUserResponse;
+  ): Promise<CommonResponseObj> | Observable<CommonResponseObj> | CommonResponseObj;
 
   savePlayerSegment(
     request: SaveSegmentRequest,
@@ -1734,7 +1750,9 @@ export interface IdentityServiceController {
 
   createLog(request: CreateLogRequest): Promise<CreateLogResponse> | Observable<CreateLogResponse> | CreateLogResponse;
 
-  clintUsers(request: ClientIdRequest): Promise<UsersResponse> | Observable<UsersResponse> | UsersResponse;
+  clintUsers(
+    request: ClientIdRequest,
+  ): Promise<CommonResponseArray> | Observable<CommonResponseArray> | CommonResponseArray;
 
   getPlayerStatistics(
     request: ClientIdRequest,
@@ -1803,6 +1821,8 @@ export function IdentityServiceControllerMethods() {
       "validate",
       "validateGroupCode",
       "validateClient",
+      "listTestAccount",
+      "toggleAccount",
       "getUserDetails",
       "createClient",
       "createPermission",
