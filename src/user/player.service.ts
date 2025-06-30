@@ -1020,7 +1020,7 @@ export class PlayerService {
     if (username && username !== '')
       sql += ` AND LOWER(u.username) LIKE %${username.toLowerCase()}%`
 
-    sql += ` LIMIT ${offset},${perPage}`;
+    sql += ` LIMIT ${offset},${perPage}`
 
     const users: any = await this.prisma.$queryRawUnsafe(sql);
     if (users.length > 0) {
@@ -1361,35 +1361,35 @@ export class PlayerService {
     try {
       const { userId, status } = data;
 
-      if (status === 3) {
-        await this.prisma.userDetails.deleteMany({ where: { userId } });
+      // if (status === 3) {
+      //   await this.prisma.userDetails.deleteMany({ where: { userId } });
 
-        await this.prisma.userBettingParameter.deleteMany({
-          where: { userId },
-        });
+      //   await this.prisma.userBettingParameter.deleteMany({
+      //     where: { userId },
+      //   });
 
-        await this.prisma.userSetting.deleteMany({ where: { userId } });
+      //   await this.prisma.userSetting.deleteMany({ where: { userId } });
 
-        await this.prisma.user.delete({ where: { id: userId } });
+      //   await this.prisma.user.delete({ where: { id: userId } });
 
-        try {
-          // delete player wallet data
-          this.walletService.deletePlayerData({ id: userId });
-          // delete player betting data
-          this.bettingService.deletePlayerData({ clientID: userId });
-          // delete player bonus data
-          this.bonusService.deletePlayerData({ clientId: userId });
-        } catch (e) {
-          console.log('an error occuered while deleting other data', e.message);
-        }
-      } else {
+      //   try {
+      //     // delete player wallet data
+      //     this.walletService.deletePlayerData({ id: userId });
+      //     // delete player betting data
+      //     this.bettingService.deletePlayerData({ clientID: userId });
+      //     // delete player bonus data
+      //     this.bonusService.deletePlayerData({ clientId: userId });
+      //   } catch (e) {
+      //     console.log('an error occuered while deleting other data', e.message);
+      //   }
+      // } else {
         await this.prisma.user.update({
           where: { id: userId },
           data: {
             status,
           },
         });
-      }
+      // }
       // if stat = 3 - terminate account
       return { success: true, message: 'Successful', data: null };
     } catch (e) {
