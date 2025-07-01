@@ -8,11 +8,10 @@ import {
 } from './auth.dto';
 import {
   ChangePasswordRequest,
-  CreateUserRequest,
+  ClientIdRequest,
   GetClientRequest,
   GetUserByUsernameRequest,
   GetUserDetailsRequest,
-  GetUserDetailsResponse,
   IDENTITY_SERVICE_NAME,
   LoginResponse,
   PlaceBetRequest,
@@ -21,9 +20,9 @@ import {
   SessionRequest,
   UpdateUserRequest,
   ValidateClientResponse,
-  ValidateGroupCodeRequest,
   ValidateResponse,
-  XpressLoginRequest,
+  ChangeUserTypeStatusRequest,
+  XpressLoginRequest
 } from '../proto/identity.pb';
 import { AuthService } from './service/auth.service';
 import { SettingsService } from 'src/client/settings/settings.service';
@@ -53,6 +52,11 @@ export class AuthController {
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'UpdateUserDetails')
   UpdateUserDetails(payload: UpdateUserRequest): Promise<any> {
     return this.authService.updateUserDetails(payload);
+  }
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'ChangeUserTypeStatus')
+  ChangeUserTypeStatus(payload: ChangeUserTypeStatusRequest): Promise<any> {
+    return this.authService.changeUserTypeStatus(payload);
   }
 
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'ChangePassword')
@@ -112,5 +116,10 @@ export class AuthController {
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'validateGroupCode')
   validateGroupCode(data: GetClientRequest) {
     return this.authService.validateGroupCode(data);
+  }
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'ClintUsers')
+  getClintUsers(data: ClientIdRequest) {
+    return this.authService.clientUsers(data.clientId);
   }
 }

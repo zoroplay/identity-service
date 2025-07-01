@@ -13,6 +13,7 @@ import {
   GetUserIdNameResponse,
   CommonResponseObj,
   FindUserRequest,
+  ClientIdRequest,
 } from 'src/proto/identity.pb';
 import { WalletService } from 'src/wallet/wallet.service';
 import * as dayjs from 'dayjs';
@@ -919,10 +920,11 @@ export class PlayerService {
     username,
     country,
     state,
-    source,
+    type,
     page,
     limit,
-  }: OnlinePlayersRequest): Promise<PlayersListResponse> {
+  }: OnlinePlayersRequest
+): Promise<PlayersListResponse> {
     const perPage = limit || 100;
     const currentPage = page || 1;
     let total = 0,
@@ -930,13 +932,38 @@ export class PlayerService {
       to = perPage,
       last_page = 0;
     let data = [];
+    let status;
 
     // get player role
     const role = await this.prisma.role.findFirst({
       where: { name: 'Player' },
     });
+    
+    const where: any = {
+      roleId: role.id, // Assuming clientId is always 1 for this example
+    };
+
+    if (type) {
+      if (type === 'pending') {
+        status = 0;
+      } else if (type === 'active') {
+        status = 1;
+      } else if (type === 'inactive') {
+        status = 2;
+      } else if (type === 'frozen') {
+        status = 3;
+      } else if (type === 'locked') {
+        status = 4;
+      }
+      where.status = status;
+    }
+
+    if (username && username !== '') {
+      where.username = { contains: username, mode: 'insensitive' }
+    }
+
     total = await this.prisma.user.count({
-      where: { roleId: role.id },
+      where,
     });
 
     if (total <= perPage) {
@@ -980,13 +1007,20 @@ export class PlayerService {
       offset = off;
     }
 
-    console.log(offset, 'offset');
-
     let sql = `SELECT u.id, u.username, u.code, u.created_at, u.status, u.verified,
     d.email, d.phone, d.firstName, d.lastName, d.country, d.currency, u.last_login
     FROM users u 
     LEFT JOIN user_details d ON u.id = d.user_id
-    WHERE u.clientId = ${clientId} AND u.role_id = ${role.id} LIMIT ${offset},${perPage}`;
+    WHERE u.clientId = ${clientId} AND u.role_id = ${role.id}`;
+
+    if (status) {
+      sql += ` AND u.status = ${status}`;
+    }
+
+    if (username && username !== '')
+      sql += ` AND LOWER(u.username) LIKE %${username.toLowerCase()}%`
+
+    sql += ` LIMIT ${offset},${perPage}`
 
     const users: any = await this.prisma.$queryRawUnsafe(sql);
     if (users.length > 0) {
@@ -1327,35 +1361,35 @@ export class PlayerService {
     try {
       const { userId, status } = data;
 
-      if (status === 3) {
-        await this.prisma.userDetails.deleteMany({ where: { userId } });
+      // if (status === 3) {
+      //   await this.prisma.userDetails.deleteMany({ where: { userId } });
 
-        await this.prisma.userBettingParameter.deleteMany({
-          where: { userId },
-        });
+      //   await this.prisma.userBettingParameter.deleteMany({
+      //     where: { userId },
+      //   });
 
-        await this.prisma.userSetting.deleteMany({ where: { userId } });
+      //   await this.prisma.userSetting.deleteMany({ where: { userId } });
 
-        await this.prisma.user.delete({ where: { id: userId } });
+      //   await this.prisma.user.delete({ where: { id: userId } });
 
-        try {
-          // delete player wallet data
-          this.walletService.deletePlayerData({ id: userId });
-          // delete player betting data
-          this.bettingService.deletePlayerData({ clientID: userId });
-          // delete player bonus data
-          this.bonusService.deletePlayerData({ clientId: userId });
-        } catch (e) {
-          console.log('an error occuered while deleting other data', e.message);
-        }
-      } else {
+      //   try {
+      //     // delete player wallet data
+      //     this.walletService.deletePlayerData({ id: userId });
+      //     // delete player betting data
+      //     this.bettingService.deletePlayerData({ clientID: userId });
+      //     // delete player bonus data
+      //     this.bonusService.deletePlayerData({ clientId: userId });
+      //   } catch (e) {
+      //     console.log('an error occuered while deleting other data', e.message);
+      //   }
+      // } else {
         await this.prisma.user.update({
           where: { id: userId },
           data: {
             status,
           },
         });
-      }
+      // }
       // if stat = 3 - terminate account
       return { success: true, message: 'Successful', data: null };
     } catch (e) {
@@ -1363,4 +1397,72 @@ export class PlayerService {
       return { success: false, message: 'Unable to complete request.' };
     }
   }
+
+  async getPlayerStatistics(payload: ClientIdRequest): Promise<CommonResponseObj> {
+  try {
+
+    const { clientId } = payload;
+    // Get player role
+    const role = await this.prisma.role.findFirst({
+      where: { name: 'Player' },
+    });
+
+    if (!role) {
+      throw new Error('Player role not found');
+    }
+
+    // Get current date in YYYY-MM-DD format
+    const now = new Date();
+    const today = now.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+    
+    // Get date 3 days ago in YYYY-MM-DD format
+    const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+    const threeDaysAgoStr = threeDaysAgo.toISOString().split('T')[0];
+
+    // 1. Online players: players with last login within the same day
+    const onlinePlayers = await this.prisma.user.count({
+      where: {
+        clientId,
+        roleId: role.id,
+        lastLogin: today,
+      },
+    });
+
+    // 2. New players: players with last login within 3 days
+    const newPlayers = await this.prisma.user.count({
+      where: {
+        clientId,
+        roleId: role.id,
+        lastLogin: {
+          gte: threeDaysAgoStr,
+        },
+      },
+    });
+
+    // 3. Total players: All players in the database for this client
+    const totalPlayers = await this.prisma.user.count({
+      where: {
+        clientId,
+        roleId: role.id,
+      },
+    });
+
+    const data =  {
+      onlinePlayers,
+      newPlayers,
+      totalPlayers,
+    };
+
+    return {
+       status: 1,
+       success: true,
+       message: 'Data fetched successfully',
+       data
+    }
+  } catch (error) {
+    console.error('Error getting player statistics:', error);
+    throw new Error(`Failed to get player statistics: ${error.message}`);
+  }
+}
+
 }

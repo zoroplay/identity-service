@@ -1,3 +1,6 @@
+/* eslint-disable prettier/prettier */
+/* eslint-disable prefer-const */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable no-var */
 /* eslint-disable prettier/prettier */
@@ -34,46 +37,40 @@ export class SettingsService {
       // console.log("params", params);
        
       const data = JSON.parse(params.inputs);
-      // console.log("data", data);
       const clientId = params.clientId;
-      let logoImg = "", printLogoImg = "";
-      // Define the folder and file name for the image in Firebase
-      const folderName = 'uploads'; // Example: folder to store promotion images
-      const fileName  = `${Date.now()}_uploaded-file`;
 
-      // if(data.logo) {
-      //   if (data.logo.startsWith('data:image/png;base64,')) {
-      //     data.logo = data.logo.replace(/^data:image\/\w+;base64,/, '');
-          
-      //     console.log("data-logo", data.logo);
+    //   if(data.logo && data.print_logo) {
+    //     if (data.logo.startsWith('data:image/png;base64,')|| data.print_logo.startsWith('data:image/png;base64,')) {
+    //       data.logo = data.logo.replace(/^data:image\/\w+;base64,/, '');
+    //       data.print_logo = data.print_logo.replace(/^data:image\/\w+;base64,/, '');
+    //     }
+    //   }
 
-      //     logoImg = await this.firebaseService.uploadFileToFirebase(
-      //       folderName,
-      //       fileName,
-      //       data.logo,
-      //     );
-      //   }
-      // }
+    //   // Define the folder and file name for the image in Firebase
+    // const folderName = 'promotion'; // Example: folder to store promotion images
+    // const fileName = `${Date.now()}_uploaded-file`;
 
-      // if (data.print_logo) {
-      //   if (data.print_logo.startsWith('data:image/png;base64,')) {
-      //     data.print_logo = data.print_logo.replace(/^data:image\/\w+;base64,/, '');
+    //   console.log("data-logo", data.logo);
+    //   console.log("data-print_logo", data.print_logo);
 
-      //     console.log("data-logo", data.logo);
+    //   const logoImg = await this.firebaseService.uploadFileToFirebase(
+    //     folderName,
+    //     fileName,
+    //     data.logo,
+    //   );
 
-      //     printLogoImg = await this.firebaseService.uploadFileToFirebase(
-      //       folderName,
-      //       fileName,
-      //       data.print_logo,
-      //     );
-      //   }
-      // }
+    //   const printLogoImg = await this.firebaseService.uploadFileToFirebase(
+    //     folderName,
+    //     fileName,
+    //     data.print_logo,
+    //   );
 
-      const dataObject = { ...data, logo: logoImg, print_logo: printLogoImg };
-      console.log("dataObject", dataObject);
+    //   const dataObject = { ...data, logo: logoImg, print_logo: printLogoImg };
+    //   console.log("dataObject", dataObject);
 
-      for (const [key, value] of Object.entries(dataObject)) {
-        // console.log(`Key: ${key}, Value: ${value}`);
+
+      for (const [key, value] of Object.entries(data)) {
+        console.log(`Key: ${key}, Value: ${value}`);
         const val: any = value;
           await this.prisma.setting.upsert({
             where: {

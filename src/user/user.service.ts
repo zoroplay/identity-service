@@ -16,6 +16,7 @@ import {
   HandlePinRequest,
   HandleTransferRequest,
   SaveSegmentRequest,
+  UpdateUserRequest,
   UploadPlayersToSegment,
 } from 'src/proto/identity.pb';
 import { PlayerSegment } from '@prisma/client';
@@ -165,6 +166,7 @@ export class UserService {
       };
     }
   }
+
   async saveAdminUser(data: CreateUserRequest) {
     try {
       let [role, user] = await Promise.all([
@@ -233,68 +235,7 @@ export class UserService {
     }
   }
 
-  async register(createUserDto: LoginDto) {
-    // try {
-    //   let [role, user] = await Promise.all([
-    //     this.prisma.role.findUnique({
-    //       where: {
-    //         name: 'Player',
-    //       },
-    //     }),
-    //     this.prisma.user.findUnique({
-    //       where: {
-    //         username: createUserDto.username,
-    //       },
-    //     }),
-    //   ]);
-    //   if (!role) return handleError('The role specified does not exist', null);
-    //   if (user)
-    //     return handleError(`The User specified already exists, login`, null);
-    //   const salt = 10;
-    //   const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
-    //   user = await this.prisma.user.create({
-    //     data: {
-    //       password: hashedPassword,
-    //       username: createUserDto.username,
-    //       role: {
-    //         connect: {
-    //           id: role.id
-    //         }
-    //       },
-    //       client: {
-    //         connect: {
-    //           id: cli
-    //         }
-    //       }
-    //     },
-    //   });
-    //   // create user settings
-    //   await this.prisma.userSetting.create({
-    //     data: {
-    //       user: {
-    //         connect: {
-    //           id: user.id
-    //         }
-    //       }
-    //     }
-    //   })
-    //   // create user betting parameters
-    //   await this.prisma.userBettingParameter.create({
-    //     data: {userId: user.id}
-    //   })
-    //   // send request to trackier
-    //   if (createUserDto.promoCode) {
-    //     this.trackierService.createCustòmer(createUserDto, user);
-    //   }
-    //   delete user.password;
-    //   const token = this.jwtService.sign({id: user.id, username: user.username});
-    //   return handleResponse({ ...user, token }, 'User created successfully');
-    // } catch (error) {
-    //   return handleError(error.message, error);
-    // }
-  }
-
-  async updateDetails(updateUserDto: UserDetailsDto) {
+  async updateDetails(updateUserDto: UpdateUserRequest) {
     try {
       let [role, user] = await Promise.all([
         this.prisma.role.findUnique({
@@ -305,13 +246,14 @@ export class UserService {
 
         this.prisma.user.findUnique({
           where: {
-            id: updateUserDto.userID,
+            id: updateUserDto.userId,
           },
         }),
       ]);
 
       if (!role)
         return handleError('The role ID specified does not exist', null);
+      
       if (!user)
         return handleError(
           `The User ID specified doesn't exist, register`,
@@ -320,29 +262,18 @@ export class UserService {
       // const salt = 10;
       // const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
 
+      await this.prisma.user.update({
+        where: {id: updateUserDto.userId},
+        data: {
+          username: updateUserDto.username,
+          roleId: updateUserDto.roleId
+        }
+      })
       let user_details = await this.prisma.userDetails.findUnique({
         where: {
           userId: user.id,
         },
       });
-
-      if (!user_details) {
-        user_details = await this.prisma.userDetails.create({
-          data: {
-            ...updateUserDto,
-            user: {
-              connect: {
-                id: user.id,
-              },
-            },
-          },
-        });
-
-        return handleResponse(
-          user_details,
-          'User details updated successfully',
-        );
-      }
 
       user_details = await this.prisma.userDetails.update({
         where: {
@@ -364,29 +295,55 @@ export class UserService {
           gender: updateUserDto.gender
             ? updateUserDto.gender
             : user_details.gender,
-          phone: updateUserDto.phone ? updateUserDto.phone : user_details.phone,
+          phone: updateUserDto.phoneNumber,
           currency: updateUserDto.currency
             ? updateUserDto.currency
             : user_details.currency,
         },
       });
+      
 
-      return handleResponse(user_details, 'User details updates successfully');
+      return { 
+        data: user_details, 
+        message: 'User details updates successfully',
+        success: true,
+        statuse: HttpStatus.CREATED
+      };
     } catch (error) {
-      return handleError(error.message, error);
+      return { 
+        data: {}, 
+        message: 'Error saving details: ' + error.message,
+        success: false,
+        statuse: HttpStatus.INTERNAL_SERVER_ERROR
+      };
     }
   }
 
   async getAdminUsers({ clientId }) {
     try {
       // find admin roles
+      const roles = await this.prisma.role.findMany({where: {
+        type: 'admin'
+      }});
+
+      const roleIds = roles.map(role => role.id);
 
       const users = await this.prisma.user.findMany({
         where: {
           clientId,
-          // roleId: {in: [roles]}
+          roleId: {in: roleIds}
         },
+        include: {
+          userDetails: true,
+          role: true
+        }
       });
+      return {
+        success: true,
+        status: HttpStatus.ACCEPTED,
+        message: "Users fetched",
+        data: users
+      }
     } catch (e) {
       return handleError('Something went wrong. ' + e.message, null);
     }
@@ -652,14 +609,19 @@ export class UserService {
       };
     }
   }
+
   async getUser(payload: FindUserRequest) {
     try {
       const user = await this.prisma.user.findUnique({
         where: {
           id: payload.userId,
         },
+        include: {
+          role: true,
+          userDetails: true
+        }
       });
-      console.log(user, 'usewr');
+
       if (!user)
         return {
           status: HttpStatus.NOT_FOUND,
@@ -667,7 +629,6 @@ export class UserService {
           message: `User ${payload.userId} does not exist`,
           errors: null,
         };
-      console.log(user, 'usewr');
 
       return {
         status: HttpStatus.OK,
@@ -684,6 +645,7 @@ export class UserService {
       };
     }
   }
+  
   async getBranchDetails(payload: GetAgentUserRequest) {
     try {
       // const branch = await this.prisma.agentUser.findFirst({
@@ -714,4 +676,6 @@ export class UserService {
       };
     }
   }
+
+  
 }

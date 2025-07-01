@@ -5,6 +5,7 @@ import { UserService } from './user.service';
 import { UserDetailsDto } from './dto/create-user.dto';
 import {
   AddToSegmentRequest,
+  ClientIdRequest,
   CreateUserRequest,
   DeleteItemRequest,
   FetchPlayerFilterRequest,
@@ -22,6 +23,7 @@ import {
   RegistrationReportRequest,
   SaveSegmentRequest,
   SearchPlayerRequest,
+  UpdateUserRequest,
   UploadPlayersToSegment,
 } from 'src/proto/identity.pb';
 import { PlayerService } from './player.service';
@@ -48,18 +50,18 @@ export class UserController {
     return this.playerService.fetchPlayerFilter(FetchPlayerFilterDto);
   }
 
-  @GrpcMethod(IDENTITY_SERVICE_NAME, 'CreateAdmin')
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'CreateAdminUser')
   CreateAdmin(createUserDto: CreateUserRequest) {
     return this.userService.saveAdminUser(createUserDto);
   }
 
-  @GrpcMethod(IDENTITY_SERVICE_NAME, 'GetAdmins')
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'GetAdminUsers')
   GetAdminUser(data) {
     return this.userService.getAdminUsers(data);
   }
 
-  @GrpcMethod(IDENTITY_SERVICE_NAME, 'updateDetails')
-  updateDetails(createUserDto: UserDetailsDto) {
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'UpdateDetails')
+  updateDetails(createUserDto: UpdateUserRequest) {
     return this.userService.updateDetails(createUserDto);
   }
 
@@ -161,5 +163,10 @@ export class UserController {
   @GrpcMethod(IDENTITY_SERVICE_NAME, 'FetchPlayerLosersByBetCount')
   fetchLosersByBetCount(payload: FetchPlayerFilterRequest) {
     return this.playerService.fetchLosersByBetCount(payload, payload.page);
+  }
+
+  @GrpcMethod(IDENTITY_SERVICE_NAME, 'getPlayerStatistics')
+  getPlayerStatistics(payload: ClientIdRequest) {
+    return this.playerService.getPlayerStatistics(payload);
   }
 }

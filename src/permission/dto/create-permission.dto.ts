@@ -1,10 +1,10 @@
 export class CreatePermissionDto {
   name: string;
   description: string;
-  permissionID: number;
+  permissionID?: number;
 }
 export class AssignPermissionDto {
   roleID: number;
-  permissions: number[];
+  permissionIDs: number[];
 }
 export const PERMISSION_SERVICE = 'PermissionService';

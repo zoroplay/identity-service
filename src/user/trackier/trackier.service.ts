@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { Timeout } from '@nestjs/schedule';
 import axios from 'axios';
 import * as dayjs from 'dayjs';
 import { handleError } from 'src/common/helpers';
@@ -121,7 +120,6 @@ export class TrackierService {
     return resp.data;
   }
 
-  
   // @Timeout(10000)
   async getCustomers(clientId = 1) {
     try {
