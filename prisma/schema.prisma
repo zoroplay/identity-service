@@ -497,7 +497,7 @@ model AuditLog {
   payload        String?  @map("payload") @db.LongText
   response       String?  @map("response") @db.LongText
   ipAddress      String?  @map("ip_address")
-  userAgent      String?  @map("user_agent")
+  userAgent      String?  @map("user_agent") @db.LongText
   additionalInfo String?  @map("additional_info")
   timestamp      DateTime @default(now())
 
