@@ -53,6 +53,7 @@ export class JwtService {
 
     public async saveToken(userId: number, clientId: number, token: string) {
         try{
+            console.log('saving token', token, userId, clientId)
             // check for existing token
             const oauth = await this.prisma.oAuthAccessToken.findMany({where: {
                 userId,
@@ -69,14 +70,16 @@ export class JwtService {
                 })
             }
             // save new session
-            await this.prisma.oAuthAccessToken.create({
+            const oauthToken = await this.prisma.oAuthAccessToken.create({
                 data: {
                     userId, 
                     clientId, 
                     token,
                     revoked: false,
                     expiresAt: dayjs().add(1, 'h').toDate()
-                }})
+                }});
+
+            console.log(oauthToken);
         } catch (err) {
             console.log(err)
         }
