@@ -475,7 +475,7 @@ model OAuthAccessToken {
   userId    Int      @map("user_id")
   clientId  Int      @map("client_id")
   scopes    String?
-  token     String?
+  token     String?  @db.LongText
   revoked   Boolean  @default(false)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
